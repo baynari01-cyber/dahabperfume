@@ -45,7 +45,7 @@ export async function validateSessionToken(token: string) {
     where: { id: hashedToken },
     include: {
       employee: {
-        include: { role: { include: { permissions: true } } },
+        include: { role: true },
       },
     },
   });

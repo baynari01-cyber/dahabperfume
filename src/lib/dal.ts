@@ -1,5 +1,6 @@
 import { getCurrentSession } from './auth';
 import { redirect } from 'next/navigation';
+import { prisma } from './db';
 import 'server-only';
 
 export async function requireAuth() {
@@ -15,10 +16,18 @@ export async function requireAuth() {
 export async function requirePermission(action: string) {
   const session = await requireAuth();
   
-  const hasPermission = session.employee.role.permissions.some(p => p.action === action);
+  // In the new schema, session.employee.role isn't automatically loaded with permissions 
+  // deep nested in the auth.ts validateSessionToken (wait, auth.ts had it loaded as role.permissions, but schema changed to RolePermission).
+  // So we must fetch the permissions here dynamically to be safe.
+  const employeeRole = await prisma.role.findUnique({
+    where: { id: session.employee.roleId },
+    include: { permissions: { include: { permission: true } } }
+  });
+
+  const hasPermission = employeeRole?.permissions.some(p => p.permission.action === action);
   
   if (!hasPermission) {
-    throw new Error('Unauthorized Access'); // Next.js will catch this with error boundary
+    throw new Error(`Unauthorized Access: Missing ${action}`); // Next.js will catch this with error boundary
   }
   
   return session;

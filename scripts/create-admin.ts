@@ -9,21 +9,33 @@ const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
-  const adminRole = await prisma.role.upsert({
-    where: { name: 'Admin' },
-    update: {},
-    create: {
-      name: 'Admin',
-      permissions: {
-        create: [
-          { action: 'manage:products' },
-          { action: 'manage:orders' },
-          { action: 'pos:access' },
-          { action: 'manage:inventory' }
-        ]
-      }
-    }
-  });
+  const actions = ['manage:products', 'manage:orders', 'pos:access', 'manage:inventory', 'manage:settings'];
+  
+  for (const action of actions) {
+    await prisma.permission.upsert({
+      where: { action },
+      update: {},
+      create: { action }
+    });
+  }
+
+  const permissions = await prisma.permission.findMany();
+
+  let adminRole = await prisma.role.findUnique({ where: { name: 'Admin' } });
+  if (!adminRole) {
+    adminRole = await prisma.role.create({
+      data: { name: 'Admin' }
+    });
+  }
+
+  // Assign all permissions to Admin
+  for (const p of permissions) {
+    await prisma.rolePermission.upsert({
+      where: { roleId_permissionId: { roleId: adminRole.id, permissionId: p.id } },
+      update: {},
+      create: { roleId: adminRole.id, permissionId: p.id }
+    });
+  }
 
   const passwordHash = await argon2.hash('admin123'); // Default password, MUST be changed
 
@@ -35,6 +47,18 @@ async function main() {
       name: 'System Admin',
       passwordHash,
       roleId: adminRole.id
+    }
+  });
+
+  // Also create a GlobalPricingSettings if it doesn't exist
+  await prisma.globalPricingSettings.upsert({
+    where: { id: "1" },
+    update: {},
+    create: {
+      id: "1",
+      taxRate: 16.0,
+      currencyCode: "JOD",
+      currencySymbol: "د.أ"
     }
   });
 
