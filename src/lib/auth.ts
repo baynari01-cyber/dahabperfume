@@ -147,7 +147,11 @@ export async function getCurrentSession() {
 
   const session = await validateSessionToken(token);
   if (!session) {
-    await deleteSessionCookie();
+    try {
+      await deleteSessionCookie();
+    } catch (e) {
+      // Ignore error when called from Server Components during render phase
+    }
     return null;
   }
 
