@@ -1,46 +1,72 @@
 import React from 'react';
-import Link from 'next/link';
-import { requirePermission } from '@/lib/dal';
+import { requireAuth } from '@/lib/dal';
 import { prisma } from '@/lib/db';
+import { AdminSidebar } from '@/components/AdminSidebar';
 
-export default async function AdminPage() {
-  // Enforce server-side authorization check
-  const session = await requirePermission('manage:settings');
-  const user = await prisma.employee.findUnique({
-    where: { id: session.employeeId },
-    include: { role: true }
+export default async function AdminEmployeesPage() {
+  const session = await requireAuth();
+
+  const employees = await prisma.employee.findMany({
+    include: {
+      role: true
+    }
   });
 
   return (
-    <div className="min-h-screen bg-zinc-50 font-sans flex">
-      {/* Sidebar Navigation */}
-      <aside className="w-64 bg-[var(--color-forest-950)] text-white p-6 flex flex-col gap-6">
-        <div className="font-heading text-xl font-bold border-b border-[var(--color-forest-800)] pb-4 text-[var(--color-champagne-300)]">
-          Dahab Admin
-        </div>
-        <nav className="flex flex-col gap-2">
-          <Link href="/admin/products" className="hover:text-[var(--color-champagne-200)] py-2 transition-colors">Products</Link>
-          <Link href="/admin/orders" className="hover:text-[var(--color-champagne-200)] py-2 transition-colors">Orders</Link>
-          <Link href="/admin/sales" className="hover:text-[var(--color-champagne-200)] py-2 transition-colors">Sales & POS Reports</Link>
-          <Link href="/admin/inventory" className="hover:text-[var(--color-champagne-200)] py-2 transition-colors">Inventory</Link>
-          <Link href="/admin/raw-materials" className="hover:text-[var(--color-champagne-200)] py-2 transition-colors">Raw Materials</Link>
-          <Link href="/admin/formulas" className="hover:text-[var(--color-champagne-200)] py-2 transition-colors">Formulas</Link>
-          <Link href="/admin/employees" className="hover:text-[var(--color-champagne-200)] py-2 transition-colors">Employees & Roles</Link>
-        </nav>
-      </aside>
+    <div className="flex h-screen bg-[var(--color-ivory-100)]" dir="rtl">
+      <AdminSidebar employeeName={session.employee.name} />
 
-      {/* Main Content Area */}
-      <main className="flex-1 p-8">
-        <div className="bg-white rounded-xl shadow-sm border border-zinc-100 p-8">
-          <h1 className="text-2xl font-bold text-[var(--color-forest-900)] mb-4 border-b border-zinc-100 pb-4">
-            Dashboard / EMPLOYEES
-          </h1>
-          <p className="text-zinc-500 mb-6">
-            Logged in as: <strong className="text-zinc-700">{user?.name}</strong> ({user?.role?.name})
-          </p>
-          <div className="bg-zinc-50 rounded-lg p-6 border border-dashed border-zinc-200 text-sm text-zinc-600">
-            Feature module for admin: employees is fully wired to server authorization constraints.
+      <main className="flex-1 overflow-y-auto p-8 font-sans">
+        <div className="flex justify-between items-center mb-8 border-b border-[var(--color-ivory-200)] pb-4">
+          <div>
+            <h1 className="text-3xl font-bold font-heading text-[var(--color-forest-900)]">
+              الموظفين والصلاحيات
+            </h1>
+            <p className="text-zinc-650 mt-1">التحكم بحسابات الموظفين، الأدوار القيادية، والصلاحيات على النظام</p>
           </div>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-sm border border-[var(--color-ivory-200)] overflow-hidden">
+          <table className="w-full text-right border-collapse">
+            <thead className="bg-zinc-50 border-b border-zinc-200">
+              <tr className="text-sm font-bold text-zinc-700">
+                <th className="px-6 py-4">اسم الموظف</th>
+                <th className="px-6 py-4">البريد الإلكتروني</th>
+                <th className="px-6 py-4">الدور الوظيفي</th>
+                <th className="px-6 py-4">تاريخ الإنشاء</th>
+                <th className="px-6 py-4">حالة الحساب</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-zinc-100">
+              {employees.map((emp) => (
+                <tr key={emp.id} className="hover:bg-zinc-50/50 transition-colors text-zinc-650">
+                  <td className="px-6 py-4 font-bold text-zinc-900">{emp.name}</td>
+                  <td className="px-6 py-4 font-mono text-sm">{emp.email}</td>
+                  <td className="px-6 py-4">
+                    <span className="bg-[var(--color-ivory-200)] px-2.5 py-0.5 rounded text-xs font-bold text-[var(--color-forest-900)]">
+                      {emp.role.name}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-sm">
+                    {new Date(emp.createdAt).toLocaleDateString('ar-JO')}
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className={`inline-flex px-2 py-0.5 rounded text-xs font-bold ${emp.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                      {emp.isActive ? 'نشط' : 'معطل'}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+
+              {employees.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="px-6 py-12 text-center text-zinc-500">
+                    لا يوجد موظفون مسجلون.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
       </main>
     </div>

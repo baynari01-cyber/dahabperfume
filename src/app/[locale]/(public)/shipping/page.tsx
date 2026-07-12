@@ -1,29 +1,68 @@
-'use client';
 import React from 'react';
-import Link from 'next/link';
+import { prisma } from '@/lib/db';
 
-export default function Page({ params }: { params: Promise<{ locale: string; slug?: string; orderReference?: string }> }) {
-  const resolvedParams = React.use(params);
+export default async function ShippingPage({ params }: { params: Promise<{ locale: string }> }) {
+  const resolvedParams = await params;
   const locale = resolvedParams.locale;
   const isAr = locale === 'ar';
 
+  const zones = await prisma.shippingZone.findMany({
+    where: { isEnabled: true }
+  });
+
   return (
-    <div className="min-h-screen bg-[var(--color-ivory-50)] py-16 px-6 font-sans">
-      <div className="max-w-4xl mx-auto bg-white border border-[var(--color-ivory-200)] rounded-xl p-8 shadow-sm">
-        <h1 className="text-3xl font-bold font-heading text-[var(--color-forest-900)] mb-6 border-b border-[var(--color-ivory-100)] pb-4">
-          {isAr ? 'دهب للعطور' : 'Dahab Perfumes'} - SHIPPING
+    <div className="container mx-auto px-6 py-16">
+      <div className="max-w-3xl mx-auto bg-white border border-[var(--color-ivory-200)] rounded-lg p-10 shadow-sm">
+        <h1 className="text-4xl font-bold font-heading text-[var(--color-forest-900)] mb-8 border-b pb-4">
+          {isAr ? 'سياسة الشحن والتوصيل' : 'Shipping & Delivery Policy'}
         </h1>
-        <p className="text-zinc-600 mb-8 leading-relaxed">
+        
+        <p className="text-zinc-700 leading-relaxed mb-8">
           {isAr 
-            ? 'هذه الصفحة قيد التطوير لتوفير أفضل تجربة تصفح وخدمة عطور فاخرة تليق بذوقكم.' 
-            : 'This page is under active development to provide a premium fragrance browsing experience.'}
+            ? 'نحن نوفر خدمة توصيل سريعة وموثوقة لجميع المحافظات الأردنية. فيما يلي تفاصيل رسوم ومواعيد الشحن حسب المنطقة:'
+            : 'We offer fast and reliable delivery across all Jordan governorates. Here are the details of shipping fees and estimated times:'}
         </p>
-        <Link 
-          href={`/${locale}`}
-          className="inline-block bg-[var(--color-forest-800)] text-white px-6 py-2.5 rounded-lg hover:bg-[var(--color-forest-900)] transition-colors font-medium text-sm"
-        >
-          {isAr ? 'العودة للرئيسية' : 'Return Home'}
-        </Link>
+
+        <div className="space-y-6">
+          <h2 className="text-2xl font-bold text-[var(--color-forest-900)] mb-4">
+            {isAr ? 'مناطق التوصيل' : 'Delivery Zones'}
+          </h2>
+          
+          <div className="overflow-x-auto">
+            <table className="w-full text-right border-collapse">
+              <thead>
+                <tr className="border-b border-zinc-200 text-sm font-bold text-zinc-700">
+                  <th className="py-3 px-4">{isAr ? 'المنطقة' : 'Zone'}</th>
+                  <th className="py-3 px-4">{isAr ? 'رسوم التوصيل' : 'Shipping Fee'}</th>
+                  <th className="py-3 px-4">{isAr ? 'مدة التوصيل التقريبية' : 'Est. Delivery Time'}</th>
+                  <th className="py-3 px-4">{isAr ? 'توصيل مجاني للطلبات فوق' : 'Free Shipping From'}</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-zinc-100">
+                {zones.map((zone) => (
+                  <tr key={zone.id} className="text-zinc-650">
+                    <td className="py-3 px-4 font-bold">{isAr ? zone.nameAr : zone.nameEn}</td>
+                    <td className="py-3 px-4">{(zone.fee / 100).toFixed(2)} {isAr ? 'د.أ' : 'JOD'}</td>
+                    <td className="py-3 px-4">{zone.estimatedDeliveryTime}</td>
+                    <td className="py-3 px-4">
+                      {zone.freeShippingThreshold 
+                        ? `${(zone.freeShippingThreshold / 100).toFixed(2)} ${isAr ? 'د.أ' : 'JOD'}`
+                        : (isAr ? 'غير متوفر' : 'N/A')}
+                    </td>
+                  </tr>
+                ))}
+                
+                {zones.length === 0 && (
+                  <tr>
+                    <td colSpan={4} className="py-8 text-center text-zinc-500">
+                      {isAr ? 'سيتم تحديد رسوم التوصيل عند الاتصال بالواتساب.' : 'Shipping fees will be calculated at checkout.'}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
   );

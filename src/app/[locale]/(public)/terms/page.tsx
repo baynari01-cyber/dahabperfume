@@ -1,29 +1,51 @@
-'use client';
 import React from 'react';
-import Link from 'next/link';
+import { getCMSContent } from '@/lib/cms';
 
-export default function Page({ params }: { params: Promise<{ locale: string; slug?: string; orderReference?: string }> }) {
-  const resolvedParams = React.use(params);
+export default async function TermsPage({ params }: { params: Promise<{ locale: string }> }) {
+  const resolvedParams = await params;
   const locale = resolvedParams.locale;
   const isAr = locale === 'ar';
 
+  const defaultTerms = {
+    titleAr: 'الشروط والأحكام',
+    titleEn: 'Terms & Conditions',
+    contentAr: `مرحباً بك في دهب للعطور. بدخولك واستخدامك لموقعنا الإلكتروني، فإنك توافق على الالتزام بالشروط والأحكام التالية:
+
+1. **الطلبات والتسعير:**
+   - جميع الأسعار المعروضة هي بالدينار الأردني (JOD) وقد تخضع لرسوم توصيل إضافية يتم احتسابها بناءً على المنطقة المحددة.
+   - نحن نحتفظ بالحق في تعديل الأسعار أو تصحيح الأخطاء دون إشعار مسبق.
+
+2. **الدفع والتوصيل:**
+   - يتم الدفع عند الاستلام (Cash on Delivery) أو من خلال الترتيب عبر محادثة WhatsApp.
+   - نلتزم بتسليم المنتجات بالتعاون مع شركات الخدمات اللوجستية المعتمدة لدينا.
+
+3. **الملكية الفكرية:**
+   - جميع التصاميم والشعارات والمحتوى المعروض على هذا الموقع هي ملك حصري لدار دهب للعطور ويمنع نسخها أو استخدامها دون إذن خطي مسبق.`,
+    contentEn: `Welcome to Dahab Perfumes. By accessing and using our website, you agree to comply with the following Terms and Conditions:
+
+1. **Orders & Pricing:**
+   - All prices shown are in Jordanian Dinars (JOD) and may be subject to additional shipping fees based on the selected zone.
+   - We reserve the right to modify prices or correct errors without prior notice.
+
+2. **Payment & Logistics:**
+   - Payments are settled via Cash on Delivery (COD) or bank transfer arranged via WhatsApp.
+   - Deliveries are executed in partnership with our approved logistics providers.
+
+3. **Intellectual Property:**
+   - All designs, logos, and content displayed on this website are the exclusive property of Dahab Perfumes.`
+  };
+
+  const cms = await getCMSContent('terms_of_service', defaultTerms);
+
   return (
-    <div className="min-h-screen bg-[var(--color-ivory-50)] py-16 px-6 font-sans">
-      <div className="max-w-4xl mx-auto bg-white border border-[var(--color-ivory-200)] rounded-xl p-8 shadow-sm">
-        <h1 className="text-3xl font-bold font-heading text-[var(--color-forest-900)] mb-6 border-b border-[var(--color-ivory-100)] pb-4">
-          {isAr ? 'دهب للعطور' : 'Dahab Perfumes'} - TERMS
+    <div className="container mx-auto px-6 py-16">
+      <div className="max-w-3xl mx-auto bg-white border border-[var(--color-ivory-200)] rounded-lg p-10 shadow-sm">
+        <h1 className="text-4xl font-bold font-heading text-[var(--color-forest-900)] mb-8 border-b pb-4">
+          {isAr ? cms.titleAr : cms.titleEn}
         </h1>
-        <p className="text-zinc-600 mb-8 leading-relaxed">
-          {isAr 
-            ? 'هذه الصفحة قيد التطوير لتوفير أفضل تجربة تصفح وخدمة عطور فاخرة تليق بذوقكم.' 
-            : 'This page is under active development to provide a premium fragrance browsing experience.'}
-        </p>
-        <Link 
-          href={`/${locale}`}
-          className="inline-block bg-[var(--color-forest-800)] text-white px-6 py-2.5 rounded-lg hover:bg-[var(--color-forest-900)] transition-colors font-medium text-sm"
-        >
-          {isAr ? 'العودة للرئيسية' : 'Return Home'}
-        </Link>
+        <div className="text-zinc-700 leading-relaxed whitespace-pre-line text-sm md:text-base">
+          {isAr ? cms.contentAr : cms.contentEn}
+        </div>
       </div>
     </div>
   );

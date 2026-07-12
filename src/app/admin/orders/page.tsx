@@ -1,9 +1,11 @@
-import { requirePermission } from '@/lib/dal';
+import React from 'react';
+import { requireAuth } from '@/lib/dal';
 import { prisma } from '@/lib/db';
+import { AdminSidebar } from '@/components/AdminSidebar';
 import Link from 'next/link';
 
 export default async function AdminOrdersPage() {
-  await requirePermission('manage:orders');
+  const session = await requireAuth();
 
   const orders = await prisma.order.findMany({
     orderBy: { createdAt: 'desc' },
@@ -13,65 +15,71 @@ export default async function AdminOrdersPage() {
   });
 
   return (
-    <div className="p-8">
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">إدارة الطلبات</h1>
-          <p className="text-zinc-600 dark:text-zinc-400 mt-1">متابعة طلبات المتجر وتحديث حالتها</p>
-        </div>
-      </div>
+    <div className="flex h-screen bg-[var(--color-ivory-100)]" dir="rtl">
+      <AdminSidebar employeeName={session.employee.name} />
 
-      <div className="bg-white dark:bg-zinc-800 rounded-lg shadow-sm border border-zinc-200 dark:border-zinc-700 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-right">
-            <thead className="bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-700">
-              <tr>
-                <th className="px-6 py-4 text-sm font-bold text-zinc-700 dark:text-zinc-300">المرجع</th>
-                <th className="px-6 py-4 text-sm font-bold text-zinc-700 dark:text-zinc-300">العميل</th>
-                <th className="px-6 py-4 text-sm font-bold text-zinc-700 dark:text-zinc-300">التاريخ</th>
-                <th className="px-6 py-4 text-sm font-bold text-zinc-700 dark:text-zinc-300">الإجمالي</th>
-                <th className="px-6 py-4 text-sm font-bold text-zinc-700 dark:text-zinc-300">الحالة</th>
-                <th className="px-6 py-4 text-sm font-bold text-zinc-700 dark:text-zinc-300 text-center">إجراءات</th>
+      <main className="flex-1 overflow-y-auto p-8 font-sans">
+        <div className="flex justify-between items-center mb-8 border-b border-[var(--color-ivory-200)] pb-4">
+          <div>
+            <h1 className="text-3xl font-bold font-heading text-[var(--color-forest-900)]">
+              طلبات المتجر الإلكتروني
+            </h1>
+            <p className="text-zinc-650 mt-1">إدارة الطلبات الواردة، التحقق من توفر المنتجات، وتأكيد عمليات الشحن</p>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-sm border border-[var(--color-ivory-200)] overflow-hidden">
+          <table className="w-full text-right border-collapse">
+            <thead className="bg-zinc-50 border-b border-zinc-200">
+              <tr className="text-sm font-bold text-zinc-700">
+                <th className="px-6 py-4">رقم الطلب</th>
+                <th className="px-6 py-4">العميل</th>
+                <th className="px-6 py-4">الهاتف</th>
+                <th className="px-6 py-4">الإجمالي</th>
+                <th className="px-6 py-4">حالة الطلب</th>
+                <th className="px-6 py-4">تاريخ الطلب</th>
+                <th className="px-6 py-4 text-center">إجراءات</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-200 dark:divide-zinc-700">
+            <tbody className="divide-y divide-zinc-100">
               {orders.map((order) => (
-                <tr key={order.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-700/50 transition-colors">
-                  <td className="px-6 py-4 font-mono text-sm text-zinc-900 dark:text-white">
-                    {order.reference}
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="font-bold text-sm text-zinc-900 dark:text-white">{order.customerName}</div>
-                    <div className="text-xs text-zinc-500">{order.customerPhone}</div>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">
-                    {order.createdAt.toLocaleDateString('ar-JO')}
-                  </td>
-                  <td className="px-6 py-4 text-sm font-bold text-emerald-600">
+                <tr key={order.id} className="hover:bg-zinc-50/50 transition-colors text-zinc-650">
+                  <td className="px-6 py-4 font-bold font-mono text-zinc-900">{order.reference}</td>
+                  <td className="px-6 py-4">{order.customerName}</td>
+                  <td className="px-6 py-4 font-mono text-sm">{order.customerPhone}</td>
+                  <td className="px-6 py-4 font-bold text-[var(--color-forest-800)]">
                     {(order.totalAmount / 100).toFixed(2)} د.أ
                   </td>
                   <td className="px-6 py-4">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
+                    <span className={`inline-flex px-2 py-0.5 rounded text-xs font-bold ${order.status === 'CONFIRMED' ? 'bg-green-100 text-green-800' : order.status === 'AWAITING_WHATSAPP' ? 'bg-amber-100 text-amber-800' : 'bg-zinc-150 text-zinc-600'}`}>
                       {order.status}
                     </span>
                   </td>
+                  <td className="px-6 py-4 text-sm">
+                    {new Date(order.createdAt).toLocaleDateString('ar-JO')}
+                  </td>
                   <td className="px-6 py-4 text-center">
-                    <button className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium mr-3">التفاصيل</button>
+                    <Link 
+                      href={`/admin/orders/${order.id}`}
+                      className="text-[var(--color-champagne-600)] hover:underline font-bold text-sm"
+                    >
+                      تفاصيل وتأكيد
+                    </Link>
                   </td>
                 </tr>
               ))}
-              
+
               {orders.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-zinc-500">
-                    لا توجد طلبات حالياً.
+                  <td colSpan={7} className="px-6 py-12 text-center text-zinc-500">
+                    لا توجد طلبات مسجلة حالياً.
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

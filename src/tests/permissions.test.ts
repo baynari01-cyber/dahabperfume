@@ -19,12 +19,12 @@ vi.mock('@/lib/dal', () => {
 describe('Employee Role and Permission Restrictions', () => {
   it('Allows ADMIN role to access settings management', async () => {
     const session = await requirePermission('manage:settings');
-    expect(session.role).toBe('ADMIN');
+    expect(session.employee.role.name).toBe('Admin');
   });
 
   it('Allows CASHIER role to access POS counters', async () => {
     const session = await requirePermission('pos:access');
-    expect(session.role).toBe('CASHIER');
+    expect(session.employee.role.name).toBe('Cashier');
   });
 
   it('Denies unauthorized roles from accessing settings or POS features', async () => {

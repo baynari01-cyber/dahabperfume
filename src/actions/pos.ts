@@ -4,14 +4,17 @@ import { prisma } from '@/lib/db';
 import { requirePermission } from '@/lib/dal';
 import crypto from 'crypto';
 
-export async function processPOSCheckout(data: any) {
+export async function processPOSCheckout(data: any): Promise<
+  | { success: true; saleId: string; reference: string; total: number; error?: never }
+  | { success: false; error: string; saleId?: never; reference?: never; total?: never }
+> {
   const session = await requirePermission('pos:access');
   const employeeId = session.employeeId;
 
   const { items, customerName, paymentMethod, amountTendered } = data;
 
   if (!items || items.length === 0) {
-    return { error: 'السلة فارغة' };
+    return { success: false, error: 'السلة فارغة' };
   }
 
   try {
@@ -181,12 +184,12 @@ export async function processPOSCheckout(data: any) {
         data: { saleId: sale.id }
       });
 
-      return { success: true, saleId: sale.id, reference: sale.reference, total: grandTotal };
+      return { success: true as const, saleId: sale.id, reference: sale.reference, total: grandTotal };
     });
 
     return saleResult;
 
   } catch (error: any) {
-    return { error: error.message || 'حدث خطأ غير معروف' };
+    return { success: false, error: error.message || 'حدث خطأ غير معروف' };
   }
 }

@@ -1,19 +1,24 @@
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
+import React from 'react';
 
-export default function PublicLayout({
+export default async function PublicLayout({
   children,
   params,
 }: {
   children: React.ReactNode;
   params: Promise<{ locale: string }>;
 }) {
+  const resolvedParams = await params;
+  const locale = resolvedParams.locale;
+  const dir = locale === 'en' ? 'ltr' : 'rtl';
+
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen" dir={dir} lang={locale}>
       <Header />
-      <div className="flex-1">
+      <main className="flex-grow flex-1 bg-[var(--color-ivory-100)]">
         {children}
-      </div>
+      </main>
       <Footer />
     </div>
   );

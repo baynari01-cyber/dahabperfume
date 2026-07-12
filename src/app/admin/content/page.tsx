@@ -1,47 +1,135 @@
 import React from 'react';
-import Link from 'next/link';
-import { requirePermission } from '@/lib/dal';
-import { prisma } from '@/lib/db';
+import { requireAuth } from '@/lib/dal';
+import { getCMSContent, updateCMSContent } from '@/lib/cms';
+import { AdminSidebar } from '@/components/AdminSidebar';
 
-export default async function AdminPage() {
-  // Enforce server-side authorization check
-  const session = await requirePermission('manage:settings');
-  const user = await prisma.employee.findUnique({
-    where: { id: session.employeeId },
-    include: { role: true }
+export default async function AdminContentPage() {
+  const session = await requireAuth();
+
+  const announcement = await getCMSContent('announcement_bar', {
+    textAr: 'توصيل مجاني للطلبات فوق 50 د.أ',
+    textEn: 'Free delivery for orders above 50 JOD'
   });
 
-  return (
-    <div className="min-h-screen bg-zinc-50 font-sans flex">
-      {/* Sidebar Navigation */}
-      <aside className="w-64 bg-[var(--color-forest-950)] text-white p-6 flex flex-col gap-6">
-        <div className="font-heading text-xl font-bold border-b border-[var(--color-forest-800)] pb-4 text-[var(--color-champagne-300)]">
-          Dahab Admin
-        </div>
-        <nav className="flex flex-col gap-2">
-          <Link href="/admin/products" className="hover:text-[var(--color-champagne-200)] py-2 transition-colors">Products</Link>
-          <Link href="/admin/orders" className="hover:text-[var(--color-champagne-200)] py-2 transition-colors">Orders</Link>
-          <Link href="/admin/sales" className="hover:text-[var(--color-champagne-200)] py-2 transition-colors">Sales & POS Reports</Link>
-          <Link href="/admin/inventory" className="hover:text-[var(--color-champagne-200)] py-2 transition-colors">Inventory</Link>
-          <Link href="/admin/raw-materials" className="hover:text-[var(--color-champagne-200)] py-2 transition-colors">Raw Materials</Link>
-          <Link href="/admin/formulas" className="hover:text-[var(--color-champagne-200)] py-2 transition-colors">Formulas</Link>
-          <Link href="/admin/employees" className="hover:text-[var(--color-champagne-200)] py-2 transition-colors">Employees & Roles</Link>
-        </nav>
-      </aside>
+  const hero = await getCMSContent('homepage_content', {
+    heroTitleAr: 'حين تُترجم الفخامة إلى عطر',
+    heroTitleEn: 'When Luxury Translates to Fragrance',
+    heroDescAr: 'دهب للعطور.. نفحات مختارة بعناية من الشرق، لترافق هويتك وتُشعرك بالأصالة والتميز.',
+    heroDescEn: 'Dahab Perfumes... carefully selected notes from the East, to accompany your identity and make you feel authentic.'
+  });
 
-      {/* Main Content Area */}
-      <main className="flex-1 p-8">
-        <div className="bg-white rounded-xl shadow-sm border border-zinc-100 p-8">
-          <h1 className="text-2xl font-bold text-[var(--color-forest-900)] mb-4 border-b border-zinc-100 pb-4">
-            Dashboard / CONTENT
-          </h1>
-          <p className="text-zinc-500 mb-6">
-            Logged in as: <strong className="text-zinc-700">{user?.name}</strong> ({user?.role?.name})
-          </p>
-          <div className="bg-zinc-50 rounded-lg p-6 border border-dashed border-zinc-200 text-sm text-zinc-600">
-            Feature module for admin: content is fully wired to server authorization constraints.
+  // Handle Server Action inside component
+  async function handleSaveCMS(formData: FormData) {
+    'use server';
+    const textAr = formData.get('textAr') as string;
+    const textEn = formData.get('textEn') as string;
+    const heroTitleAr = formData.get('heroTitleAr') as string;
+    const heroTitleEn = formData.get('heroTitleEn') as string;
+    const heroDescAr = formData.get('heroDescAr') as string;
+    const heroDescEn = formData.get('heroDescEn') as string;
+
+    await Promise.all([
+      updateCMSContent('announcement_bar', { textAr, textEn }),
+      updateCMSContent('homepage_content', { heroTitleAr, heroTitleEn, heroDescAr, heroDescEn })
+    ]);
+  }
+
+  return (
+    <div className="flex h-screen bg-[var(--color-ivory-100)]" dir="rtl">
+      <AdminSidebar employeeName={session.employee.name} />
+
+      <main className="flex-1 overflow-y-auto p-8 font-sans">
+        <div className="flex justify-between items-center mb-8 border-b border-[var(--color-ivory-200)] pb-4">
+          <div>
+            <h1 className="text-3xl font-bold font-heading text-[var(--color-forest-900)]">
+              إدارة المحتوى والموقع (CMS)
+            </h1>
+            <p className="text-zinc-650 mt-1">تحديث النصوص الرئيسية، شريط الإعلانات، وعناوين الصفحة الرئيسية</p>
           </div>
         </div>
+
+        <form action={handleSaveCMS} className="max-w-3xl bg-white p-8 rounded-lg border border-[var(--color-ivory-200)] shadow-sm space-y-8">
+          {/* Announcement Bar */}
+          <div>
+            <h2 className="text-lg font-bold text-[var(--color-forest-900)] border-b pb-2 mb-4">شريط الإعلانات العلوي</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-zinc-700 mb-1">الإعلان باللغة العربية</label>
+                <input 
+                  type="text" 
+                  name="textAr"
+                  defaultValue={announcement.textAr}
+                  className="w-full border border-zinc-300 rounded px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[var(--color-champagne-600)]"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-zinc-700 mb-1">الإعلان باللغة الإنجليزية</label>
+                <input 
+                  type="text" 
+                  name="textEn"
+                  defaultValue={announcement.textEn}
+                  className="w-full border border-zinc-300 rounded px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[var(--color-champagne-600)]"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Hero Section */}
+          <div>
+            <h2 className="text-lg font-bold text-[var(--color-forest-900)] border-b pb-2 mb-4">قسم الواجهة الرئيسي (Hero)</h2>
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-zinc-700 mb-1">العنوان بالعربية</label>
+                  <input 
+                    type="text" 
+                    name="heroTitleAr"
+                    defaultValue={hero.heroTitleAr}
+                    className="w-full border border-zinc-300 rounded px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[var(--color-champagne-600)]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-zinc-700 mb-1">العنوان بالإنجليزية</label>
+                  <input 
+                    type="text" 
+                    name="heroTitleEn"
+                    defaultValue={hero.heroTitleEn}
+                    className="w-full border border-zinc-300 rounded px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[var(--color-champagne-600)]"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-zinc-700 mb-1">الوصف بالعربية</label>
+                  <textarea 
+                    name="heroDescAr"
+                    rows={3}
+                    defaultValue={hero.heroDescAr}
+                    className="w-full border border-zinc-300 rounded px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[var(--color-champagne-600)]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-zinc-700 mb-1">الوصف بالإنجليزية</label>
+                  <textarea 
+                    name="heroDescEn"
+                    rows={3}
+                    defaultValue={hero.heroDescEn}
+                    className="w-full border border-zinc-300 rounded px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[var(--color-champagne-600)]"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-4 border-t">
+            <button
+              type="submit"
+              className="bg-[var(--color-forest-900)] hover:bg-[var(--color-forest-800)] text-white px-6 py-2.5 rounded font-bold text-sm transition-colors"
+            >
+              حفظ التعديلات
+            </button>
+          </div>
+        </form>
       </main>
     </div>
   );

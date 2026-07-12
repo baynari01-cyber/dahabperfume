@@ -102,7 +102,7 @@ describe('Real PostgreSQL Database Concurrency & Race Condition Safety', () => {
 
     // Exactly one must succeed and the other must fail with stock shortage
     const successCount = [res1, res2].filter(r => r.success).length;
-    const errorCount = [res1, res2].filter(r => r.error).length;
+    const errorCount = [res1, res2].filter(r => !r.success).length;
 
     expect(successCount).toBe(1);
     expect(errorCount).toBe(1);
@@ -204,7 +204,7 @@ describe('Real PostgreSQL Database Concurrency & Race Condition Safety', () => {
     ]);
 
     const successCount = [res1, res2].filter(r => r.success).length;
-    const errorCount = [res1, res2].filter(r => r.error).length;
+    const errorCount = [res1, res2].filter(r => !r.success).length;
 
     expect(successCount).toBe(1);
     expect(errorCount).toBe(1);

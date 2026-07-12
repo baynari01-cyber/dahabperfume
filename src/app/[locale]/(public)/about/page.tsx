@@ -1,29 +1,54 @@
-'use client';
 import React from 'react';
-import Link from 'next/link';
+import { getCMSContent } from '@/lib/cms';
 
-export default function Page({ params }: { params: Promise<{ locale: string; slug?: string; orderReference?: string }> }) {
-  const resolvedParams = React.use(params);
+export default async function AboutPage({ params }: { params: Promise<{ locale: string }> }) {
+  const resolvedParams = await params;
   const locale = resolvedParams.locale;
   const isAr = locale === 'ar';
 
+  const cms = await getCMSContent('brand_story', {
+    titleAr: 'قصة دار دهب للعطور',
+    titleEn: 'The Story of Dahab Perfumes',
+    contentAr: 'تأسست دار دهب للعطور لتقديم فخامة أصيلة تناسب ذوقكم العطري الفريد. نحن نمزج التراث الشرقي مع الحداثة لنصنع عبقاً يدوم ويترك انطباعاً لا ينسى.',
+    contentEn: 'Dahab Perfumes was established to offer authentic luxury tailored to your unique taste. We blend oriental heritage with modern trends to create a lasting impression.'
+  });
+
   return (
-    <div className="min-h-screen bg-[var(--color-ivory-50)] py-16 px-6 font-sans">
-      <div className="max-w-4xl mx-auto bg-white border border-[var(--color-ivory-200)] rounded-xl p-8 shadow-sm">
-        <h1 className="text-3xl font-bold font-heading text-[var(--color-forest-900)] mb-6 border-b border-[var(--color-ivory-100)] pb-4">
-          {isAr ? 'دهب للعطور' : 'Dahab Perfumes'} - ABOUT
+    <div className="container mx-auto px-6 py-16">
+      <div className="max-w-3xl mx-auto bg-white border border-[var(--color-ivory-200)] rounded-lg p-10 shadow-sm">
+        <h1 className="text-4xl font-bold font-heading text-[var(--color-forest-900)] mb-8 border-b pb-4">
+          {isAr ? cms.titleAr : cms.titleEn}
         </h1>
-        <p className="text-zinc-600 mb-8 leading-relaxed">
-          {isAr 
-            ? 'هذه الصفحة قيد التطوير لتوفير أفضل تجربة تصفح وخدمة عطور فاخرة تليق بذوقكم.' 
-            : 'This page is under active development to provide a premium fragrance browsing experience.'}
+        <p className="text-lg text-zinc-700 leading-relaxed whitespace-pre-line">
+          {isAr ? cms.contentAr : cms.contentEn}
         </p>
-        <Link 
-          href={`/${locale}`}
-          className="inline-block bg-[var(--color-forest-800)] text-white px-6 py-2.5 rounded-lg hover:bg-[var(--color-forest-900)] transition-colors font-medium text-sm"
-        >
-          {isAr ? 'العودة للرئيسية' : 'Return Home'}
-        </Link>
+        
+        <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 text-center border-t border-[var(--color-ivory-100)] pt-8">
+          <div>
+            <h3 className="font-bold text-[var(--color-champagne-600)] text-xl mb-2">
+              {isAr ? 'أصالة' : 'Authenticity'}
+            </h3>
+            <p className="text-sm text-zinc-500">
+              {isAr ? 'مكونات طبيعية ونقية' : 'Pure natural ingredients'}
+            </p>
+          </div>
+          <div>
+            <h3 className="font-bold text-[var(--color-champagne-600)] text-xl mb-2">
+              {isAr ? 'ثبات' : 'Longevity'}
+            </h3>
+            <p className="text-sm text-zinc-500">
+              {isAr ? 'تركيزات تدوم طويلاً' : 'Formulations made to last'}
+            </p>
+          </div>
+          <div>
+            <h3 className="font-bold text-[var(--color-champagne-600)] text-xl mb-2">
+              {isAr ? 'حرفية' : 'Craftsmanship'}
+            </h3>
+            <p className="text-sm text-zinc-500">
+              {isAr ? 'مزيج فريد ومتقن' : 'Uniquely crafted blends'}
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );

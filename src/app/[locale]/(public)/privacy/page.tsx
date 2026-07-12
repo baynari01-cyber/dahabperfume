@@ -1,29 +1,51 @@
-'use client';
 import React from 'react';
-import Link from 'next/link';
+import { getCMSContent } from '@/lib/cms';
 
-export default function Page({ params }: { params: Promise<{ locale: string; slug?: string; orderReference?: string }> }) {
-  const resolvedParams = React.use(params);
+export default async function PrivacyPage({ params }: { params: Promise<{ locale: string }> }) {
+  const resolvedParams = await params;
   const locale = resolvedParams.locale;
   const isAr = locale === 'ar';
 
+  const defaultPrivacy = {
+    titleAr: 'سياسة الخصوصية',
+    titleEn: 'Privacy Policy',
+    contentAr: `نحن في دهب للعطور نلتزم بحماية خصوصيتك وبياناتك الشخصية. توضح هذه السياسة كيف نقوم بجمع واستخدام وحماية البيانات التي تزودنا بها عند زيارة موقعنا:
+
+1. **البيانات التي نجمعها:**
+   - الاسم، رقم الهاتف، وعنوان التوصيل عند إتمام الطلب لتسهيل إرسال رسائل WhatsApp والتوصيل.
+   - نحن لا نقوم بحفظ أو معالجة تفاصيل بطاقات الدفع مباشرة على خوادمنا.
+
+2. **كيف نستخدم بياناتك:**
+   - لمعالجة طلبات الشراء والشحن والتحقق من المخزون.
+   - للتواصل معك بخصوص الطلبات والاستفسارات.
+
+3. **حماية البيانات:**
+   - نحن نطبق بروتوكولات حماية متقدمة لضمان أمان معلوماتك ومنع الوصول غير المصرح به.`,
+    contentEn: `At Dahab Perfumes, we are committed to protecting your privacy. This policy explains how we collect, use, and secure your personal information:
+
+1. **Information We Collect:**
+   - Full name, phone number, and delivery address during checkout to facilitate WhatsApp ordering and delivery.
+   - We do not store or process payment card details directly on our servers.
+
+2. **How We Use Your Data:**
+   - To process checkout orders, verify stock, and manage logistics.
+   - To communicate with you regarding your purchases.
+
+3. **Security:**
+   - We implement standard security protocols to safeguard your personal data from unauthorized access.`
+  };
+
+  const cms = await getCMSContent('privacy_policy', defaultPrivacy);
+
   return (
-    <div className="min-h-screen bg-[var(--color-ivory-50)] py-16 px-6 font-sans">
-      <div className="max-w-4xl mx-auto bg-white border border-[var(--color-ivory-200)] rounded-xl p-8 shadow-sm">
-        <h1 className="text-3xl font-bold font-heading text-[var(--color-forest-900)] mb-6 border-b border-[var(--color-ivory-100)] pb-4">
-          {isAr ? 'دهب للعطور' : 'Dahab Perfumes'} - PRIVACY
+    <div className="container mx-auto px-6 py-16">
+      <div className="max-w-3xl mx-auto bg-white border border-[var(--color-ivory-200)] rounded-lg p-10 shadow-sm">
+        <h1 className="text-4xl font-bold font-heading text-[var(--color-forest-900)] mb-8 border-b pb-4">
+          {isAr ? cms.titleAr : cms.titleEn}
         </h1>
-        <p className="text-zinc-600 mb-8 leading-relaxed">
-          {isAr 
-            ? 'هذه الصفحة قيد التطوير لتوفير أفضل تجربة تصفح وخدمة عطور فاخرة تليق بذوقكم.' 
-            : 'This page is under active development to provide a premium fragrance browsing experience.'}
-        </p>
-        <Link 
-          href={`/${locale}`}
-          className="inline-block bg-[var(--color-forest-800)] text-white px-6 py-2.5 rounded-lg hover:bg-[var(--color-forest-900)] transition-colors font-medium text-sm"
-        >
-          {isAr ? 'العودة للرئيسية' : 'Return Home'}
-        </Link>
+        <div className="text-zinc-700 leading-relaxed whitespace-pre-line text-sm md:text-base">
+          {isAr ? cms.contentAr : cms.contentEn}
+        </div>
       </div>
     </div>
   );

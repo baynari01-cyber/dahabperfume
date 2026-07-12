@@ -185,13 +185,19 @@ async function main() {
     if (imageName && imageName !== 'missing') {
       const imagePath = path.resolve(process.cwd(), '../source-data/products', imageName);
       if (fs.existsSync(imagePath)) {
-        await prisma.productImage.create({
-          data: {
-            productId: product.id,
-            url: `local://${imageName}`, // Fallback until Supabase is available
-            isMain: true
-          }
+        const imageUrl = `local://${imageName}`;
+        const existingImage = await prisma.productImage.findFirst({
+          where: { productId: product.id, url: imageUrl }
         });
+        if (!existingImage) {
+          await prisma.productImage.create({
+            data: {
+              productId: product.id,
+              url: imageUrl,
+              isMain: true
+            }
+          });
+        }
       } else {
         // Only push to missingImages once (it is already pushed at the top if missing, so let's log file missing here)
         missingImages.push(`Row ${i + 2} (${sku}): File ${imageName} not found`);

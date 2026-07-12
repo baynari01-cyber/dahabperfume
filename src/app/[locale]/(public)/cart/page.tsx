@@ -1,29 +1,164 @@
 'use client';
-import React from 'react';
+
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 
-export default function Page({ params }: { params: Promise<{ locale: string; slug?: string; orderReference?: string }> }) {
+export default function CartPage({ params }: { params: Promise<{ locale: string }> }) {
   const resolvedParams = React.use(params);
   const locale = resolvedParams.locale;
   const isAr = locale === 'ar';
 
+  const [cart, setCart] = useState<any[]>([]);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('dahab_cart');
+    if (saved) {
+      try {
+        setCart(JSON.parse(saved));
+      } catch (e) {}
+    }
+    setMounted(true);
+  }, []);
+
+  const updateQuantity = (sku: string, delta: number) => {
+    const updated = cart.map(item => {
+      if (item.sku === sku) {
+        const newQty = Math.max(1, item.quantity + delta);
+        return { ...item, quantity: newQty };
+      }
+      return item;
+    });
+    setCart(updated);
+    localStorage.setItem('dahab_cart', JSON.stringify(updated));
+  };
+
+  const removeFromCart = (sku: string) => {
+    const updated = cart.filter(item => item.sku !== sku);
+    setCart(updated);
+    localStorage.setItem('dahab_cart', JSON.stringify(updated));
+  };
+
+  const getSubtotal = () => {
+    return cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+  };
+
+  if (!mounted) return null;
+
   return (
-    <div className="min-h-screen bg-[var(--color-ivory-50)] py-16 px-6 font-sans">
-      <div className="max-w-4xl mx-auto bg-white border border-[var(--color-ivory-200)] rounded-xl p-8 shadow-sm">
-        <h1 className="text-3xl font-bold font-heading text-[var(--color-forest-900)] mb-6 border-b border-[var(--color-ivory-100)] pb-4">
-          {isAr ? 'دهب للعطور' : 'Dahab Perfumes'} - CART
+    <div className="container mx-auto px-6 py-16 bg-[var(--color-ivory-100)] min-h-screen">
+      <div className="text-center mb-16">
+        <h1 className="text-4xl font-bold font-heading text-[var(--color-forest-900)] mb-4">
+          {isAr ? 'سلة التسوق' : 'Shopping Cart'}
         </h1>
-        <p className="text-zinc-600 mb-8 leading-relaxed">
-          {isAr 
-            ? 'هذه الصفحة قيد التطوير لتوفير أفضل تجربة تصفح وخدمة عطور فاخرة تليق بذوقكم.' 
-            : 'This page is under active development to provide a premium fragrance browsing experience.'}
-        </p>
-        <Link 
-          href={`/${locale}`}
-          className="inline-block bg-[var(--color-forest-800)] text-white px-6 py-2.5 rounded-lg hover:bg-[var(--color-forest-900)] transition-colors font-medium text-sm"
-        >
-          {isAr ? 'العودة للرئيسية' : 'Return Home'}
-        </Link>
+        <div className="w-24 h-1 bg-[var(--color-champagne-600)] mx-auto" />
+      </div>
+
+      <div className="max-w-4xl mx-auto">
+        {cart.length === 0 ? (
+          <div className="text-center py-20 bg-white rounded-lg border border-[var(--color-ivory-200)] p-8">
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-4 text-[var(--color-forest-600)]"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+            <p className="text-xl text-zinc-500 mb-4">
+              {isAr ? 'سلة التسوق فارغة حالياً.' : 'Your cart is currently empty.'}
+            </p>
+            <Link 
+              href={`/${locale}/shop`}
+              className="inline-block bg-[var(--color-forest-900)] text-white px-6 py-3 rounded font-bold"
+            >
+              {isAr ? 'تصفح المتجر' : 'Browse Shop'}
+            </Link>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Cart Items List */}
+            <div className="lg:col-span-2 space-y-6">
+              {cart.map((item) => (
+                <div 
+                  key={item.sku} 
+                  className="bg-white p-6 rounded-lg border border-[var(--color-ivory-200)] shadow-sm flex gap-6"
+                >
+                  <div className="w-20 h-20 bg-[var(--color-ivory-200)] rounded-md flex-shrink-0 flex items-center justify-center overflow-hidden">
+                    {item.image ? (
+                      <div 
+                        className="w-full h-full bg-cover bg-center" 
+                        style={{ backgroundImage: `url(${item.image.startsWith('local://') ? '/product-placeholder.png' : item.image})` }} 
+                      />
+                    ) : 'صورة العطر'}
+                  </div>
+
+                  <div className="flex-1">
+                    <div className="flex justify-between mb-2">
+                      <h3 className="font-bold text-lg text-[var(--color-forest-900)]">
+                        {item.name}
+                      </h3>
+                      <button 
+                        onClick={() => removeFromCart(item.sku)}
+                        className="text-red-500 hover:text-red-700 text-sm"
+                      >
+                        {isAr ? 'إزالة' : 'Remove'}
+                      </button>
+                    </div>
+
+                    <div className="text-sm text-zinc-500 mb-4">
+                      {item.size} {item.stockStatus === 'UNVERIFIED' && (
+                        <span className="text-amber-600 font-bold block text-xs mt-1">
+                          {isAr ? 'بانتظار تأكيد التوفر' : 'Pending verification'}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center border border-zinc-200 rounded">
+                        <button 
+                          onClick={() => updateQuantity(item.sku, -1)}
+                          className="px-3 py-1 bg-zinc-50 hover:bg-zinc-100 font-bold text-lg"
+                        >
+                          -
+                        </button>
+                        <span className="px-4 font-bold">{item.quantity}</span>
+                        <button 
+                          onClick={() => updateQuantity(item.sku, 1)}
+                          className="px-3 py-1 bg-zinc-50 hover:bg-zinc-100 font-bold text-lg"
+                        >
+                          +
+                        </button>
+                      </div>
+
+                      <div className="text-[var(--color-champagne-600)] font-bold text-lg">
+                        {((item.price * item.quantity) / 100).toFixed(2)} د.أ
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Cart Summary */}
+            <div className="bg-white p-6 rounded-lg border border-[var(--color-ivory-200)] shadow-sm h-fit">
+              <h2 className="text-xl font-bold text-[var(--color-forest-900)] mb-6 border-b pb-4">
+                {isAr ? 'ملخص السلة' : 'Summary'}
+              </h2>
+              
+              <div className="space-y-4 text-zinc-700 mb-6">
+                <div className="flex justify-between">
+                  <span>{isAr ? 'المجموع الفرعي' : 'Subtotal'}</span>
+                  <span className="font-bold">{(getSubtotal() / 100).toFixed(2)} د.أ</span>
+                </div>
+                <div className="flex justify-between text-sm text-zinc-500">
+                  <span>{isAr ? 'التوصيل' : 'Shipping'}</span>
+                  <span>{isAr ? 'يُحسب عند الدفع' : 'Calculated at checkout'}</span>
+                </div>
+              </div>
+              
+              <Link 
+                href={`/${locale}/checkout`}
+                className="block text-center w-full bg-[var(--color-forest-900)] hover:bg-[var(--color-forest-800)] text-white py-3 rounded font-bold transition-colors"
+              >
+                {isAr ? 'إتمام الشراء عبر الواتساب' : 'Proceed to Checkout'}
+              </Link>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
