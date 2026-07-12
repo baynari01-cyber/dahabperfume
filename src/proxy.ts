@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server';
 
 const SESSION_COOKIE_NAME = 'dahab_session';
 
-export function middleware(request: NextRequest) {
+export default function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const sessionToken = request.cookies.get(SESSION_COOKIE_NAME)?.value;
 
@@ -27,10 +27,18 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL(redirectPath, request.url));
   }
 
-  // Locale handling logic (simplified):
-  // Default to /ar if hitting root
-  if (pathname === '/') {
-    return NextResponse.redirect(new URL('/ar', request.url));
+  // Locale handling logic
+  const isPublicRoute = !pathname.startsWith('/admin') && !pathname.startsWith('/pos');
+  if (isPublicRoute) {
+    if (pathname === '/') {
+      return NextResponse.redirect(new URL('/ar', request.url));
+    }
+    
+    // If it doesn't start with /ar or /en, redirect to /ar/path
+    const localeMatch = pathname.match(/^\/(ar|en)(\/|$)/);
+    if (!localeMatch) {
+      return NextResponse.redirect(new URL(`/ar${pathname}`, request.url));
+    }
   }
 
   return NextResponse.next();
