@@ -9,6 +9,7 @@ vi.mock('@/lib/db', () => {
       },
       employeePermission: {
         findFirst: vi.fn().mockResolvedValue(null),
+        findMany: vi.fn().mockResolvedValue([]),
       }
     }
   };
@@ -32,6 +33,8 @@ import { getCurrentSession } from '@/lib/auth';
 describe('Authorization Logic (DAL)', () => {
   beforeEach(() => {
     vi.resetAllMocks();
+    (prisma.employeePermission.findFirst as any).mockResolvedValue(null);
+    (prisma.employeePermission.findMany as any).mockResolvedValue([]);
   });
 
   it('A seller cannot manage employees', async () => {

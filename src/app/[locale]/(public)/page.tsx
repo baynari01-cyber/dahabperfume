@@ -1,8 +1,19 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { prisma } from '@/lib/db';
+import { getHeroSlides, getHeroCarouselSettings, getStoreLocationSettings } from '@/actions/homepage-cms';
+import { HeroCarousel } from '@/components/HeroCarousel';
+import { StoreLocationSection } from '@/components/StoreLocationSection';
 
-export default async function HomePage() {
+interface Params {
+  locale?: string;
+}
+
+export default async function HomePage({ params }: { params: Promise<Params> }) {
+  const { locale = 'ar' } = await params;
+  const isAr = locale === 'ar';
+
+  // 1. Fetch Featured Products
   const featuredProducts = await prisma.product.findMany({
     where: { isVisible: true, isFeatured: true },
     orderBy: { featuredOrder: 'asc' },
@@ -16,39 +27,101 @@ export default async function HomePage() {
     }
   });
 
+  // 2. Fetch Carousel settings & active slides
+  const carouselSettings = await getHeroCarouselSettings();
+  const allSlides = await getHeroSlides();
+  const now = new Date();
+  
+  const activeSlides = allSlides.filter(slide => {
+    if (!slide.isEnabled) return false;
+    if (slide.startsAt && new Date(slide.startsAt) > now) return false;
+    if (slide.endsAt && new Date(slide.endsAt) < now) return false;
+    return true;
+  });
+
+  // 3. Fetch Store location settings
+  const locationSettings = await getStoreLocationSettings();
+
   return (
-    <main className="flex-1">
+    <main className="flex-1" dir={isAr ? 'rtl' : 'ltr'}>
+      {/* Localized Business Structured Data (JSON-LD) */}
+      {locationSettings.locationSectionEnabled && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'PerfumeStore',
+              'name': locationSettings.storeName,
+              'url': 'https://dahabperfumes.com',
+              'telephone': locationSettings.phone,
+              'address': {
+                '@type': 'PostalAddress',
+                'streetAddress': isAr ? locationSettings.addressAr : locationSettings.addressEn,
+                'addressLocality': 'Amman',
+                'addressCountry': 'JO'
+              },
+              'geo': {
+                '@type': 'GeoCoordinates',
+                'latitude': locationSettings.latitude,
+                'longitude': locationSettings.longitude
+              },
+              'openingHours': locationSettings.openingHours,
+              'hasMap': locationSettings.mapPlaceUrl
+            })
+          }}
+        />
+      )}
+
       {/* Hero Section */}
-      <section className="relative w-full min-h-[600px] flex items-center bg-[var(--color-forest-900)] text-white overflow-hidden">
-        <div className="absolute inset-0 bg-black/40 z-10" />
-        {/* Placeholder for hero background image */}
-        <div className="absolute inset-0 z-0">
-          <div className="w-full h-full bg-[var(--color-forest-900)]" />
-        </div>
-        
-        <div className="relative z-20 container mx-auto px-6 text-center lg:text-right">
-          <div className="max-w-2xl lg:ml-auto rtl:mr-auto rtl:ml-0">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight text-[var(--color-champagne-400)] mb-6">
-              حين تُترجم الفخامة <br /> إلى عطر
+      <section className="relative w-full bg-[var(--color-forest-900)] text-white py-12 md:py-20 overflow-hidden flex items-center min-h-[550px]">
+        <div className="container mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-20">
+          
+          {/* Content Column */}
+          <div className="lg:col-span-6 space-y-6 text-center lg:text-start rtl:lg:text-right">
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight text-[var(--color-champagne-400)] font-heading">
+              {isAr ? (
+                <>حين تُترجم الفخامة <br /> إلى عطر</>
+              ) : (
+                <>Where Luxury <br /> Translates to Scent</>
+              )}
             </h1>
-            <p className="text-lg md:text-xl text-zinc-200 mb-8 max-w-xl lg:mr-auto rtl:ml-auto rtl:mr-0">
-              دهب للعطور.. نفحات مختارة بعناية من الشرق، لترافق هويتك وتُشعرك بالأصالة والتميز.
+            <p className="text-sm md:text-base text-zinc-200 max-w-xl mx-auto lg:mx-0 rtl:lg:mr-0 leading-relaxed">
+              {isAr 
+                ? 'دهب للعطور.. نفحات مختارة بعناية من الشرق، لترافق هويتك وتُشعرك بالأصالة والتميز.'
+                : 'Dahab Perfumes.. meticulously selected notes from the East to accompany your identity and embrace your heritage.'}
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start rtl:justify-start">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start rtl:lg:justify-start">
               <Link 
                 href="/shop" 
-                className="px-8 py-3 bg-[var(--color-champagne-600)] hover:bg-[var(--color-champagne-500)] text-white font-bold rounded-sm transition-colors text-lg"
+                className="px-6 py-2.5 bg-[var(--color-champagne-600)] hover:bg-[var(--color-champagne-500)] text-white font-bold rounded-sm transition-all text-sm shadow-md"
               >
-                تسوق الآن
+                {isAr ? 'تسوق الآن' : 'Shop Now'}
               </Link>
               <Link 
                 href="/collections" 
-                className="px-8 py-3 bg-transparent border border-[var(--color-champagne-600)] text-[var(--color-champagne-400)] hover:bg-[var(--color-champagne-600)] hover:text-white font-bold rounded-sm transition-colors text-lg"
+                className="px-6 py-2.5 bg-transparent border border-[var(--color-champagne-600)] text-[var(--color-champagne-400)] hover:bg-[var(--color-champagne-600)] hover:text-white font-bold rounded-sm transition-all text-sm"
               >
-                اكتشف المجموعات
+                {isAr ? 'اكتشف المجموعات' : 'Explore Collections'}
               </Link>
             </div>
           </div>
+
+          {/* Carousel Column */}
+          <div className="lg:col-span-6 w-full">
+            {carouselSettings.enabled && activeSlides.length > 0 ? (
+              <HeroCarousel slides={activeSlides} settings={carouselSettings} />
+            ) : (
+              // Non-ad Hero fallback composition
+              <div className="relative w-full aspect-[4/3] rounded-md overflow-hidden bg-white/5 border border-white/10 flex items-center justify-center p-6">
+                <div className="text-center space-y-4 opacity-40">
+                  <span className="text-4xl block">🏺</span>
+                  <span className="text-xs text-zinc-300 block font-heading tracking-widest uppercase">Dahab Perfumes</span>
+                </div>
+              </div>
+            )}
+          </div>
+
         </div>
       </section>
 
@@ -56,7 +129,9 @@ export default async function HomePage() {
       <section className="py-20 bg-[var(--color-ivory-100)]">
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-[var(--color-forest-900)] mb-4">الأكثر مبيعاً</h2>
+            <h2 className="text-3xl md:text-4xl font-bold text-[var(--color-forest-900)] mb-4">
+              {isAr ? 'الأكثر مبيعاً' : 'Best Sellers'}
+            </h2>
             <div className="w-24 h-1 bg-[var(--color-champagne-600)] mx-auto" />
           </div>
 
@@ -64,22 +139,25 @@ export default async function HomePage() {
             {featuredProducts.map((product) => (
               <div key={product.id} className="group cursor-pointer bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow p-4 border border-[var(--color-ivory-200)]">
                 <div className="relative aspect-square w-full bg-[var(--color-ivory-200)] rounded-md mb-4 overflow-hidden">
-                  {/* Simulated Image */}
                   <div className="absolute inset-0 flex items-center justify-center text-[var(--color-forest-600)]">
-                     {product.images[0] ? (
-                        <div className="w-full h-full bg-cover bg-center" style={{ backgroundImage: `url(${product.images[0].url.startsWith('local://') ? '/product-placeholder.png' : product.images[0].url})` }} />
-                     ) : 'صورة العطر'}
+                    {product.images[0] ? (
+                      <div className="w-full h-full bg-cover bg-center" style={{ backgroundImage: `url(${product.images[0].url.startsWith('local://') ? '/product-placeholder.png' : product.images[0].url})` }} />
+                    ) : (
+                      isAr ? 'صورة العطر' : 'Perfume Image'
+                    )}
                   </div>
                 </div>
                 <div className="text-center">
-                  <h3 className="text-xl font-bold text-[var(--color-forest-900)] mb-2">{product.nameAr}</h3>
+                  <h3 className="text-xl font-bold text-[var(--color-forest-900)] mb-2">
+                    {isAr ? product.nameAr : product.nameEn}
+                  </h3>
                   <div className="text-[var(--color-champagne-600)] font-bold text-lg">
-                    {product.variants[0] ? `${(product.variants[0].price / 100).toFixed(2)} د.أ` : 'نفذت الكمية'}
+                    {product.variants[0] ? `${(product.variants[0].price / 100).toFixed(2)} د.أ` : (isAr ? 'نفذت الكمية' : 'Out of Stock')}
                   </div>
                 </div>
                 <div className="mt-4">
                   <button className="w-full py-2 bg-[var(--color-forest-900)] hover:bg-[var(--color-forest-800)] text-white rounded-sm transition-colors text-sm font-bold">
-                    أضف إلى السلة
+                    {isAr ? 'أضف إلى السلة' : 'Add to Cart'}
                   </button>
                 </div>
               </div>
@@ -87,6 +165,9 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Store Location Map Section */}
+      <StoreLocationSection settings={locationSettings} />
     </main>
   );
 }

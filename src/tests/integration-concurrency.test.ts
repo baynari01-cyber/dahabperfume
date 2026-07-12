@@ -96,7 +96,8 @@ describe('Real PostgreSQL Database Concurrency & Race Condition Safety', () => {
             size: '50ml',
             price: 1000,
             stock: 1,
-            isActive: true
+            isActive: true,
+            usesGlobalPricing: false
           }
         }
       },
@@ -124,6 +125,8 @@ describe('Real PostgreSQL Database Concurrency & Race Condition Safety', () => {
       processPOSCheckout(payload1),
       processPOSCheckout(payload2)
     ]);
+
+    console.log('CONCURRENCY TEST RESULTS:', res1, res2);
 
     // Exactly one must succeed and the other must fail with stock shortage
     const successCount = [res1, res2].filter(r => r.success).length;
@@ -185,8 +188,9 @@ describe('Real PostgreSQL Database Concurrency & Race Condition Safety', () => {
             sku: `${sku}-50ml`,
             size: '50ml',
             price: 1500,
-            stock: 0, // Formula-based, finished stock is 0
-            isActive: true
+            stock: 0,
+            isActive: true,
+            usesGlobalPricing: false
           }
         },
         formulas: {

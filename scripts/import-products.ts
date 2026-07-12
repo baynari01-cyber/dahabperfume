@@ -29,11 +29,6 @@ async function main() {
 
   for (let i = 0; i < records.length; i++) {
     const record = records[i];
-    
-    // Progress logging
-    if ((i + 1) % 50 === 0) {
-      console.log(`Processed ${i + 1}/${records.length}`);
-    }
 
     const sku = record['SKU']?.trim();
     const nameAr = record['اسم العطر']?.trim();
@@ -93,7 +88,6 @@ async function main() {
     // Process Product review and visibility rules
     const imageName = record['اسم الصورة']?.trim();
     const hasMissingImage = !imageName || imageName === 'missing';
-    const notes = record['ملاحظات'] || '';
     
     const reasons = [];
     if (hasMissingImage) {
@@ -112,7 +106,10 @@ async function main() {
 
     const needsReview = reasons.length > 0;
     const reviewReasons = needsReview ? reasons.join(', ') : null;
-    const stockStatus = notes.includes('مخزون') ? 'UNVERIFIED' : 'VERIFIED';
+    
+    // Default mode is DIRECT_LIQUID for local Dahab perfumes
+    const inventoryMode = 'DIRECT_LIQUID';
+    const notesStatus = 'MISSING'; // Fragrance notes don't exist in CSV source
     
     const isVisible = !needsReview;
     const isFeatured = record['مميز بالواجهة؟'] === 'نعم';
@@ -131,7 +128,8 @@ async function main() {
         isFeatured,
         needsReview,
         reviewReasons,
-        stockStatus
+        inventoryMode,
+        notesStatus
       },
       create: {
         sku,
@@ -147,11 +145,24 @@ async function main() {
         isFeatured,
         needsReview,
         reviewReasons,
-        stockStatus
+        inventoryMode,
+        notesStatus
       }
     });
 
-    // Handle Accords
+    // Seed empty ProductLiquidStock for one-to-one mapping
+    await prisma.productLiquidStock.upsert({
+      where: { productId: product.id },
+      update: {},
+      create: {
+        productId: product.id,
+        quantityMl: 0,
+        lowStockThresholdMl: 1000,
+        verificationStatus: 'UNVERIFIED'
+      }
+    });
+
+    // Handle Accords (exactly 5)
     for (let j = 1; j <= 5; j++) {
       const accordName = record[`البصمة العطرية ${j}`]?.trim();
       const accordValue = parseFloat(record[`قوة البصمة ${j}`] || '0');
@@ -170,11 +181,11 @@ async function main() {
               accordId: accord.id
             }
           },
-          update: { value: accordValue, order: j },
+          update: { value: Math.round(accordValue), order: j },
           create: {
             productId: product.id,
             accordId: accord.id,
-            value: accordValue,
+            value: Math.round(accordValue),
             order: j
           }
         });
@@ -199,13 +210,11 @@ async function main() {
           });
         }
       } else {
-        // Only push to missingImages once (it is already pushed at the top if missing, so let's log file missing here)
         missingImages.push(`Row ${i + 2} (${sku}): File ${imageName} not found`);
       }
     }
 
-    // Handle Pricing & Variants
-    // useGlobalPricing is already declared above
+    // Handle Pricing & Variants (1 JOD = 1000 fils)
     const prices = {
       '50ml': parseFloat(record['سعر 50ml خاص'] || '0'),
       '100ml': parseFloat(record['سعر 100ml خاص'] || '0'),
@@ -223,13 +232,14 @@ async function main() {
       if (price > 0) {
         await prisma.productVariant.upsert({
           where: { sku: `${sku}-${size}` },
-          update: { price: price * 100, size },
+          update: { price: price * 1000, size, usesGlobalPricing: useGlobalPricing },
           create: {
             sku: `${sku}-${size}`,
             productId: product.id,
             size,
-            price: price * 100,
-            stock: parseInt(record['المخزون الكلي'] || '0', 10)
+            price: price * 1000,
+            stock: 0, // In liquid mode, operational stock is tracked in ProductLiquidStock
+            usesGlobalPricing: useGlobalPricing
           }
         });
       }
@@ -237,6 +247,21 @@ async function main() {
 
     successCount++;
   }
+
+  // Count final totals in DB to verify
+  const totalProducts = await prisma.product.count();
+  const totalVariants = await prisma.productVariant.count();
+  const totalAccords = await prisma.accord.count();
+  const totalProductAccords = await prisma.productAccord.count();
+  const totalImages = await prisma.productImage.count();
+
+  console.log('--- DB INTEGRITY CHECKS ---');
+  console.log(`Products: ${totalProducts}`);
+  console.log(`Variants: ${totalVariants}`);
+  console.log(`Accords: ${totalAccords}`);
+  console.log(`ProductAccord Relationships: ${totalProductAccords}`);
+  console.log(`Images Matched: ${totalImages}`);
+  console.log(`Missing Image Products: ${missingImages.length}`);
 
   // Generate Reports
   const reportsDir = path.join(process.cwd(), 'reports');
@@ -247,21 +272,23 @@ async function main() {
   fs.writeFileSync(path.join(reportsDir, 'missing-images.csv'), missingImages.join('\n'));
   
   const mdReport = `
-# Import Report
+# Product Import Report
 
 - **Physical CSV Lines:** ${records.length + 1}
 - **Parsed Data Rows:** ${records.length}
 - **Valid Product Rows:** ${successCount}
 - **Blank/Template Rows Skipped:** ${skippedTemplateRows.length}
 - **Invalid Nonblank Product Rows:** ${invalidProducts.length}
-- **Distinct Products:** ${successCount}
+- **Distinct Products:** ${totalProducts}
+- **Total Variants:** ${totalVariants}
+- **Total Accords Dictionary:** ${totalAccords}
+- **Total ProductAccord Links:** ${totalProductAccords}
+- **Images Present:** ${totalImages}
 - **Missing Images for Valid Products:** ${missingImages.length}
-- **External Integration:** Pending credentials - Local bypass used
-
-Please check the generated CSV files in the reports directory for details.
+- **External Integration:** Local import complete
   `.trim();
+  
   fs.writeFileSync(path.join(reportsDir, 'product-import-report.md'), mdReport);
-
   console.log('Import finished.');
 }
 

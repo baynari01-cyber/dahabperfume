@@ -4,19 +4,30 @@ import { PrismaPg } from '@prisma/adapter-pg';
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
+  pgPool: Pool | undefined;
 };
 
-// Check if we are running at build time or in a generic Node environment
-// without a DATABASE_URL. In those cases, we shouldn't fail immediately
-// but we shouldn't attempt to connect to the DB.
 const connectionString = (process.env.NODE_ENV === 'test' && process.env.TEST_DATABASE_URL)
   ? process.env.TEST_DATABASE_URL
   : (process.env.DATABASE_URL || '');
 
-export const prisma =
-  globalForPrisma.prisma ??
-  (connectionString
-    ? new PrismaClient({ adapter: new PrismaPg(new Pool({ connectionString })) })
-    : new PrismaClient()); // Fallback for build time without env vars
+// Singleton Pool instance
+export const pool = globalForPrisma.pgPool ?? new Pool({
+  connectionString,
+  max: 10,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 2000
+});
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
+if (process.env.NODE_ENV !== 'production') {
+  globalForPrisma.pgPool = pool;
+}
+
+const adapter = new PrismaPg(pool);
+
+export const prisma =
+  globalForPrisma.prisma ?? new PrismaClient({ adapter });
+
+if (process.env.NODE_ENV !== 'production') {
+  globalForPrisma.prisma = prisma;
+}

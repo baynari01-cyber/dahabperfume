@@ -40,9 +40,9 @@ export async function updateGlobalSizePrice(size: string, priceInFils: number, a
         create: { key: 'global_size_prices', value: JSON.stringify(currentPrices) }
       });
 
-      // 3. Update all existing variant rows matching this size
+      // 3. Update all existing variant rows matching this size where usesGlobalPricing is true
       const { count } = await tx.productVariant.updateMany({
-        where: { size },
+        where: { size, usesGlobalPricing: true },
         data: { price: priceInFils }
       });
 

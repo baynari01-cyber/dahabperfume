@@ -16,7 +16,8 @@
     "prisma:migrate": "prisma migrate deploy",
     "prisma:seed": "tsx --env-file=.env scripts/create-admin.ts",
     "import:products": "tsx --env-file=.env scripts/import-products.ts",
-    "create:admin": "tsx --env-file=.env scripts/create-admin.ts"
+    "create:admin": "tsx --env-file=.env scripts/create-admin.ts",
+    "test:concurrency": "node --env-file=.env node_modules/vitest/vitest.mjs run src/tests/concurrency-verification.test.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",

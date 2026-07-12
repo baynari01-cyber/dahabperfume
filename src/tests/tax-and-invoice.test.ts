@@ -131,7 +131,8 @@ describe('Tax Settings & Invoice snapshots', () => {
         size: '50ml',
         price: 1000, // 10 JOD in fils
         stock: 100,
-        isActive: true
+        isActive: true,
+        usesGlobalPricing: false
       }
     });
     variantId = variant.id;
@@ -161,7 +162,8 @@ describe('Tax Settings & Invoice snapshots', () => {
         size: '50ml',
         price: 1000,
         stock: 50,
-        isActive: true
+        isActive: true,
+        usesGlobalPricing: false
       }
     });
     sepVariantId = sepVariant.id;

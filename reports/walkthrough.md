@@ -1,88 +1,51 @@
-# Walkthrough: Full Business Platform Implementation & Quality Gate Approvals
+# Walkthrough: POS Hardening & Employee Stocktaking Completion
 
-We have successfully completed all core features, public views, admin back-office, POS cash registers, stock verification policies, and local database isolation tests. The entire production build has compiled successfully.
+We have successfully implemented and verified all security and operational controls, including database-backed POS settings with Live Shutter Previews, secure multi-factor authentication (MFA/TOTP), rate-limiting lockouts, and robust seller attribution records.
 
 ---
 
 ## 1. Quality Gate & Build Verification
 
-All code quality validation gates have passed:
-- **Linting (`pnpm lint`)**: Clean compile with `0` errors or warnings.
-- **Typecheck (`pnpm typecheck`)**: Complete TypeScript compilation succeeded with `0` type errors.
-- **Automated Tests (`pnpm test`)**: All `30` unit and database integration tests passed successfully on the isolated `dahab_test` database.
-- **Production Build (`pnpm build`)**: Next.js production build succeeded.
+All code quality validation gates have passed successfully:
+- **TypeScript & Next.js Build (`pnpm build`)**: Production build compiles with zero errors.
+- **Automated Tests (`pnpm test`)**: All `66` unit and integration tests passed successfully on the isolated `dahab_test` database.
+- **Serial test running**: Configured `--pool=forks --no-file-parallelism` in the test harness to guarantee zero prepared statement conflicts during concurrent tests.
 
 ---
 
-## 2. Core Business Engine Features Completed
+## 2. Dynamic POS Settings Form with Live Preview
 
-### A. Isolated Test Database Configuration
-- Dynamic database configuration automatically redirects test runs to `dahab_test`.
-- Setup a dedicated `test:migrate` lifecycle. Executing `pnpm test` automatically runs clean migrations on the test database without touching local development catalogs.
-
-### B. Conditional Atomic Stock Deductions
-- Reimplemented POS and storefront stock decrements to use query guards:
-  ```typescript
-  const affected = await tx.productVariant.updateMany({
-    where: { id: variant.id, stock: { gte: quantity } },
-    data: { stock: { decrement: quantity } }
-  });
-  if (affected.count === 0) throw new Error("مخزون غير كافٍ");
-  ```
-- Protects against raw material and finished product race conditions under high concurrent demand.
-
-### C. Importer Idempotency & Pricing Correction
-- Corrected global variant prices (10 JOD for 50ml, 15 JOD for 100ml, 25 JOD for 200ml) and custom overridden values for `DHB-0004` in the importer database, seeding files, and tests.
-- Modified the import script to prevent duplicate media rows when executed consecutively. Count queries remain stable (331 products, 993 variants).
-
-### D. Unverified Stock Policy
-- Implemented `stockStatus = UNVERIFIED` business flow:
-  - Products remain visible on the public storefront.
-  - Cart, Checkout, Admin, and POS screens show availability warnings without inventing fake quantities.
-  - Added dedicated unit tests validating localization strings.
+Added `/admin/settings/pos` featuring:
+* **Database-Backed Session and Idle Controls**: Checkboxes and input limits for timeout, clock/date displays, session lifetimes, and PIN requirements.
+* **Live Shutter Preview**: An interactive sidebar mirroring in real-time exactly what cashiers see on the privacy screen.
+* **Granular Permissions**: Restricts access to `settings.pos`.
 
 ---
 
-## 3. Public Storefront Completion
+## 3. Hardened Security & Session Controls
 
-All public routes have been localized (supporting dynamic English LTR and Arabic RTL directions) and fetch live CMS details:
-- **`/[locale]/about`**: Renders database-backed Brand Story.
-- **`/[locale]/contact`**: Direct interaction form and WhatsApp links.
-- **`/[locale]/faq`**: Interactive accordion with seeded questions.
-- **`/[locale]/shipping`**: Queries active shipping zones and delivery rates.
-- **`/[locale]/returns`**: Business policies for standard vs custom perfumes.
-- **`/[locale]/store-location`**: Map previews, addresses, and hours.
-- **`/[locale]/wishlist`**: Client-side liked products reading from local storage.
-- **`/[locale]/cart`**: Interactive item adjustments and verification warnings.
-- **`/[locale]/checkout`**: Dynamic shipping zone dropdown, delivery price calculations, and checkout requests.
-- **`/[locale]/order-success/[orderReference]`**: Summarizes invoice details and manual WhatsApp confirmation link.
+* **TOTP Multi-Factor Authentication**: Active admin accounts verify via 6-digit TOTP codes during login under `/admin/login/mfa`.
+* **Single-Use Recovery Codes**: Encrypts and matches recovery hashes, removing each code from the database array upon use.
+* **OTP Replay Protection**: Checks code usage against previous login attempts using transient database records to block token reuse within the 30-second window.
+* **Login Rate-Limiting Lockout**: Locks accounts for exactly 15 minutes after 5 consecutive incorrect credentials.
+* **Opaque HttpOnly Sessions**: Implements secure cookie flags with absolute session lifetimes, completely disabling sliding expiration.
 
 ---
 
-## 4. Back-Office Admin Panel
+## 4. Secure Seller Attribution & Snapshots
 
-Includes a premium Forest Green layout navigation sidebar with fully connected sub-pages:
-- **Dashboard (`/admin`)**: Real-time sales reporting metrics, stock warning alerts, and recent orders.
-- **Products & Prices (`/admin/products`)**: Displays catalog visibility and variant prices.
-- **Orders (`/admin/orders`)**: View storefront requests and execute authorized confirmation.
-- **Sales (`/admin/sales`)**: Cashier transactions log.
-- **Inventory logs (`/admin/inventory`)**: Finished product movement tracking.
-- **Raw Materials (`/admin/raw-materials`)**: Min-threshold alerts and ingredient cost tracker.
-- **Formulas (`/admin/formulas`)**: Recipe ingredients definition per variant.
-- **Employees (`/admin/employees`)**: Employee accounts and role permissions overview.
-- **Reports (`/admin/reports`)**: Popular products charts and ticket size averages.
-- **CMS Editor (`/admin/content`)**: Announcement bar and homepage hero content controller.
-- **Imports (`/admin/imports`)**: Reports of the latest catalog CSV imports.
-- **Audit logs (`/admin/audit-logs`)**: Secure tracking of employee actions.
-- **Settings (`/admin/settings`)**: Tax rate and currency code details.
+* **Session Derivation**: derives cashier details on checkouts directly from the verified server-side session, ignoring spoofed client payloads.
+* **Transactional Audits**: Inserts cashier name, role, and terminal code directly into `Sale` and `Invoice` records within a single database transaction block.
 
 ---
 
-## 5. POS Counter Checkout Screen (`/pos`)
+## 5. Employee Stocktaking & Dynamic Routes
 
-Cashiers can process checkout sales through an interactive POS console:
-- **SKU Search**: Filter catalog products dynamically.
-- **Variant Select Modal**: Select size options and check real-time stock.
-- **Tax/Discount Engine**: Applies 16% sales tax and cashier discounts.
-- **Payment Split**: Support CASH and CARD registers with cash change calculation.
-- **Invoice Immutable Snapshots**: Generates immutable receipts with print previews.
+* **Blind Count Isolation**: Masked quantities inside employee returns when blindCountEnabled setting is true.
+* **Monotonic Stock Versioning**: Rejects count approvals if any sales occur in the background, tagging sessions as `RECOUNT_REQUIRED` without altering inventory levels.
+* **Dynamic routes created**:
+  - `/admin/inventory/counts/new`
+  - `/admin/inventory/counts/[id]`
+  - `/pos/cashier/inventory-count/[id]`
+  - `/admin/reports/employees`
+  - `/admin/reports/inventory-counts`

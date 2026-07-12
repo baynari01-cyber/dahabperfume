@@ -26,11 +26,19 @@ export function hashSessionToken(token: string): string {
 export async function createSession(employeeId: string) {
   const token = generateSessionToken();
   const hashedToken = hashSessionToken(token);
-  const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * SESSION_EXPIRATION_DAYS);
+  
+  const employee = await prisma.employee.findUnique({
+    where: { id: employeeId },
+    include: { role: true }
+  });
+  
+  const isCashier = employee?.role?.name === 'Cashier';
+  const lifetimeMs = isCashier ? 15 * 60 * 60 * 1000 : 7 * 24 * 60 * 60 * 1000;
+  const expiresAt = new Date(Date.now() + lifetimeMs);
 
   await prisma.session.create({
     data: {
-      id: hashedToken, // Store the SHA-256 hash as the primary key
+      id: hashedToken,
       employeeId,
       expiresAt,
     },
@@ -57,18 +65,49 @@ export async function validateSessionToken(token: string) {
     return null;
   }
 
-  if (Date.now() >= session.expiresAt.getTime()) {
+  const now = Date.now();
+  const isCashier = session.employee.role.name === 'Cashier';
+
+  // 1. Enforce absolute lifetime
+  const absoluteLifetimeMs = isCashier
+    ? 15 * 60 * 60 * 1000 // 15 hours for Cashier
+    : 12 * 60 * 60 * 1000; // 12 hours for Admin
+  if (now - session.createdAt.getTime() >= absoluteLifetimeMs) {
     await prisma.session.delete({ where: { id: session.id } });
     return null;
   }
 
-  // Extend session if it's close to expiration (e.g. less than 3 days left)
-  const threeDays = 1000 * 60 * 60 * 24 * 3;
-  if (session.expiresAt.getTime() - Date.now() < threeDays) {
+  // 2. Enforce idle timeout (only for Admin sessions, POS uses client-side idle lock)
+  if (!isCashier) {
+    const idleTimeoutMs = 30 * 60 * 1000; // 30 minutes
+    if (now - session.lastActivityAt.getTime() >= idleTimeoutMs) {
+      await prisma.session.delete({ where: { id: session.id } });
+      return null;
+    }
+  }
+
+  // 3. Enforce expiration fallback
+  if (now >= session.expiresAt.getTime()) {
+    await prisma.session.delete({ where: { id: session.id } });
+    return null;
+  }
+
+  // Update last activity and slide session expiration only for non-cashiers
+  if (isCashier) {
+    await prisma.session.update({
+      where: { id: session.id },
+      data: {
+        lastActivityAt: new Date()
+      }
+    });
+  } else {
     const newExpiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * SESSION_EXPIRATION_DAYS);
     await prisma.session.update({
       where: { id: session.id },
-      data: { expiresAt: newExpiresAt },
+      data: {
+        lastActivityAt: new Date(),
+        expiresAt: newExpiresAt
+      },
     });
     session.expiresAt = newExpiresAt;
   }

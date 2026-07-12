@@ -1,0 +1,33 @@
+{
+  "jobId": "151dd864-338f-4270-95bb-bcbd3917982e",
+  "filename": "products_upload_test.csv",
+  "sourceType": "CSV",
+  "startedAt": "2026-07-12T19:17:07.825Z",
+  "completedAt": "2026-07-12T19:17:08.413Z",
+  "physicalRows": 4,
+  "parsedRows": 3,
+  "validRows": 2,
+  "invalidRows": 1,
+  "blankRows": 0,
+  "createdProducts": 2,
+  "updatedProducts": 0,
+  "skippedRows": 0,
+  "missingImages": 0,
+  "duplicateSKUs": 0,
+  "createdVariants": 4,
+  "updatedVariants": 0,
+  "linkedAccords": 0,
+  "hiddenProducts": 0,
+  "warnings": 0,
+  "errors": 1,
+  "databaseCountsBefore": {
+    "products": 513,
+    "variants": 1175,
+    "categories": 7
+  },
+  "databaseCountsAfter": {
+    "products": 515,
+    "variants": 1179,
+    "categories": 7
+  }
+}

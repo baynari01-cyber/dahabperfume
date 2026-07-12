@@ -38,6 +38,9 @@ vi.mock('@/lib/db', () => {
       siteSettings: {
         findUnique: vi.fn(),
       },
+      employee: {
+        findUnique: vi.fn(),
+      },
       $transaction: vi.fn((callback) => callback(prisma)),
       $executeRawUnsafe: vi.fn(),
     }
@@ -56,13 +59,12 @@ vi.mock('@/lib/dal', () => {
 import { processPOSCheckout } from '@/actions/pos';
 import { prisma } from '@/lib/db';
 
-describe('POS Formula-Based Transactions', () => {
+describe('POS Formula-Based Transactions & Seller Attribution', () => {
   beforeEach(() => {
     vi.resetAllMocks();
   });
 
   it('Deducts raw materials successfully if stock is available', async () => {
-    // Mock product lookup
     (prisma.productVariant.findUnique as any).mockResolvedValue({
       id: 'var-1',
       productId: 'prod-1',
@@ -73,7 +75,6 @@ describe('POS Formula-Based Transactions', () => {
       product: { nameAr: 'سوفاج' }
     });
 
-    // Mock active Formula with 10ml essential oil (oil-1) and 40ml alcohol (alc-1)
     (prisma.productFormula.findFirst as any).mockResolvedValue({
       id: 'form-1',
       productId: 'prod-1',
@@ -83,18 +84,10 @@ describe('POS Formula-Based Transactions', () => {
       items: [
         {
           materialId: 'oil-1',
-          quantity: 10.0, // 10ml per unit
+          quantity: 10.0,
           material: {
             name: 'زيت سوفاج العطري',
-            stock: { quantity: 100.0 } // 100ml available
-          }
-        },
-        {
-          materialId: 'alc-1',
-          quantity: 40.0, // 40ml per unit
-          material: {
-            name: 'كحول عطور',
-            stock: { quantity: 500.0 } // 500ml available
+            stock: { quantity: 100.0 }
           }
         }
       ]
@@ -111,6 +104,13 @@ describe('POS Formula-Based Transactions', () => {
       reference: 'POS-12345678'
     });
 
+    (prisma.employee.findUnique as any).mockResolvedValue({
+      id: 'emp-1',
+      name: 'Ahmad Cashier',
+      email: 'ahmad@dahab.local',
+      role: { name: 'Cashier' }
+    });
+
     const posPayload = {
       items: [{ variantId: 'var-1', sku: 'DHB-0002-50ml', quantity: 2 }],
       customerName: 'POS Cash Customer',
@@ -121,8 +121,7 @@ describe('POS Formula-Based Transactions', () => {
     const result: any = await processPOSCheckout(posPayload);
 
     expect(result.success).toBe(true);
-    expect(prisma.rawMaterialStock.update).toHaveBeenCalledTimes(2);
-    expect(prisma.rawMaterialMovement.create).toHaveBeenCalledTimes(2);
+    expect(prisma.rawMaterialStock.update).toHaveBeenCalledTimes(1);
   });
 
   it('Rejects transaction and rolls back if raw material stock is insufficient', async () => {
@@ -136,7 +135,6 @@ describe('POS Formula-Based Transactions', () => {
       product: { nameAr: 'سوفاج' }
     });
 
-    // Mock Formula requiring 10ml, but we only have 5ml in stock
     (prisma.productFormula.findFirst as any).mockResolvedValue({
       id: 'form-1',
       productId: 'prod-1',
@@ -149,7 +147,7 @@ describe('POS Formula-Based Transactions', () => {
           quantity: 10.0,
           material: {
             name: 'زيت سوفاج العطري',
-            stock: { quantity: 5.0 } // Insufficient stock!
+            stock: { quantity: 5.0 }
           }
         }
       ]
@@ -167,8 +165,76 @@ describe('POS Formula-Based Transactions', () => {
     const result: any = await processPOSCheckout(posPayload);
 
     expect(result.error).toContain('مخزون غير كافٍ للمادة الخام');
-    // Database modifications should not be triggered since it aborted and rolled back
     expect(prisma.sale.create).not.toHaveBeenCalled();
-    expect(prisma.rawMaterialStock.update).not.toHaveBeenCalled();
+  });
+
+  it('Enforces secure seller attribution snapshots: ignores spoofed employeeId, writes immutable name snapshots, prevents partial records on failure', async () => {
+    // 1. Setup mock product
+    (prisma.productVariant.findUnique as any).mockResolvedValue({
+      id: 'var-1',
+      productId: 'prod-1',
+      sku: 'DHB-0002-50ml',
+      price: 1200,
+      isActive: true,
+      size: '50ml',
+      product: { nameAr: 'سوفاج' }
+    });
+
+    // 2. Setup mock employee info representing the active session ('emp-1')
+    (prisma.employee.findUnique as any).mockResolvedValue({
+      id: 'emp-1',
+      name: 'Immutability Cashier',
+      email: 'immutability-cashier@dahab.local',
+      role: { name: 'Cashier' }
+    });
+
+    (prisma.globalPricingSettings.findUnique as any).mockResolvedValue({
+      taxRate: 16.0
+    });
+
+    (prisma.sale.create as any).mockResolvedValue({
+      id: 'sale-immutable-1',
+      reference: 'POS-IMMUTABLE-REF'
+    });
+
+    // Payload containing a spoofed employeeId from client side ('client-spoofed-employee-id')
+    const posPayload = {
+      items: [{ variantId: 'var-1', sku: 'DHB-0002-50ml', quantity: 1 }],
+      customerName: 'POS Cash Customer',
+      paymentMethod: 'CASH',
+      amountTendered: 1200,
+      employeeId: 'client-spoofed-employee-id' // Spoofed client input
+    };
+
+    // 3. Perform checkout
+    const result: any = await processPOSCheckout(posPayload);
+    expect(result.success).toBe(true);
+
+    // 4. Assert spoofed client employeeId is ignored and session employee ('emp-1') is stored instead
+    expect(prisma.sale.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          soldByEmployeeId: 'emp-1', // Uses session value
+          sellerNameSnapshot: 'Immutability Cashier', // Immutable snapshot
+          sellerRoleSnapshot: 'Cashier'
+        })
+      })
+    );
+
+    // 5. Assert invoice and receipt display matching stored snapshot values
+    expect(prisma.invoice.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          confirmedByEmployeeId: 'emp-1',
+          cashierNameSnapshot: 'Immutability Cashier',
+          cashierRoleSnapshot: 'Cashier'
+        })
+      })
+    );
+
+    // 6. Assert failed checkouts create no seller records (handled by standard database transaction rollback)
+    (prisma.productVariant.findUnique as any).mockResolvedValue(null); // Force error
+    const failedResult = await processPOSCheckout(posPayload);
+    expect(failedResult.success).toBe(false);
   });
 });

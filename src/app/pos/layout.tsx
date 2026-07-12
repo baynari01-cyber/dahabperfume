@@ -48,7 +48,7 @@ export default async function POSLayout({
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-[var(--color-ivory-200)] shadow-lg flex justify-around items-center h-16 px-2 z-20 shrink-0">
         {showCounter && (
           <Link
-            href="/pos"
+            href="/pos/cashier"
             className="flex flex-col items-center justify-center text-zinc-650 hover:text-[var(--color-forest-900)] transition-colors w-full py-1 text-center"
           >
             <svg className="h-5 w-5 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">

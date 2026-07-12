@@ -1,10 +1,16 @@
 'use client';
 
-import { useActionState } from 'react';
+import { useActionState, useEffect } from 'react';
 import { login } from '@/actions/auth';
 
 export default function AdminLoginPage() {
   const [state, formAction, isPending] = useActionState(login, null);
+
+  useEffect(() => {
+    if (state?.requiresMfa && state?.tempEmployeeId) {
+      window.location.href = `/admin/login/mfa?id=${state.tempEmployeeId}`;
+    }
+  }, [state]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-zinc-50 dark:bg-zinc-900 px-4">

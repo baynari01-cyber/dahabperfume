@@ -36,6 +36,7 @@ export function AdminSidebar({ employeeName, permissions = [] }: AdminSidebarPro
     { href: '/admin/orders', label: 'طلبات المتجر', permission: 'manage:orders' },
     { href: '/admin/sales', label: 'المبيعات والفواتير', permission: 'manage:orders' },
     { href: '/admin/inventory', label: 'حركة المخزون', permission: 'manage:inventory' },
+    { href: '/admin/inventory/counts', label: 'مطابقة وجرد المخزون', permission: 'manage:inventory' },
     { href: '/admin/raw-materials', label: 'المواد الخام', permission: 'manage:inventory' },
     { href: '/admin/formulas', label: 'تركيبات العطور', permission: 'manage:inventory' },
     { href: '/admin/employees', label: 'الموظفين والصلاحيات', permission: 'manage:settings' },

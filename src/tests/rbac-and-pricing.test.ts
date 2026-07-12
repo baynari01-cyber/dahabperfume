@@ -117,7 +117,8 @@ describe('RBAC Checkbox Override & Unified Pricing Integration Tests', () => {
       await prisma.employeePermission.create({
         data: {
           employeeId: testEmployeeId,
-          permissionId: permSettingsId
+          permissionId: permSettingsId,
+          grantedByEmployeeId: adminEmployeeId
         }
       });
 

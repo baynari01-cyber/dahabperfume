@@ -15,7 +15,7 @@ export async function createEmployee(data: {
   bootstrapAdminId: string; // The performing employee (Admin)
 }) {
   try {
-    await requirePermission('manage:settings');
+    const session = await requirePermission('manage:settings');
 
     const existing = await prisma.employee.findUnique({
       where: { email: data.email }
@@ -45,7 +45,10 @@ export async function createEmployee(data: {
       await prisma.employeePermission.createMany({
         data: data.selectedPermissionIds.map((pId) => ({
           employeeId: employee.id,
-          permissionId: pId
+          permissionId: pId,
+          grantedByEmployeeId: data.bootstrapAdminId,
+          effect: 'ALLOW',
+          reason: 'Direct Admin Assignment'
         }))
       });
     }
@@ -77,7 +80,26 @@ export async function updateEmployee(data: {
   adminId: string;
 }) {
   try {
-    await requirePermission('manage:settings');
+    const session = await requirePermission('manage:settings');
+
+    const targetEmployee = await prisma.employee.findUnique({
+      where: { id: data.id },
+      include: { role: true }
+    });
+
+    // Protect against disabling/removing last active Admin
+    if (targetEmployee?.role.name === 'Admin' && targetEmployee.isActive) {
+      const activeAdminsCount = await prisma.employee.count({
+        where: {
+          role: { name: 'Admin' },
+          isActive: true,
+          id: { not: data.id }
+        }
+      });
+      if (activeAdminsCount === 0 && !data.isActive) {
+        return { success: false, error: 'لا يمكن تعطيل آخر مدير نشط في النظام لحماية الإدارة' };
+      }
+    }
 
     // Update Employee
     await prisma.employee.update({
@@ -99,7 +121,10 @@ export async function updateEmployee(data: {
       await prisma.employeePermission.createMany({
         data: data.selectedPermissionIds.map((pId) => ({
           employeeId: data.id,
-          permissionId: pId
+          permissionId: pId,
+          grantedByEmployeeId: data.adminId,
+          effect: 'ALLOW',
+          reason: 'Direct Admin Assignment'
         }))
       });
     }
@@ -123,6 +148,207 @@ export async function updateEmployee(data: {
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message || 'حدث خطأ أثناء تحديث البيانات' };
+  }
+}
+
+export async function addEmployeePermissionOverride(data: {
+  employeeId: string;
+  permissionId: string;
+  effect: 'ALLOW' | 'DENY';
+  reason: string;
+  expiresInMinutes?: number;
+  adminId: string;
+}) {
+  try {
+    const session = await requirePermission('manage:settings');
+
+    const expiresAt = data.expiresInMinutes
+      ? new Date(Date.now() + data.expiresInMinutes * 60 * 1000)
+      : null;
+
+    const override = await prisma.employeePermission.upsert({
+      where: {
+        employeeId_permissionId: {
+          employeeId: data.employeeId,
+          permissionId: data.permissionId
+        }
+      },
+      update: {
+        effect: data.effect,
+        reason: data.reason,
+        expiresAt,
+        grantedByEmployeeId: data.adminId
+      },
+      create: {
+        employeeId: data.employeeId,
+        permissionId: data.permissionId,
+        effect: data.effect,
+        reason: data.reason,
+        expiresAt,
+        grantedByEmployeeId: data.adminId
+      }
+    });
+
+    // Force session revocation
+    await prisma.session.deleteMany({
+      where: { employeeId: data.employeeId }
+    });
+
+    await prisma.auditLog.create({
+      data: {
+        employeeId: data.adminId,
+        action: 'PERMISSION_OVERRIDE_ADDED',
+        entityType: 'EmployeePermission',
+        entityId: `${data.employeeId}:${data.permissionId}`,
+        details: JSON.stringify(data)
+      }
+    });
+
+    return { success: true, override };
+  } catch (error: any) {
+    return { success: false, error: error.message || 'فشل إضافة صلاحية الاستثناء' };
+  }
+}
+
+export async function toggleEmployeeStatus(employeeId: string, adminId: string) {
+  try {
+    const session = await requirePermission('manage:settings');
+
+    const employee = await prisma.employee.findUnique({
+      where: { id: employeeId },
+      include: { role: true }
+    });
+    if (!employee) return { success: false, error: 'الموظف غير موجود' };
+
+    const newActiveState = !employee.isActive;
+
+    // Protect against disabling last active Admin
+    if (employee.role.name === 'Admin' && employee.isActive && !newActiveState) {
+      const activeAdminsCount = await prisma.employee.count({
+        where: {
+          role: { name: 'Admin' },
+          isActive: true,
+          id: { not: employeeId }
+        }
+      });
+      if (activeAdminsCount === 0) {
+        return { success: false, error: 'لا يمكن تعطيل آخر مدير نشط في النظام لحماية الإدارة' };
+      }
+    }
+
+    await prisma.employee.update({
+      where: { id: employeeId },
+      data: { isActive: newActiveState }
+    });
+
+    // Revoke sessions
+    await prisma.session.deleteMany({
+      where: { employeeId }
+    });
+
+    await prisma.auditLog.create({
+      data: {
+        employeeId: adminId,
+        action: 'EMPLOYEE_STATUS_TOGGLED',
+        entityType: 'Employee',
+        entityId: employeeId,
+        details: JSON.stringify({ email: employee.email, isActive: newActiveState })
+      }
+    });
+
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message || 'فشل تعديل حالة الموظف' };
+  }
+}
+
+export async function forcePasswordChange(employeeId: string, adminId: string) {
+  try {
+    const session = await requirePermission('manage:settings');
+    await prisma.employee.update({
+      where: { id: employeeId },
+      data: { mustChangePassword: true }
+    });
+
+    // Revoke sessions
+    await prisma.session.deleteMany({
+      where: { employeeId }
+    });
+
+    await prisma.auditLog.create({
+      data: {
+        employeeId: adminId,
+        action: 'FORCE_PASSWORD_CHANGE',
+        entityType: 'Employee',
+        entityId: employeeId,
+        details: null
+      }
+    });
+
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message || 'فشل إلزام تغيير كلمة المرور' };
+  }
+}
+
+export async function getEmployeeSessions(employeeId: string) {
+  try {
+    await requirePermission('manage:settings');
+    return await prisma.session.findMany({
+      where: { employeeId },
+      orderBy: { createdAt: 'desc' }
+    });
+  } catch {
+    return [];
+  }
+}
+
+export async function revokeEmployeeSession(sessionId: string, adminId: string) {
+  try {
+    const session = await requirePermission('manage:settings');
+    const targetSession = await prisma.session.findUnique({ where: { id: sessionId } });
+    if (!targetSession) return { success: false, error: 'الجلسة غير موجودة' };
+
+    await prisma.session.delete({
+      where: { id: sessionId }
+    });
+
+    await prisma.auditLog.create({
+      data: {
+        employeeId: adminId,
+        action: 'SESSION_REVOKED',
+        entityType: 'Session',
+        entityId: sessionId,
+        details: JSON.stringify({ employeeId: targetSession.employeeId })
+      }
+    });
+
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message || 'فشل إلغاء الجلسة' };
+  }
+}
+
+export async function revokeAllEmployeeSessions(employeeId: string, adminId: string) {
+  try {
+    const session = await requirePermission('manage:settings');
+    await prisma.session.deleteMany({
+      where: { employeeId }
+    });
+
+    await prisma.auditLog.create({
+      data: {
+        employeeId: adminId,
+        action: 'ALL_SESSIONS_REVOKED',
+        entityType: 'Employee',
+        entityId: employeeId,
+        details: null
+      }
+    });
+
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message || 'فشل إلغاء كافة الجلسات' };
   }
 }
 

@@ -1,6 +1,5 @@
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
@@ -12,16 +11,16 @@ datasource db {
 // ----------------------------------------------------------------------
 
 model Employee {
-  id                  String         @id @default(uuid())
-  email               String         @unique
+  id                  String               @id @default(uuid())
+  email               String               @unique
   name                String
-  passwordHash        String         // Argon2id hash
-  pinHash             String?        // Opaque PIN hash for shift unlocking
-  mustChangePassword  Boolean        @default(false)
-  bootstrapCredential Boolean        @default(false)
-  isActive            Boolean        @default(true)
+  passwordHash        String               // Argon2id hash
+  pinHash             String?              // Opaque PIN hash for shift unlocking
+  mustChangePassword  Boolean              @default(false)
+  bootstrapCredential Boolean              @default(false)
+  isActive            Boolean              @default(true)
   roleId              String
-  role                Role           @relation(fields: [roleId], references: [id])
+  role                Role                 @relation(fields: [roleId], references: [id])
   sessions            Session[]
   loginAttempts       LoginAttempt[]
   auditLogs           AuditLog[]
@@ -29,17 +28,36 @@ model Employee {
   returns             Return[]
   inventoryMoves      InventoryMovement[]
   permissions         EmployeePermission[]
-  failedAttempts      Int            @default(0)
+  shifts              Shift[]
+  heldSales           HeldSale[]
+  assignedCounts      InventoryCountSession[] @relation("AssignedCounts")
+  createdCounts       InventoryCountSession[] @relation("CreatedCounts")
+  reviewedCounts      InventoryCountSession[] @relation("ReviewedCounts")
+  approvedCounts      InventoryCountSession[] @relation("ApprovedCounts")
+  verifiedStocks      ProductLiquidStock[]    @relation("VerifiedStocks")
+  liquidMovements     ProductLiquidMovement[]
+  soldSales           Sale[]                  @relation("SoldSales")
+  failedAttempts      Int                  @default(0)
   lockoutUntil        DateTime?
-  createdAt           DateTime       @default(now())
-  updatedAt           DateTime       @updatedAt
+  mfaSecret           String?              // Encrypted secret
+  mfaEnabled          Boolean              @default(false)
+  mfaRecoveryCodes    String?              // Hashed single-use recovery codes (JSON)
+  importJobs          ImportJob[]
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
 }
 
 model EmployeePermission {
-  employeeId   String
-  permissionId String
-  employee     Employee   @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  employeeId          String
+  permissionId        String
+  effect              String               @default("ALLOW") // "ALLOW" or "DENY"
+  grantedByEmployeeId String
+  reason              String?
+  expiresAt           DateTime?
+  employee            Employee             @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  permission          Permission           @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
 
   @@id([employeeId, permissionId])
 }
@@ -70,11 +88,12 @@ model RolePermission {
 }
 
 model Session {
-  id         String   @id // SHA-256 hash of the session token
-  employeeId String
-  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  expiresAt  DateTime
-  createdAt  DateTime @default(now())
+  id             String   @id // SHA-256 hash of the session token
+  employeeId     String
+  employee       Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  expiresAt      DateTime
+  lastActivityAt DateTime @default(now())
+  createdAt      DateTime @default(now())
 }
 
 model LoginAttempt {
@@ -116,30 +135,37 @@ model Product {
   needsReview      Boolean          @default(false)
   reviewReasons    String?          // e.g. "Missing Image"
   stockStatus      String           @default("UNVERIFIED")
+  inventoryMode    String           @default("FINISHED_PRODUCT")
+  notesStatus      String           @default("VERIFIED")
   variants         ProductVariant[]
   images           ProductImage[]
   accords          ProductAccord[]
   notes            ProductNote[]
   orderItems       OrderItem[]
+  liquidStock      ProductLiquidStock?
+  liquidMovements  ProductLiquidMovement[]
+  countLines       InventoryCountLine[]
   formulas         ProductFormula[]
+  slides           HomepageHeroSlide[]
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 }
 
 model ProductVariant {
-  id          String   @id @default(uuid())
-  productId   String
-  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  size        String   // e.g. "50ml", "100ml"
-  sku         String   @unique
-  price       Int      // Stored in minor units (e.g. fils or cents)
-  compareAt   Int?
-  stock       Int      @default(0) // Used for FINISHED_PRODUCT mode
-  isActive    Boolean  @default(true)
-  saleItems   SaleItem[]
-  returnItems ReturnItem[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id                 String   @id @default(uuid())
+  productId          String
+  product            Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  size               String   // e.g. "50ml", "100ml"
+  sku                String   @unique
+  price              Int      // Stored in minor units (e.g. fils or cents)
+  compareAt          Int?
+  stock              Int      @default(0) // Used for FINISHED_PRODUCT mode
+  isActive           Boolean  @default(true)
+  usesGlobalPricing  Boolean  @default(true)
+  saleItems          SaleItem[]
+  returnItems        ReturnItem[]
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 }
 
 model ProductImage {
@@ -159,6 +185,7 @@ model Category {
   name        String
   description String?
   products    Product[]
+  slides      HomepageHeroSlide[]
 }
 
 model Collection {
@@ -168,6 +195,7 @@ model Collection {
   description String?
   image       String?
   products    Product[]
+  slides      HomepageHeroSlide[]
 }
 
 model Gender {
@@ -207,11 +235,13 @@ model ProductAccord {
 }
 
 model ProductNote {
-  id        String  @id @default(uuid())
-  productId String
-  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  type      String  // "TOP", "MIDDLE", "BASE"
-  name      String
+  id           String  @id @default(uuid())
+  productId    String
+  product      Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  noteType     String  // "TOP" | "HEART" | "BASE"
+  nameAr       String
+  nameEn       String
+  displayOrder Int     @default(0)
 }
 
 // ----------------------------------------------------------------------
@@ -272,10 +302,25 @@ model Sale {
   total         Int
   status        String     // "COMPLETED", "VOIDED"
   source        String     @default("POS")
+  
+  // Attribution Snapshots
+  soldByEmployeeId            String?
+  soldBy                      Employee?  @relation("SoldSales", fields: [soldByEmployeeId], references: [id])
+  sellerNameSnapshot          String?
+  sellerEmailSnapshot         String?
+  sellerRoleSnapshot          String?
+  sellerEmployeeCodeSnapshot  String?
+  saleSource                  String     @default("POS")
+  sessionId                   String?
+  shiftId                     String?
+  terminalId                  String?
+  completedAt                 DateTime?
+
   items         SaleItem[]
   payments      Payment[]
   invoice       Invoice?
   returns       Return[]
+  idempotencyKey String?   @unique
   createdAt     DateTime   @default(now())
 }
 
@@ -331,6 +376,10 @@ model Invoice {
   paymentStatus           String   @default("UNPAID") // "UNPAID", "COD_PENDING", "PARTIALLY_PAID", "PAID", "REFUNDED", "PARTIALLY_REFUNDED"
   confirmedByEmployeeId   String?  // Employee who confirmed storefront order or processed POS sale
   
+  // Cashier Attribution Snapshots
+  cashierNameSnapshot     String?
+  cashierRoleSnapshot     String?
+
   printed                 Int      @default(0) // Number of times printed
   createdAt               DateTime @default(now())
 }
@@ -492,4 +541,234 @@ model ShippingZone {
   isEnabled             Boolean  @default(true)
   freeShippingThreshold Int?     // in minor units, null means disabled
 }
+
+model RateLimitEvent {
+  id        String   @id @default(uuid())
+  key       String   // SHA-256 hash of IP or account ID
+  route     String
+  points    Int      @default(1)
+  expireAt  DateTime
+  createdAt DateTime @default(now())
+}
+
+model Shift {
+  id                    String    @id @default(uuid())
+  employeeId            String
+  employee              Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  openingCashFils       Int
+  expectedCashFils      Int?
+  actualCashFils        Int?
+  varianceFils          Int?
+  cardRecordedFils      Int?
+  refundFils            Int?
+  status                String    @default("OPEN") // "OPEN", "CLOSED"
+  notes                 String?
+  terminalId            String
+  approvedByEmployeeId  String?
+  openedAt              DateTime  @default(now())
+  closedAt              DateTime?
+}
+
+model HeldSale {
+  id            String   @id @default(uuid())
+  label         String
+  customerName  String?
+  customerPhone String?
+  reason        String?
+  employeeId    String
+  employee      Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  cartData      String   // JSON string
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model ProductLiquidStock {
+  productId                String    @id @unique
+  product                  Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  quantityMl               Int       @default(0)
+  lowStockThresholdMl      Int       @default(1000)
+  verificationStatus       String    @default("UNVERIFIED") // "UNVERIFIED" | "VERIFIED"
+  lastVerifiedAt           DateTime?
+  lastVerifiedByEmployeeId String?
+  lastVerifiedBy           Employee? @relation("VerifiedStocks", fields: [lastVerifiedByEmployeeId], references: [id])
+  version                  Int       @default(1)
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
+}
+
+model ProductLiquidMovement {
+  id                String    @id @default(uuid())
+  productId         String
+  product           Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  type              String    // "STOCK_IN" | "SALE_CONSUMPTION" | "RETURN" | "MANUAL_ADJUSTMENT" | "WASTE" | "CORRECTION" | "INITIAL_VERIFICATION"
+  quantityBeforeMl  Int
+  quantityChangeMl  Int
+  quantityAfterMl   Int
+  relatedSaleId     String?
+  relatedInvoiceId  String?
+  employeeId        String
+  employee          Employee  @relation(fields: [employeeId], references: [id])
+  reason            String?
+  idempotencyKey    String?   @unique
+  createdAt         DateTime  @default(now())
+}
+
+model InventoryCountSession {
+  id                  String               @id @default(uuid())
+  reference           String               @unique
+  title               String
+  status              String               // "DRAFT" | "ASSIGNED" | "IN_PROGRESS" | "SUBMITTED" | "UNDER_REVIEW" | "APPROVED" | "REJECTED" | "CANCELLED"
+  assignedEmployeeId  String
+  assignedEmployee    Employee             @relation("AssignedCounts", fields: [assignedEmployeeId], references: [id])
+  assignedByEmployeeId String
+  assignedByEmployee  Employee             @relation("CreatedCounts", fields: [assignedByEmployeeId], references: [id])
+  reviewedByEmployeeId String?
+  reviewedByEmployee  Employee?            @relation("ReviewedCounts", fields: [reviewedByEmployeeId], references: [id])
+  approvedByEmployeeId String?
+  approvedByEmployee  Employee?            @relation("ApprovedCounts", fields: [approvedByEmployeeId], references: [id])
+  scopeType           String               // "ALL" | "LIQUID" | "CATEGORY" | "SPECIFIC"
+  startedAt           DateTime?
+  submittedAt         DateTime?
+  reviewedAt          DateTime?
+  approvedAt          DateTime?
+  notes               String?
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  lines               InventoryCountLine[]
+}
+
+model InventoryCountLine {
+  id                         String                @id @default(uuid())
+  countSessionId             String
+  countSession               InventoryCountSession @relation(fields: [countSessionId], references: [id], onDelete: Cascade)
+  productId                  String
+  product                    Product               @relation(fields: [productId], references: [id])
+  inventoryMode              String
+  expectedQuantityMlSnapshot Int
+  countedQuantityMl          Int
+  varianceMl                 Int
+  expectedUnitsSnapshot      Int?
+  countedUnits               Int?
+  varianceUnits              Int?
+  countStatus                String                // "PENDING" | "COUNTED" | "VERIFIED"
+  employeeNote               String?
+  managerNote                String?
+  countedAt                  DateTime?
+}
+
+model HomepageHeroCarouselSettings {
+  id                 String   @id @default("default")
+  enabled            Boolean  @default(true)
+  autoplayEnabled    Boolean  @default(true)
+  autoplayIntervalMs Int      @default(5000)
+  pauseOnHover       Boolean  @default(true)
+  showIndicators     Boolean  @default(true)
+  showNavigation     Boolean  @default(true)
+  transitionType     String   @default("FADE") // "FADE", "SLIDE"
+  updatedByEmployeeId String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model HomepageHeroSlide {
+  id                 String      @id @default(uuid())
+  titleAr            String
+  titleEn            String
+  descriptionAr      String
+  descriptionEn      String
+  eyebrowAr          String?
+  eyebrowEn          String?
+  ctaAr              String?
+  ctaEn              String?
+  imageDesktopPath   String
+  imageMobilePath    String
+  altAr              String
+  altEn              String
+  destinationType    String      // "COLLECTION", "CATEGORY", "PRODUCT", "INTERNAL_ROUTE", "EXTERNAL_URL", "NONE"
+  productId          String?
+  product            Product?    @relation(fields: [productId], references: [id], onDelete: SetNull)
+  collectionId       String?
+  collection         Collection? @relation(fields: [collectionId], references: [id], onDelete: SetNull)
+  categoryId         String?
+  category           Category?   @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  internalPath       String?
+  externalUrl        String?
+  displayOrder       Int         @default(0)
+  isEnabled          Boolean     @default(true)
+  startsAt           DateTime?
+  endsAt             DateTime?
+  openInNewTab       Boolean     @default(false)
+  overlayStrength    Float       @default(0.4) // overlay opacity (0.0 to 1.0)
+  textPosition       String      @default("CENTER") // "RIGHT", "LEFT", "CENTER"
+  createdByEmployeeId String?
+  updatedByEmployeeId String?
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+
+  @@index([isEnabled])
+  @@index([displayOrder])
+  @@index([startsAt])
+  @@index([endsAt])
+}
+
+model StoreLocationSettings {
+  id                      String   @id @default("default")
+  storeName               String   @default("Dahab Perfumes")
+  addressAr               String
+  addressEn               String
+  latitude                Float
+  longitude               Float
+  mapPlaceUrl             String
+  mapEmbedUrl             String
+  phone                   String
+  whatsapp                String
+  openingHours            String
+  locationSectionEnabled  Boolean  @default(true)
+  directionsButtonEnabled Boolean  @default(true)
+  mapZoom                 Int      @default(15)
+  mapLabelAr              String?
+  mapLabelEn              String?
+  sectionOrder            Int      @default(10)
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+}
+
+model ImportJob {
+  id              String           @id @default(uuid())
+  status          String           // "PENDING" | "DRY_RUN" | "COMPLETED" | "FAILED" | "CANCELLED"
+  fileName        String
+  fileType        String           // "CSV" | "XLSX"
+  totalRows       Int
+  successRows     Int              @default(0)
+  failedRows      Int              @default(0)
+  skippedRows     Int              @default(0)
+  confirmedBy     String?          // employee name of the confirming employee
+  startedAt       DateTime         @default(now())
+  completedAt     DateTime?
+  errorSummary    String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  employeeId      String
+  employee        Employee         @relation(fields: [employeeId], references: [id])
+  rows            ImportJobRow[]
+}
+
+model ImportJobRow {
+  id              String      @id @default(uuid())
+  jobId           String
+  job             ImportJob   @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  rowNumber       Int
+  sku             String?
+  nameAr          String?
+  rawData         String?     // Raw line from file
+  normalizedData  String?     // Normalized representation JSON
+  status          String      // "VALID" | "INVALID" | "SKIPPED"
+  errorMessage    String?     // validation errors
+  warnings        String?     // validation warnings
+  resultStatus    String?     // "CREATED" | "UPDATED" | "SKIPPED"
+  entityReference String?     // Created/updated product or variant reference details
+  createdAt       DateTime    @default(now())
+}
+
+
 
