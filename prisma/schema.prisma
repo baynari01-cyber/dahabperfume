@@ -12,23 +12,36 @@ datasource db {
 // ----------------------------------------------------------------------
 
 model Employee {
-  id             String         @id @default(uuid())
-  email          String         @unique
-  name           String
-  passwordHash   String         // Argon2id hash
-  isActive       Boolean        @default(true)
-  roleId         String
-  role           Role           @relation(fields: [roleId], references: [id])
-  sessions       Session[]
-  loginAttempts  LoginAttempt[]
-  auditLogs      AuditLog[]
-  sales          Sale[]
-  returns        Return[]
-  inventoryMoves InventoryMovement[]
-  failedAttempts Int            @default(0)
-  lockoutUntil   DateTime?
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
+  id                  String         @id @default(uuid())
+  email               String         @unique
+  name                String
+  passwordHash        String         // Argon2id hash
+  pinHash             String?        // Opaque PIN hash for shift unlocking
+  mustChangePassword  Boolean        @default(false)
+  bootstrapCredential Boolean        @default(false)
+  isActive            Boolean        @default(true)
+  roleId              String
+  role                Role           @relation(fields: [roleId], references: [id])
+  sessions            Session[]
+  loginAttempts       LoginAttempt[]
+  auditLogs           AuditLog[]
+  sales               Sale[]
+  returns             Return[]
+  inventoryMoves      InventoryMovement[]
+  permissions         EmployeePermission[]
+  failedAttempts      Int            @default(0)
+  lockoutUntil        DateTime?
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+}
+
+model EmployeePermission {
+  employeeId   String
+  permissionId String
+  employee     Employee   @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([employeeId, permissionId])
 }
 
 model Role {
@@ -40,10 +53,11 @@ model Role {
 }
 
 model Permission {
-  id          String           @id @default(uuid())
-  action      String           @unique // e.g., 'manage_products', 'manage_employees', 'void_sale'
+  id          String               @id @default(uuid())
+  action      String               @unique // e.g., 'manage_products', 'manage_employees', 'void_sale'
   description String?
   roles       RolePermission[]
+  employees   EmployeePermission[]
 }
 
 model RolePermission {

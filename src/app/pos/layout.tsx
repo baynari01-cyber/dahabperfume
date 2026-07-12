@@ -1,37 +1,100 @@
-import { requireAuth } from '@/lib/dal';
+import React from 'react';
+import { requireAuth, getEmployeePermissions } from '@/lib/dal';
+import Link from 'next/link';
+import { logout } from '@/actions/auth';
 
 export default async function POSLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const session = await requireAuth();
+  const permissions = await getEmployeePermissions(session.employeeId);
+
+  // Determine which links are visible based on admin checkbox permissions
+  const showCounter = permissions.includes('pos:access');
+  const showInvoices = permissions.includes('pos:access') || permissions.includes('manage:orders');
+  const showReport = permissions.includes('pos:access') || permissions.includes('manage:settings');
+  const showAdmin = permissions.includes('manage:products') || permissions.includes('manage:orders') || permissions.includes('manage:settings');
+
   return (
-    <div className="h-screen bg-zinc-100 dark:bg-zinc-900 overflow-hidden flex flex-col font-body" dir="rtl">
-      {/* POS Top Bar */}
-      <header className="bg-white dark:bg-zinc-800 border-b border-zinc-200 dark:border-zinc-700 p-4 flex justify-between items-center shadow-sm z-10 shrink-0">
-        <div className="flex items-center gap-4">
-          <div className="text-[var(--color-champagne-600)] font-heading font-bold text-xl tracking-widest">
-            DAHAB POS
-          </div>
-          <div className="h-6 w-px bg-zinc-300 dark:bg-zinc-700"></div>
-          <div className="text-sm font-bold text-zinc-600 dark:text-zinc-400">
-            نقطة البيع - الفرع الرئيسي
-          </div>
+    <div className="h-screen bg-[var(--color-ivory-100)] flex flex-col font-sans overflow-hidden" dir="rtl">
+      {/* Mobile-First Header */}
+      <header className="bg-[var(--color-forest-900)] text-white px-4 py-3 flex justify-between items-center shadow-md border-b border-[var(--color-champagne-600)] shrink-0 z-20">
+        <div className="flex items-center gap-2">
+          <span className="font-heading font-bold text-lg text-[var(--color-champagne-400)]">
+            دهب POS
+          </span>
+          <span className="text-[10px] text-zinc-300 bg-zinc-800/40 px-2 py-0.5 rounded">الفرع الرئيسي</span>
         </div>
-        <div className="flex items-center gap-4 text-sm">
-          <div className="bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 px-3 py-1 rounded-full font-medium">
-            متصل
-          </div>
-          <div className="font-medium text-zinc-700 dark:text-zinc-300">
-            الكاشير
-          </div>
+        <div className="flex items-center gap-3 text-xs">
+          <span className="truncate max-w-[100px] text-zinc-200">
+            {session.employee.name}
+          </span>
+          <form action={logout}>
+            <button type="submit" className="text-[var(--color-champagne-400)] font-bold underline hover:text-white">
+              خروج
+            </button>
+          </form>
         </div>
       </header>
-      
-      {/* POS Content Area */}
-      <div className="flex-1 overflow-hidden flex">
+
+      {/* Content Area */}
+      <div className="flex-1 overflow-y-auto pb-16">
         {children}
       </div>
+
+      {/* Dynamic Mobile Bottom Navigation Bar */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-[var(--color-ivory-200)] shadow-lg flex justify-around items-center h-16 px-2 z-20 shrink-0">
+        {showCounter && (
+          <Link
+            href="/pos"
+            className="flex flex-col items-center justify-center text-zinc-650 hover:text-[var(--color-forest-900)] transition-colors w-full py-1 text-center"
+          >
+            <svg className="h-5 w-5 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+            </svg>
+            <span className="text-[10px] font-bold">كاشير الدفع</span>
+          </Link>
+        )}
+
+        {showInvoices && (
+          <Link
+            href="/pos/invoices"
+            className="flex flex-col items-center justify-center text-zinc-650 hover:text-[var(--color-forest-900)] transition-colors w-full py-1 text-center"
+          >
+            <svg className="h-5 w-5 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+            </svg>
+            <span className="text-[10px] font-bold">سجل الفواتير</span>
+          </Link>
+        )}
+
+        {showReport && (
+          <Link
+            href="/pos/report"
+            className="flex flex-col items-center justify-center text-zinc-650 hover:text-[var(--color-forest-900)] transition-colors w-full py-1 text-center"
+          >
+            <svg className="h-5 w-5 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+            <span className="text-[10px] font-bold">التقرير اليومي</span>
+          </Link>
+        )}
+
+        {showAdmin && (
+          <Link
+            href="/admin"
+            className="flex flex-col items-center justify-center text-zinc-650 hover:text-[var(--color-forest-900)] transition-colors w-full py-1 text-center"
+          >
+            <svg className="h-5 w-5 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            <span className="text-[10px] font-bold">لوحة الإدارة</span>
+          </Link>
+        )}
+      </nav>
     </div>
   );
 }

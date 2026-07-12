@@ -14,9 +14,19 @@ export default async function POSCounterPage() {
     }
   });
 
+  const settings = await prisma.globalPricingSettings.findUnique({
+    where: { id: '1' }
+  });
+
+  const parsedSettings = {
+    taxEnabled: settings?.taxEnabled ?? false,
+    taxRate: settings?.taxRate ?? 0.0,
+    pricesIncludeTax: settings?.pricesIncludeTax ?? true
+  };
+
   return (
     <div className="w-full h-screen overflow-hidden">
-      <POSCounter products={products} />
+      <POSCounter products={products} settings={parsedSettings} />
     </div>
   );
 }

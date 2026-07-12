@@ -6,6 +6,9 @@ vi.mock('@/lib/db', () => {
     prisma: {
       role: {
         findUnique: vi.fn(),
+      },
+      employeePermission: {
+        findFirst: vi.fn().mockResolvedValue(null),
       }
     }
   };
