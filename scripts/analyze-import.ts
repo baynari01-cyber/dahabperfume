@@ -31,9 +31,9 @@ async function main() {
   // Let's count how many variants have custom prices vs global default pricing.
   // In the CSV, we can see if they had 'نعم' for 'يستخدم الأسعار العامة؟'.
   // Since we don't store that flag on Product directly, let's look at the prices.
-  const global50mlPrice = 5500;
-  const global100mlPrice = 6500;
-  const global200mlPrice = 8500;
+  const global50mlPrice = 1000;
+  const global100mlPrice = 1500;
+  const global200mlPrice = 2500;
 
   let globalPricedCount = 0;
   let customPricedCount = 0;

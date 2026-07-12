@@ -207,9 +207,9 @@ async function main() {
     };
 
     const globalPrices = {
-      '50ml': 55.0,
-      '100ml': 65.0,
-      '200ml': 85.0
+      '50ml': 10.0,
+      '100ml': 15.0,
+      '200ml': 25.0
     };
 
     for (const size of ['50ml', '100ml', '200ml']) {

@@ -78,8 +78,20 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             {product.category.name} {product.family ? `| ${product.family.name}` : ''}
           </p>
 
-          <div className="text-2xl font-bold text-[var(--color-champagne-600)] mb-8">
+          <div className="text-2xl font-bold text-[var(--color-champagne-600)] mb-2">
             {lowestPrice > 0 ? `${(lowestPrice / 100).toFixed(2)} د.أ` : 'السعر غير متوفر'}
+          </div>
+
+          <div className="mb-8">
+            {product.stockStatus === 'UNVERIFIED' ? (
+              <span className="inline-block bg-[var(--color-champagne-100)] text-[var(--color-champagne-800)] px-3 py-1 rounded text-xs font-bold">
+                {locale === 'ar' ? 'بانتظار تأكيد التوفر في المخزن عند الطلب' : 'Availability confirmed upon request'}
+              </span>
+            ) : (
+              <span className="inline-block bg-emerald-100 text-emerald-800 px-3 py-1 rounded text-xs font-bold">
+                {locale === 'ar' ? 'متوفر في المخزن' : 'In Stock'}
+              </span>
+            )}
           </div>
 
           <p className="text-zinc-700 leading-relaxed mb-8">

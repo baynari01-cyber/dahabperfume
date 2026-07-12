@@ -39,7 +39,7 @@ vi.mock('@/lib/db', () => {
         findUnique: vi.fn(),
       },
       $transaction: vi.fn((callback) => callback(prisma)),
-      $executeRaw: vi.fn(),
+      $executeRawUnsafe: vi.fn(),
     }
   };
 });
@@ -104,7 +104,7 @@ describe('POS Formula-Based Transactions', () => {
       taxRate: 16.0
     });
 
-    (prisma.$executeRaw as any).mockResolvedValue(1);
+    (prisma.$executeRawUnsafe as any).mockResolvedValue(1);
 
     (prisma.sale.create as any).mockResolvedValue({
       id: 'sale-1',
@@ -121,7 +121,7 @@ describe('POS Formula-Based Transactions', () => {
     const result: any = await processPOSCheckout(posPayload);
 
     expect(result.success).toBe(true);
-    expect(prisma.$executeRaw).toHaveBeenCalledTimes(2);
+    expect(prisma.rawMaterialStock.update).toHaveBeenCalledTimes(2);
     expect(prisma.rawMaterialMovement.create).toHaveBeenCalledTimes(2);
   });
 
@@ -155,7 +155,7 @@ describe('POS Formula-Based Transactions', () => {
       ]
     });
 
-    (prisma.$executeRaw as any).mockResolvedValue(0);
+    (prisma.$executeRawUnsafe as any).mockResolvedValue(0);
 
     const posPayload = {
       items: [{ variantId: 'var-1', sku: 'DHB-0002-50ml', quantity: 1 }],

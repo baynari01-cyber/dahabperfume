@@ -2,27 +2,32 @@
 
 import { prisma } from '@/lib/db';
 import { requirePermission } from '@/lib/dal';
-import crypto from 'crypto';
 
-export async function processPOSCheckout(data: any) {
+export async function confirmStorefrontOrder(orderId: string) {
+  // 1. Require authorized permission
   const session = await requirePermission('pos:access');
   const employeeId = session.employeeId;
 
-  const { items, customerName, paymentMethod, amountTendered } = data;
-
-  if (!items || items.length === 0) {
-    return { error: 'السلة فارغة' };
-  }
-
   try {
-    const saleResult = await prisma.$transaction(async (tx) => {
-      let subtotal = 0;
-      const saleItemsData = [];
+    const result = await prisma.$transaction(async (tx) => {
+      // 2. Load order and check status
+      const order = await tx.order.findUnique({
+        where: { id: orderId },
+        include: { items: true }
+      });
 
-      for (const item of items) {
-        const { variantId, quantity } = item;
+      if (!order) {
+        throw new Error('الطلب غير موجود');
+      }
+
+      if (order.status === 'CONFIRMED') {
+        throw new Error('الطلب مؤكد مسبقاً');
+      }
+
+      // 3. Reload snapshot and inventory requirements, deduct atomically
+      for (const item of order.items) {
         const variant = await tx.productVariant.findUnique({
-          where: { id: variantId },
+          where: { id: item.variantId },
           include: { product: true }
         });
 
@@ -51,7 +56,7 @@ export async function processPOSCheckout(data: any) {
         if (formula) {
           // FORMULA_BASED deduction
           for (const formulaItem of formula.items) {
-            const requiredQty = formulaItem.quantity * quantity;
+            const requiredQty = formulaItem.quantity * item.quantity;
 
             const currentStock = formulaItem.material.stock?.quantity || 0;
             if (currentStock < requiredQty) {
@@ -72,7 +77,7 @@ export async function processPOSCheckout(data: any) {
                 materialId: formulaItem.materialId,
                 type: 'CONSUMPTION',
                 quantity: -requiredQty,
-                notes: `POS Sale Formula consumption`
+                notes: `Order Confirmation Formula consumption for Order ${order.reference}`
               }
             });
 
@@ -86,14 +91,14 @@ export async function processPOSCheckout(data: any) {
           }
         } else {
           // Check finished product stock
-          if (variant.stock < quantity) {
+          if (variant.stock < item.quantity) {
             throw new Error(`مخزون غير كافٍ للمنتج (SKU: ${variant.sku}). المتاح أقل من الكمية المطلوبة.`);
           }
 
           // Decrement variant stock
           await tx.productVariant.update({
             where: { id: variant.id },
-            data: { stock: { decrement: quantity } }
+            data: { stock: { decrement: item.quantity } }
           });
         }
 
@@ -102,90 +107,43 @@ export async function processPOSCheckout(data: any) {
           data: {
             sku: variant.sku,
             type: 'SALE',
-            quantity: -quantity,
+            quantity: -item.quantity,
             employeeId,
-            reference: 'POS_SALE'
+            reference: `ORDER_CONFIRMATION_${order.reference}`
           }
-        });
-
-        const unitPrice = variant.price;
-        const total = unitPrice * quantity;
-        subtotal += total;
-
-        saleItemsData.push({
-          variantId: variant.id,
-          sku: variant.sku,
-          name: variant.product.nameAr,
-          size: variant.size,
-          quantity,
-          unitPrice,
-          total
         });
       }
 
-      // Check global pricing settings for tax rate
-      const settings = await tx.globalPricingSettings.findUnique({ where: { id: '1' } });
-      const taxRate = settings?.taxRate || 16.0;
-      
-      const taxAmount = Math.round(subtotal * (taxRate / 100));
-      const grandTotal = subtotal + taxAmount;
-      
-      const reference = `POS-${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
+      // 4. Update order status to CONFIRMED
+      const updatedOrder = await tx.order.update({
+        where: { id: orderId },
+        data: { status: 'CONFIRMED' }
+      });
 
-      // Create Sale
-      const sale = await tx.sale.create({
+      // 5. Write order status history
+      await tx.orderStatusHistory.create({
         data: {
-          reference,
-          employeeId,
-          customerName: customerName || 'عميل نقدي',
-          subtotal,
-          tax: taxAmount,
-          total: grandTotal,
-          status: 'COMPLETED',
-          source: 'POS',
-          items: {
-            create: saleItemsData
-          },
-          payments: {
-            create: {
-              method: paymentMethod || 'CASH',
-              amount: grandTotal,
-              amountTendered: amountTendered || grandTotal
-            }
-          }
+          orderId: order.id,
+          status: 'CONFIRMED',
+          notes: `Order confirmed by employee: ${employeeId}`
         }
       });
 
-      // Create Invoice
-      await tx.invoice.create({
-        data: {
-          saleId: sale.id,
-          number: `INV-${Date.now()}`
-        }
-      });
-
-      // Audit Log
+      // 6. Write audit logs
       await tx.auditLog.create({
         data: {
           employeeId,
-          action: 'SALE_COMPLETED',
-          entityType: 'Sale',
-          entityId: sale.id,
-          details: JSON.stringify({ items: items.length, total: grandTotal })
+          action: 'ORDER_CONFIRMED',
+          entityType: 'Order',
+          entityId: order.id,
+          details: JSON.stringify({ reference: order.reference, total: order.totalAmount })
         }
       });
 
-      // Update Consumption records to link to Sale ID
-      await tx.consumptionRecord.updateMany({
-        where: { saleId: null },
-        data: { saleId: sale.id }
-      });
-
-      return { success: true, saleId: sale.id, reference: sale.reference, total: grandTotal };
+      return updatedOrder;
     });
 
-    return saleResult;
-
+    return { success: true, order: result };
   } catch (error: any) {
     return { error: error.message || 'حدث خطأ غير معروف' };
   }

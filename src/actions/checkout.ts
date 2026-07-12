@@ -34,14 +34,29 @@ export async function processCheckout(prevState: any, formData: FormData) {
   // Idempotency check: Look for matching order by unique key
   if (idempotencyKey) {
     const existing = await prisma.order.findUnique({
-      where: { idempotencyKey }
+      where: { idempotencyKey },
+      include: { items: true }
     });
     if (existing) {
-      // Return previous result instead of creating new order
       const setting = await prisma.siteSettings.findUnique({ where: { key: 'whatsapp_number' } });
       const config = setting ? JSON.parse(setting.value) : { number: '962785050655' };
       const number = config.number || '962785050655';
-      const encodedMsg = encodeURIComponent(`مرحباً دهب للعطور، أود تأكيد طلبي رقم: ${existing.reference}`);
+      
+      // Rebuild the exact original message from the persisted snapshots
+      let msg = `مرحباً دهب للعطور،\nأود تأكيد طلبي الجديد رقم: ${existing.reference}\n\n`;
+      msg += `الاسم: ${existing.customerName}\n`;
+      msg += `رقم الهاتف: ${existing.customerPhone}\n\n`;
+      msg += `تفاصيل الطلب:\n`;
+      
+      for (const it of (existing.items || [])) {
+        msg += `- ${it.name} (${it.size}) x${it.quantity} = ${(it.total / 100).toFixed(2)} د.أ\n`;
+      }
+      
+      msg += `\nرسوم التوصيل: ${(existing.shippingCost / 100).toFixed(2)} د.أ\n`;
+      msg += `الإجمالي: ${(existing.totalAmount / 100).toFixed(2)} د.أ\n\n`;
+      msg += `شكراً لكم.`;
+
+      const encodedMsg = encodeURIComponent(msg);
       return {
         success: true,
         reference: existing.reference,
