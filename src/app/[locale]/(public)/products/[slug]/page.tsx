@@ -23,8 +23,9 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     include: {
       variants: { orderBy: { size: 'asc' } },
       images: { orderBy: { order: 'asc' } },
-      accords: { orderBy: { order: 'asc' } },
+      accords: { include: { accord: true }, orderBy: { order: 'asc' } },
       category: true,
+      family: true,
     }
   });
 
@@ -74,7 +75,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             {product.nameAr}
           </h1>
           <p className="text-[var(--color-forest-700)] text-lg mb-6">
-            {product.category.name} | {product.family}
+            {product.category.name} {product.family ? `| ${product.family.name}` : ''}
           </p>
 
           <div className="text-2xl font-bold text-[var(--color-champagne-600)] mb-8">
@@ -118,8 +119,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               <h3 className="text-lg font-bold font-heading text-[var(--color-forest-900)] mb-6">البصمة العطرية</h3>
               <div className="space-y-4">
                 {product.accords.map((accord) => (
-                  <div key={accord.id} className="flex items-center justify-between">
-                    <span className="text-sm font-bold text-zinc-700 w-24">{accord.name}</span>
+                  <div key={accord.accordId} className="flex items-center justify-between">
+                    <span className="text-sm font-bold text-zinc-700 w-24">{accord.accord.name}</span>
                     <div className="flex-1 h-2 bg-[var(--color-ivory-200)] rounded-full overflow-hidden mx-4">
                       <div 
                         className="h-full bg-[var(--color-champagne-600)] rounded-full" 

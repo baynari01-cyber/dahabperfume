@@ -22,45 +22,81 @@ export async function login(prevState: any, formData: FormData) {
   const userAgent = headersList.get('user-agent') || 'unknown';
 
   if (!parsed.success) {
-    return { error: 'Invalid input' };
+    return { error: 'يرجى التحقق من البريد الإلكتروني وكلمة المرور' };
   }
   
   const { email, password } = parsed.data;
   
-  // Check lockout
-  const recentAttempts = await prisma.loginAttempt.findMany({
-    where: {
-      email,
-      success: false,
-      createdAt: {
-        gte: new Date(Date.now() - LOCKOUT_MINUTES * 60 * 1000)
-      }
-    },
-    orderBy: { createdAt: 'desc' }
-  });
-
-  if (recentAttempts.length >= MAX_FAILED_ATTEMPTS) {
-    return { error: `Account locked due to too many failed attempts. Try again in ${LOCKOUT_MINUTES} minutes.` };
-  }
-
   const employee = await prisma.employee.findUnique({ where: { email } });
   
-  if (!employee || !employee.isActive) {
+  if (!employee) {
+    // Audit failure for non-existent employee
     await prisma.loginAttempt.create({
       data: { email, ipAddress, userAgent, success: false }
     });
-    return { error: 'Invalid credentials or inactive account' };
+    return { error: 'خطأ في البريد الإلكتروني أو كلمة المرور' };
   }
-  
-  const isValid = await verifyPassword(password, employee.passwordHash);
-  if (!isValid) {
+
+  // Check if disabled
+  if (!employee.isActive) {
     await prisma.loginAttempt.create({
       data: { email, ipAddress, userAgent, success: false, employeeId: employee.id }
     });
-    return { error: 'Invalid credentials' };
+    return { error: 'الحساب معطل حالياً' };
+  }
+
+  // Check lockout status
+  if (employee.lockoutUntil && employee.lockoutUntil > new Date()) {
+    return { error: `الحساب مقفل مؤقتاً بسبب محاولات فاشلة متكررة. حاول مجدداً بعد انتهاء مدة القفل.` };
+  }
+
+  const isValid = await verifyPassword(password, employee.passwordHash);
+  
+  if (!isValid) {
+    // Increment failed attempts
+    const newFailedCount = employee.failedAttempts + 1;
+    const isLocking = newFailedCount >= MAX_FAILED_ATTEMPTS;
+    const lockoutUntil = isLocking ? new Date(Date.now() + LOCKOUT_MINUTES * 60 * 1000) : null;
+
+    await prisma.employee.update({
+      where: { id: employee.id },
+      data: {
+        failedAttempts: newFailedCount,
+        lockoutUntil
+      }
+    });
+
+    await prisma.loginAttempt.create({
+      data: { email, ipAddress, userAgent, success: false, employeeId: employee.id }
+    });
+
+    await prisma.auditLog.create({
+      data: {
+        employeeId: employee.id,
+        action: isLocking ? 'ACCOUNT_LOCKED' : 'LOGIN_FAILURE',
+        entityType: 'Employee',
+        entityId: employee.id,
+        ipAddress,
+        details: JSON.stringify({ failedAttempts: newFailedCount })
+      }
+    });
+
+    if (isLocking) {
+      return { error: `تم قفل الحساب بسبب 5 محاولات خاطئة متتالية. يرجى المحاولة بعد ${LOCKOUT_MINUTES} دقيقة.` };
+    }
+
+    return { error: 'خطأ في البريد الإلكتروني أو كلمة المرور' };
   }
   
-  // Success
+  // Success: Reset failed attempts & lockout
+  await prisma.employee.update({
+    where: { id: employee.id },
+    data: {
+      failedAttempts: 0,
+      lockoutUntil: null
+    }
+  });
+
   await prisma.loginAttempt.create({
     data: { email, ipAddress, userAgent, success: true, employeeId: employee.id }
   });
@@ -68,7 +104,7 @@ export async function login(prevState: any, formData: FormData) {
   await prisma.auditLog.create({
     data: {
       employeeId: employee.id,
-      action: 'LOGIN_SUCCESS',
+      action: 'SESSION_CREATED',
       entityType: 'Session',
       entityId: employee.id,
       ipAddress
@@ -88,6 +124,17 @@ export async function logout() {
     const token = (await cookies()).get('dahab_session')?.value;
     if (token) {
       await invalidateSession(token);
+      
+      // Audit Session Revocation
+      await prisma.auditLog.create({
+        data: {
+          employeeId: session.employeeId,
+          action: 'SESSION_REVOKED',
+          entityType: 'Session',
+          entityId: session.id,
+          details: 'User logged out'
+        }
+      });
     }
   }
   await deleteSessionCookie();

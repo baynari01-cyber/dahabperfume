@@ -62,6 +62,16 @@ async function main() {
     }
   });
 
+  // Create default SiteSettings for WhatsApp number
+  await prisma.siteSettings.upsert({
+    where: { key: 'whatsapp_number' },
+    update: {},
+    create: {
+      key: 'whatsapp_number',
+      value: JSON.stringify({ number: '962785050655' })
+    }
+  });
+
   console.log('System Admin user created: system@dahab.local / admin123');
 }
 

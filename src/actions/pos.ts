@@ -30,14 +30,81 @@ export async function processPOSCheckout(data: any) {
           throw new Error(`المنتج غير متوفر (SKU: ${item.sku})`);
         }
 
-        // Deduct inventory
-        if (variant.stock < quantity) {
-          throw new Error(`مخزون غير كافٍ للمنتج (SKU: ${item.sku}). المتاح: ${variant.stock}`);
+        // Check if there is an active Formula for this product & size
+        const formula = await tx.productFormula.findFirst({
+          where: {
+            productId: variant.productId,
+            size: variant.size,
+            isActive: true
+          },
+          include: {
+            items: {
+              include: {
+                material: {
+                  include: { stock: true }
+                }
+              }
+            }
+          }
+        });
+
+        if (formula) {
+          // FORMULA_BASED deduction
+          for (const formulaItem of formula.items) {
+            const requiredQty = formulaItem.quantity * quantity;
+            const stock = formulaItem.material.stock;
+
+            if (!stock || stock.quantity < requiredQty) {
+              throw new Error(
+                `مخزون غير كافٍ للمادة الخام ${formulaItem.material.name} المطلوبة لتركيبة ${variant.product.nameAr}. المتاح: ${stock?.quantity || 0}, المطلوب: ${requiredQty}`
+              );
+            }
+
+            // Deduct raw material stock
+            await tx.rawMaterialStock.update({
+              where: { materialId: formulaItem.materialId },
+              data: { quantity: stock.quantity - requiredQty }
+            });
+
+            // Log raw material movement
+            await tx.rawMaterialMovement.create({
+              data: {
+                materialId: formulaItem.materialId,
+                type: 'CONSUMPTION',
+                quantity: -requiredQty,
+                notes: `POS Sale Formula consumption`
+              }
+            });
+
+            // Create Consumption record
+            await tx.consumptionRecord.create({
+              data: {
+                materialId: formulaItem.materialId,
+                quantity: requiredQty
+              }
+            });
+          }
+        } else {
+          // FINISHED_PRODUCT stock check and deduction
+          if (variant.stock < quantity) {
+            throw new Error(`مخزون غير كافٍ للمنتج (SKU: ${variant.sku}). المتاح: ${variant.stock}`);
+          }
+
+          await tx.productVariant.update({
+            where: { id: variant.id },
+            data: { stock: variant.stock - quantity }
+          });
         }
 
-        await tx.productVariant.update({
-          where: { id: variant.id },
-          data: { stock: variant.stock - quantity }
+        // Log final product inventory movement
+        await tx.inventoryMovement.create({
+          data: {
+            sku: variant.sku,
+            type: 'SALE',
+            quantity: -quantity,
+            employeeId,
+            reference: 'POS_SALE'
+          }
         });
 
         const unitPrice = variant.price;
@@ -52,17 +119,6 @@ export async function processPOSCheckout(data: any) {
           quantity,
           unitPrice,
           total
-        });
-        
-        // Log inventory movement
-        await tx.inventoryMovement.create({
-          data: {
-            sku: variant.sku,
-            type: 'SALE',
-            quantity: -quantity,
-            employeeId,
-            reference: 'POS_SALE'
-          }
         });
       }
 
@@ -116,6 +172,12 @@ export async function processPOSCheckout(data: any) {
           entityId: sale.id,
           details: JSON.stringify({ items: items.length, total: grandTotal })
         }
+      });
+
+      // Update Consumption records to link to Sale ID
+      await tx.consumptionRecord.updateMany({
+        where: { saleId: null },
+        data: { saleId: sale.id }
       });
 
       return { success: true, saleId: sale.id, reference: sale.reference, total: grandTotal };

@@ -18,7 +18,7 @@ async function main() {
   const records = parse(fileContent, {
     columns: true,
     skip_empty_lines: true
-  });
+  }) as any[];
 
   console.log(`Parsed ${records.length} rows.`);
 

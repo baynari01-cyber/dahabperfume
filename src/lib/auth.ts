@@ -50,7 +50,10 @@ export async function validateSessionToken(token: string) {
     },
   });
 
-  if (!session) {
+  if (!session || !session.employee.isActive) {
+    if (session) {
+      await prisma.session.delete({ where: { id: session.id } });
+    }
     return null;
   }
 

@@ -7,6 +7,8 @@ import crypto from 'crypto';
 const checkoutSchema = z.object({
   customerName: z.string().min(2),
   customerPhone: z.string().min(8),
+  shippingZoneId: z.string().optional(),
+  idempotencyKey: z.string().optional(),
   items: z.string() // JSON string of [{ productId, variantId, quantity }]
 });
 
@@ -17,7 +19,7 @@ export async function processCheckout(prevState: any, formData: FormData) {
     return { error: 'يرجى التحقق من المدخلات' };
   }
 
-  const { customerName, customerPhone, items: itemsJson } = parsed.data;
+  const { customerName, customerPhone, shippingZoneId, idempotencyKey, items: itemsJson } = parsed.data;
   
   let parsedItems;
   try {
@@ -29,9 +31,35 @@ export async function processCheckout(prevState: any, formData: FormData) {
     return { error: 'السلة فارغة أو غير صالحة' };
   }
 
+  // Idempotency check: Look for matching recent order (within last 2 minutes) to prevent duplicate submission
+  if (idempotencyKey) {
+    const existing = await prisma.order.findFirst({
+      where: {
+        customerName,
+        customerPhone,
+        notes: `IdempotencyKey: ${idempotencyKey}`,
+        createdAt: {
+          gte: new Date(Date.now() - 2 * 60 * 1000)
+        }
+      }
+    });
+    if (existing) {
+      // Return previous result instead of creating new order
+      const setting = await prisma.siteSettings.findUnique({ where: { key: 'whatsapp_number' } });
+      const config = setting ? JSON.parse(setting.value) : { number: '962785050655' };
+      const number = config.number || '962785050655';
+      const encodedMsg = encodeURIComponent(`مرحباً دهب للعطور، أود تأكيد طلبي رقم: ${existing.reference}`);
+      return {
+        success: true,
+        reference: existing.reference,
+        whatsappUrl: `https://wa.me/${number}?text=${encodedMsg}`
+      };
+    }
+  }
+
   // 1. Reload prices from PostgreSQL
   let totalAmount = 0;
-  const orderItemsData = [];
+  const orderItemsData: any[] = [];
   
   for (const item of parsedItems) {
     const { productId, variantId, quantity } = item;
@@ -63,9 +91,30 @@ export async function processCheckout(prevState: any, formData: FormData) {
     });
   }
 
-  // Calculate Shipping (Flat 3 JOD for example, or free if > 50 JOD)
-  // Let's check GlobalPricingSettings
-  const shippingCost = totalAmount > 5000 ? 0 : 300; // 50.00 JOD
+  // Calculate Shipping from DB
+  let shippingCost = 0;
+  let zoneName = 'غير محدد';
+  
+  if (shippingZoneId) {
+    const zone = await prisma.shippingZone.findUnique({
+      where: { id: shippingZoneId }
+    });
+    if (zone && zone.isEnabled) {
+      shippingCost = zone.fee;
+      zoneName = zone.nameAr;
+      // Optional free shipping threshold
+      if (zone.freeShippingThreshold && totalAmount >= zone.freeShippingThreshold) {
+        shippingCost = 0;
+      }
+    } else {
+      // Unrecognized or disabled shipping zone: Flag for admin review
+      return { error: 'منطقة التوصيل المحددة غير صالحة' };
+    }
+  } else {
+    // If no shipping zone is supplied: Shipping cost remains 0 and flags for admin review
+    return { error: 'يرجى تحديد منطقة التوصيل' };
+  }
+
   const grandTotal = totalAmount + shippingCost;
 
   // 2. Create AWAITING_WHATSAPP order inside a transaction
@@ -80,13 +129,14 @@ export async function processCheckout(prevState: any, formData: FormData) {
         status: 'AWAITING_WHATSAPP',
         totalAmount: grandTotal,
         shippingCost,
+        notes: idempotencyKey ? `IdempotencyKey: ${idempotencyKey}` : undefined,
         items: {
           create: orderItemsData
         },
         statusHistory: {
           create: {
             status: 'AWAITING_WHATSAPP',
-            notes: 'Order initiated via Web Checkout'
+            notes: `Order initiated via Web Checkout. Zone: ${zoneName}`
           }
         }
       }
@@ -94,10 +144,16 @@ export async function processCheckout(prevState: any, formData: FormData) {
     return newOrder;
   });
 
+  // Get WhatsApp official number from database setting
+  const setting = await prisma.siteSettings.findUnique({ where: { key: 'whatsapp_number' } });
+  const config = setting ? JSON.parse(setting.value) : { number: '962785050655' };
+  const whatsappNumber = config.number || '962785050655';
+
   // 3. Generate secure WhatsApp message
   let message = `مرحباً دهب للعطور،\nأود تأكيد طلبي الجديد رقم: ${reference}\n\n`;
   message += `الاسم: ${customerName}\n`;
-  message += `رقم الهاتف: ${customerPhone}\n\n`;
+  message += `رقم الهاتف: ${customerPhone}\n`;
+  message += `منطقة التوصيل: ${zoneName}\n\n`;
   message += `تفاصيل الطلب:\n`;
   
   for (const item of orderItemsData) {
@@ -109,7 +165,7 @@ export async function processCheckout(prevState: any, formData: FormData) {
   message += `شكراً لكم.`;
 
   const encodedMessage = encodeURIComponent(message);
-  const whatsappUrl = `https://wa.me/962777778886?text=${encodedMessage}`;
+  const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
 
   return {
     success: true,

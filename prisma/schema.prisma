@@ -25,6 +25,8 @@ model Employee {
   sales          Sale[]
   returns        Return[]
   inventoryMoves InventoryMovement[]
+  failedAttempts Int            @default(0)
+  lockoutUntil   DateTime?
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 }
@@ -436,3 +438,14 @@ model GlobalPricingSettings {
   currencyCode   String @default("JOD")
   currencySymbol String @default("د.أ")
 }
+
+model ShippingZone {
+  id                    String   @id @default(uuid())
+  nameAr                String
+  nameEn                String
+  fee                   Int      // in minor units (fils)
+  estimatedDeliveryTime String   // e.g. "24-48 hours"
+  isEnabled             Boolean  @default(true)
+  freeShippingThreshold Int?     // in minor units, null means disabled
+}
+

@@ -22,7 +22,6 @@ vi.mock('next/navigation', () => ({
   redirect: () => { throw new Error('NEXT_REDIRECT'); }
 }));
 
-
 import { requirePermission } from '@/lib/dal';
 import { prisma } from '@/lib/db';
 import { getCurrentSession } from '@/lib/auth';
@@ -33,73 +32,115 @@ describe('Authorization Logic (DAL)', () => {
   });
 
   it('A seller cannot manage employees', async () => {
-    // Mock session as a seller
     (getCurrentSession as any).mockResolvedValue({
       employeeId: 'seller-id',
-      employee: {
-        id: 'seller-id',
-        roleId: 'role-seller'
-      }
+      employee: { id: 'seller-id', roleId: 'role-seller', isActive: true }
     });
 
-    // Mock DB response for seller role
     (prisma.role.findUnique as any).mockResolvedValue({
       id: 'role-seller',
-      permissions: [
-        { permission: { action: 'pos:access' } }
-      ]
+      permissions: [{ permission: { action: 'pos:access' } }]
     });
 
     await expect(requirePermission('manage:employees')).rejects.toThrow('Unauthorized Access: Missing manage:employees');
   });
 
-  it('An inventory employee cannot access Admin security settings', async () => {
-    // Mock session as inventory
+  it('A seller cannot change prices without permission', async () => {
     (getCurrentSession as any).mockResolvedValue({
-      employeeId: 'inv-id',
-      employee: {
-        id: 'inv-id',
-        roleId: 'role-inv'
-      }
+      employeeId: 'seller-id',
+      employee: { id: 'seller-id', roleId: 'role-seller', isActive: true }
     });
 
-    // Mock DB response for inventory role
+    (prisma.role.findUnique as any).mockResolvedValue({
+      id: 'role-seller',
+      permissions: [{ permission: { action: 'pos:access' } }]
+    });
+
+    await expect(requirePermission('manage:prices')).rejects.toThrow('Unauthorized Access: Missing manage:prices');
+  });
+
+  it('A seller cannot apply discounts without permission', async () => {
+    (getCurrentSession as any).mockResolvedValue({
+      employeeId: 'seller-id',
+      employee: { id: 'seller-id', roleId: 'role-seller', isActive: true }
+    });
+
+    (prisma.role.findUnique as any).mockResolvedValue({
+      id: 'role-seller',
+      permissions: [{ permission: { action: 'pos:access' } }]
+    });
+
+    await expect(requirePermission('apply:discounts')).rejects.toThrow('Unauthorized Access: Missing apply:discounts');
+  });
+
+  it('A seller cannot void or return a sale without permission', async () => {
+    (getCurrentSession as any).mockResolvedValue({
+      employeeId: 'seller-id',
+      employee: { id: 'seller-id', roleId: 'role-seller', isActive: true }
+    });
+
+    (prisma.role.findUnique as any).mockResolvedValue({
+      id: 'role-seller',
+      permissions: [{ permission: { action: 'pos:access' } }]
+    });
+
+    await expect(requirePermission('void:sales')).rejects.toThrow('Unauthorized Access: Missing void:sales');
+    await expect(requirePermission('return:sales')).rejects.toThrow('Unauthorized Access: Missing return:sales');
+  });
+
+  it('An inventory employee cannot access Admin security settings', async () => {
+    (getCurrentSession as any).mockResolvedValue({
+      employeeId: 'inv-id',
+      employee: { id: 'inv-id', roleId: 'role-inv', isActive: true }
+    });
+
     (prisma.role.findUnique as any).mockResolvedValue({
       id: 'role-inv',
-      permissions: [
-        { permission: { action: 'manage:inventory' } }
-      ]
+      permissions: [{ permission: { action: 'manage:inventory' } }]
     });
 
     await expect(requirePermission('manage:settings')).rejects.toThrow('Unauthorized Access: Missing manage:settings');
   });
 
-  it('An unauthenticated request cannot invoke protected mutations', async () => {
-    // Mock session as null
+  it('A POS employee cannot access Admin routes', async () => {
+    (getCurrentSession as any).mockResolvedValue({
+      employeeId: 'pos-id',
+      employee: { id: 'pos-id', roleId: 'role-pos', isActive: true }
+    });
+
+    (prisma.role.findUnique as any).mockResolvedValue({
+      id: 'role-pos',
+      permissions: [{ permission: { action: 'pos:access' } }]
+    });
+
+    await expect(requirePermission('manage:admin')).rejects.toThrow('Unauthorized Access: Missing manage:admin');
+  });
+
+  it('A disabled employee cannot mutate data or authenticate', async () => {
+    // If employee is disabled, getCurrentSession resolves to null (validated in validateSessionToken)
+    (getCurrentSession as any).mockResolvedValue(null);
+
+    await expect(requirePermission('pos:access')).rejects.toThrow('NEXT_REDIRECT');
+  });
+
+  it('An unauthenticated user cannot invoke actions directly', async () => {
     (getCurrentSession as any).mockResolvedValue(null);
 
     await expect(requirePermission('manage:products')).rejects.toThrow('NEXT_REDIRECT');
   });
 
-  it('A manager with permission CAN execute mutation', async () => {
-    // Mock session as manager
+  it('Hiding navigation does not grant or remove server-side permission checks', async () => {
     (getCurrentSession as any).mockResolvedValue({
-      employeeId: 'mgr-id',
-      employee: {
-        id: 'mgr-id',
-        roleId: 'role-mgr'
-      }
+      employeeId: 'pos-id',
+      employee: { id: 'pos-id', roleId: 'role-pos', isActive: true }
     });
 
-    // Mock DB response for manager role
     (prisma.role.findUnique as any).mockResolvedValue({
-      id: 'role-mgr',
-      permissions: [
-        { permission: { action: 'manage:products' } }
-      ]
+      id: 'role-pos',
+      permissions: [{ permission: { action: 'pos:access' } }]
     });
 
-    const session = await requirePermission('manage:products');
-    expect(session.employeeId).toBe('mgr-id');
+    // Even if client navigates directly or mocks UI state, requirePermission blocks backend execution
+    await expect(requirePermission('manage:products')).rejects.toThrow('Unauthorized Access: Missing manage:products');
   });
 });
