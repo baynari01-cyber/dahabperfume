@@ -6,10 +6,10 @@ vi.mock('@/lib/dal', () => {
   return {
     requirePermission: vi.fn((permission) => {
       if (permission === 'manage:settings') {
-        return { employeeId: 'emp-admin', role: 'ADMIN' };
+        return { employeeId: 'emp-admin', employee: { role: { name: 'Admin' } } };
       }
       if (permission === 'pos:access') {
-        return { employeeId: 'emp-cashier', role: 'CASHIER' };
+        return { employeeId: 'emp-cashier', employee: { role: { name: 'Cashier' } } };
       }
       return Promise.reject(new Error('غير مصرح لك بالوصول'));
     })

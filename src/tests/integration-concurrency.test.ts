@@ -26,7 +26,32 @@ describe('Real PostgreSQL Database Concurrency & Race Condition Safety', () => {
   let categoryId: string;
 
   beforeAll(async () => {
-    // 0. Ensure role and employee exist
+    // Reset global pricing settings to defaults to prevent test state leakage
+    await prisma.globalPricingSettings.upsert({
+      where: { id: '1' },
+      update: {
+        taxEnabled: false,
+        taxRate: 0.0,
+        pricesIncludeTax: true
+      },
+      create: {
+        id: '1',
+        taxEnabled: false,
+        taxRate: 0.0,
+        pricesIncludeTax: true
+      }
+    });
+
+    // 0. Ensure role and employee exist (clean references first)
+    await prisma.invoice.deleteMany({ where: { sale: { employeeId: 'emp-concurrency-test' } } });
+    await prisma.payment.deleteMany({ where: { sale: { employeeId: 'emp-concurrency-test' } } });
+    await prisma.saleItem.deleteMany({ where: { sale: { employeeId: 'emp-concurrency-test' } } });
+    await prisma.sale.deleteMany({ where: { employeeId: 'emp-concurrency-test' } });
+    await prisma.inventoryMovement.deleteMany({ where: { employeeId: 'emp-concurrency-test' } });
+    await prisma.auditLog.deleteMany({ where: { employeeId: 'emp-concurrency-test' } });
+    await prisma.employee.deleteMany({ where: { id: 'emp-concurrency-test' } });
+    await prisma.employee.deleteMany({ where: { email: 'test-concurrency@dahab.local' } });
+
     const role = await prisma.role.upsert({
       where: { name: 'ADMIN' },
       update: {},

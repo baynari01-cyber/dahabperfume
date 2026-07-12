@@ -3,6 +3,7 @@
 import { prisma } from '@/lib/db';
 import { requirePermission } from '@/lib/dal';
 import crypto from 'crypto';
+import { calculateInclusiveTax, calculateExclusiveTax, validatePaymentAllocation } from '@/lib/money';
 
 export async function processPOSCheckout(data: any): Promise<
   | { success: true; saleId: string; reference: string; total: number; error?: never }
@@ -128,11 +129,47 @@ export async function processPOSCheckout(data: any): Promise<
 
       // Check global pricing settings for tax rate
       const settings = await tx.globalPricingSettings.findUnique({ where: { id: '1' } });
-      const taxRate = settings?.taxRate || 16.0;
-      
-      const taxAmount = Math.round(subtotal * (taxRate / 100));
-      const grandTotal = subtotal + taxAmount;
-      
+      const taxEnabled = settings?.taxEnabled ?? false;
+      const taxRate = settings?.taxRate ?? 0.0;
+      const pricesIncludeTax = settings?.pricesIncludeTax ?? true;
+
+      const discount = data.discount || 0;
+      const subtotalAfterDiscount = Math.max(0, subtotal - discount);
+
+      let taxAmount = 0;
+      let calculatedSubtotal = subtotalAfterDiscount;
+      let grandTotal = subtotalAfterDiscount;
+
+      if (taxEnabled) {
+        if (pricesIncludeTax) {
+          taxAmount = calculateInclusiveTax(subtotalAfterDiscount, taxRate);
+          calculatedSubtotal = subtotalAfterDiscount - taxAmount;
+          grandTotal = subtotalAfterDiscount;
+        } else {
+          taxAmount = calculateExclusiveTax(subtotalAfterDiscount, taxRate);
+          calculatedSubtotal = subtotalAfterDiscount;
+          grandTotal = subtotalAfterDiscount + taxAmount;
+        }
+      } else {
+        taxAmount = 0;
+        calculatedSubtotal = subtotalAfterDiscount;
+        grandTotal = subtotalAfterDiscount;
+      }
+
+      // Validate/resolve payment splits
+      let paymentsData = [];
+      if (Array.isArray(data.payments) && data.payments.length > 0) {
+        paymentsData = data.payments;
+      } else {
+        paymentsData = [{
+          method: paymentMethod || 'CASH',
+          amount: grandTotal,
+          amountTendered: paymentMethod === 'CASH' ? (amountTendered || grandTotal) : grandTotal
+        }];
+      }
+
+      const { cashApplied, cardApplied, cashTendered, changeDue } = validatePaymentAllocation(grandTotal, paymentsData);
+
       const reference = `POS-${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
 
       // Create Sale
@@ -141,8 +178,9 @@ export async function processPOSCheckout(data: any): Promise<
           reference,
           employeeId,
           customerName: customerName || 'عميل نقدي',
-          subtotal,
+          subtotal: calculatedSubtotal,
           tax: taxAmount,
+          discount: discount,
           total: grandTotal,
           status: 'COMPLETED',
           source: 'POS',
@@ -150,20 +188,39 @@ export async function processPOSCheckout(data: any): Promise<
             create: saleItemsData
           },
           payments: {
-            create: {
-              method: paymentMethod || 'CASH',
-              amount: grandTotal,
-              amountTendered: amountTendered || grandTotal
-            }
+            create: paymentsData.map((p: any) => ({
+              method: p.method,
+              amount: p.amount,
+              amountTendered: p.method === 'CASH' ? (p.amountTendered ?? p.amount) : null,
+              terminalRef: p.method === 'CARD' ? (p.terminalRef || null) : null
+            }))
           }
         }
       });
 
-      // Create Invoice
+      // Create Invoice with snapshots
       await tx.invoice.create({
         data: {
           saleId: sale.id,
-          number: `INV-${Date.now()}`
+          number: `INV-${Date.now()}`,
+          
+          // Unambiguous Financial Snapshots (in Fils)
+          netSubtotalFils: calculatedSubtotal,
+          discountAmountFils: discount,
+          shippingAmountFils: 0,
+          taxAmountFils: taxAmount,
+          grossTotalFils: grandTotal,
+          taxRateSnapshot: taxRate,
+          taxModeSnapshot: !taxEnabled ? 'DISABLED' : (pricesIncludeTax ? 'INCLUSIVE' : 'EXCLUSIVE'),
+          pricesIncludeTaxSnapshot: pricesIncludeTax,
+          
+          // Payment & Cash Tender/Allocation Breakdown (in Fils)
+          cashAppliedFils: cashApplied,
+          cardAppliedFils: cardApplied,
+          cashTenderedFils: cashTendered,
+          changeDueFils: changeDue,
+          paymentStatus: 'PAID',
+          confirmedByEmployeeId: employeeId
         }
       });
 

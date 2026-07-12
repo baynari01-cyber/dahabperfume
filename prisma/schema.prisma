@@ -216,6 +216,8 @@ model Order {
   idempotencyKey String?              @unique
   items         OrderItem[]
   statusHistory OrderStatusHistory[]
+  invoice       Invoice?
+  paymentStatus String               @default("UNPAID") // "UNPAID", "COD_PENDING", "PARTIALLY_PAID", "PAID", "REFUNDED"
   createdAt     DateTime             @default(now())
   updatedAt     DateTime             @updatedAt
 }
@@ -282,19 +284,41 @@ model Payment {
   saleId        String
   sale          Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
   method        String   // "CASH", "CARD"
-  amount        Int
-  amountTendered Int?    // How much the customer gave (for cash change calculation)
+  amount        Int      // The applied payment amount
+  amountTendered Int?    // The physical amount tendered by the customer
+  terminalRef   String?  // Cashier-recorded card terminal reference
   createdAt     DateTime @default(now())
 }
 
 model Invoice {
-  id        String   @id @default(uuid())
-  saleId    String   @unique
-  sale      Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
-  number    String   @unique // Sequential invoice number
-  taxId     String?  // Company Tax ID at time of sale
-  printed   Int      @default(0) // Number of times printed
-  createdAt DateTime @default(now())
+  id                      String   @id @default(uuid())
+  saleId                  String?  @unique
+  sale                    Sale?    @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  orderId                 String?  @unique
+  order                   Order?   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  number                  String   @unique // Sequential invoice number
+  taxId                   String?  // Company Tax ID at time of sale
+  
+  // Unambiguous Financial Snapshots (in Fils)
+  netSubtotalFils         Int      @default(0)
+  discountAmountFils      Int      @default(0)
+  shippingAmountFils      Int      @default(0)
+  taxAmountFils           Int      @default(0)
+  grossTotalFils          Int      @default(0)
+  taxRateSnapshot         Float    @default(0.0)
+  taxModeSnapshot         String   @default("DISABLED") // "DISABLED", "INCLUSIVE", "EXCLUSIVE"
+  pricesIncludeTaxSnapshot Boolean @default(true)
+  
+  // Payment & Cash Tender/Allocation Breakdown (in Fils)
+  cashAppliedFils         Int      @default(0)
+  cardAppliedFils         Int      @default(0)
+  cashTenderedFils        Int      @default(0)
+  changeDueFils           Int      @default(0)
+  paymentStatus           String   @default("UNPAID") // "UNPAID", "COD_PENDING", "PARTIALLY_PAID", "PAID", "REFUNDED", "PARTIALLY_REFUNDED"
+  confirmedByEmployeeId   String?  // Employee who confirmed storefront order or processed POS sale
+  
+  printed                 Int      @default(0) // Number of times printed
+  createdAt               DateTime @default(now())
 }
 
 model Return {
@@ -437,10 +461,12 @@ model SiteSettings {
 }
 
 model GlobalPricingSettings {
-  id             String @id @default("1")
-  taxRate        Float  @default(16.0)
-  currencyCode   String @default("JOD")
-  currencySymbol String @default("د.أ")
+  id               String  @id @default("1")
+  taxEnabled       Boolean @default(false)
+  taxRate          Float   @default(0.0)
+  pricesIncludeTax Boolean @default(true)
+  currencyCode     String  @default("JOD")
+  currencySymbol   String  @default("د.أ")
 }
 
 model ShippingZone {

@@ -24,6 +24,15 @@ vi.mock('@/lib/db', () => {
       auditLog: {
         create: vi.fn(),
       },
+      globalPricingSettings: {
+        findUnique: vi.fn(),
+      },
+      invoice: {
+        create: vi.fn(),
+      },
+      sale: {
+        create: vi.fn(async () => ({ id: 'sale-123' })),
+      },
       $transaction: vi.fn(async (callback) => {
         return callback(prisma);
       }),
@@ -80,6 +89,8 @@ describe('Storefront Order Confirmation & Stock Deductions Boundary', () => {
 
     // Mock atomic update affected rows = 1
     (prisma.$executeRawUnsafe as any).mockResolvedValue(1);
+
+    (prisma.globalPricingSettings.findUnique as any).mockResolvedValue({ taxEnabled: false });
 
     (prisma.order.update as any).mockResolvedValue({
       id: 'ord-123',
@@ -140,9 +151,7 @@ describe('Storefront Order Confirmation & Stock Deductions Boundary', () => {
     });
 
     (prisma.productFormula.findFirst as any).mockResolvedValue(null);
-
-    // Mock atomic update failure (affected rows = 0)
-    (prisma.$executeRawUnsafe as any).mockResolvedValue(0);
+    (prisma.globalPricingSettings.findUnique as any).mockResolvedValue({ taxEnabled: false });
 
     const result = await confirmStorefrontOrder('ord-123');
 

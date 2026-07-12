@@ -39,8 +39,20 @@ export async function processCheckout(prevState: any, formData: FormData) {
     });
     if (existing) {
       const setting = await prisma.siteSettings.findUnique({ where: { key: 'whatsapp_number' } });
-      const config = setting ? JSON.parse(setting.value) : { number: '962785050655' };
-      const number = config.number || '962785050655';
+      let number = '';
+      if (setting) {
+        try {
+          const config = JSON.parse(setting.value);
+          number = config.number || '';
+        } catch (e) {}
+      }
+      if (!number) {
+        if (process.env.NODE_ENV === 'production') {
+          return { error: 'قناة الدفع والاتصال (واتساب) غير متوفرة حالياً، يرجى المحاولة لاحقاً' };
+        } else {
+          number = '962785050655';
+        }
+      }
       
       // Rebuild the exact original message from the persisted snapshots
       let msg = `مرحباً دهب للعطور،\nأود تأكيد طلبي الجديد رقم: ${existing.reference}\n\n`;
