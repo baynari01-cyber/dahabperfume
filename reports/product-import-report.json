@@ -1,0 +1,8 @@
+{
+  "totalRows": 1003,
+  "processed": 331,
+  "missingImagesCount": 2,
+  "invalidCount": 672,
+  "timestamp": "2026-07-12T11:48:36.051Z",
+  "supabaseConnected": false
+}
