@@ -50,6 +50,53 @@ async function main() {
     }
   });
 
+  // Seed default local-development Admin account
+  const adminPasswordHash = await argon2.hash('Dhb-Adm!7Qm4#Zp92');
+  await prisma.employee.upsert({
+    where: { email: 'admin@dahabperfume.local' },
+    update: {},
+    create: {
+      email: 'admin@dahabperfume.local',
+      name: 'Local Admin',
+      passwordHash: adminPasswordHash,
+      roleId: adminRole.id,
+      mustChangePassword: true,
+      bootstrapCredential: true
+    }
+  });
+
+  // Seed default local-development Cashier account
+  let cashierRole = await prisma.role.findUnique({ where: { name: 'Cashier' } });
+  if (!cashierRole) {
+    cashierRole = await prisma.role.create({
+      data: { name: 'Cashier' }
+    });
+  }
+
+  // Assign pos:access to Cashier role
+  const posPermission = await prisma.permission.findUnique({ where: { action: 'pos:access' } });
+  if (posPermission) {
+    await prisma.rolePermission.upsert({
+      where: { roleId_permissionId: { roleId: cashierRole.id, permissionId: posPermission.id } },
+      update: {},
+      create: { roleId: cashierRole.id, permissionId: posPermission.id }
+    });
+  }
+
+  const cashierPasswordHash = await argon2.hash('Dhb-POS!4Vr8#Nk61');
+  await prisma.employee.upsert({
+    where: { email: 'cashier@dahabperfume.local' },
+    update: {},
+    create: {
+      email: 'cashier@dahabperfume.local',
+      name: 'Local Cashier',
+      passwordHash: cashierPasswordHash,
+      roleId: cashierRole.id,
+      mustChangePassword: true,
+      bootstrapCredential: true
+    }
+  });
+
   // Also create a GlobalPricingSettings if it doesn't exist
   await prisma.globalPricingSettings.upsert({
     where: { id: "1" },
