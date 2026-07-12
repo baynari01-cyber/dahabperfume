@@ -23,6 +23,7 @@ async function main() {
   console.log(`Parsed ${records.length} rows.`);
 
   const invalidProducts = [];
+  const skippedTemplateRows = [];
   const missingImages = [];
   let successCount = 0;
 
@@ -35,12 +36,18 @@ async function main() {
     }
 
     const sku = record['SKU']?.trim();
+    const nameAr = record['اسم العطر']?.trim();
+
+    if (!sku && !nameAr) {
+      skippedTemplateRows.push(`Row ${i + 2}`);
+      continue;
+    }
+
     if (!sku) {
       invalidProducts.push(`Row ${i + 2}: Missing SKU`);
       continue;
     }
 
-    const nameAr = record['اسم العطر']?.trim();
     if (!nameAr) {
       invalidProducts.push(`Row ${i + 2} (${sku}): Missing Arabic Name`);
       continue;
@@ -83,8 +90,31 @@ async function main() {
       });
     }
 
-    // Process Product
-    const isVisible = record['ظاهر بالموقع؟'] === 'نعم';
+    // Process Product review and visibility rules
+    const imageName = record['اسم الصورة']?.trim();
+    const hasMissingImage = !imageName || imageName === 'missing';
+    const notes = record['ملاحظات'] || '';
+    
+    const reasons = [];
+    if (hasMissingImage) {
+      reasons.push('Missing Image');
+      missingImages.push(`Row ${i + 2} (${sku}): No image specified`);
+    }
+
+    const useGlobalPricing = record['يستخدم الأسعار العامة؟'] === 'نعم';
+    const hasCustom50 = parseFloat(record['سعر 50ml خاص'] || '0') > 0;
+    const hasCustom100 = parseFloat(record['سعر 100ml خاص'] || '0') > 0;
+    const hasCustom200 = parseFloat(record['سعر 200ml خاص'] || '0') > 0;
+    
+    if (!useGlobalPricing && !hasCustom50 && !hasCustom100 && !hasCustom200) {
+      reasons.push('Missing Price');
+    }
+
+    const needsReview = reasons.length > 0;
+    const reviewReasons = needsReview ? reasons.join(', ') : null;
+    const stockStatus = notes.includes('مخزون') ? 'UNVERIFIED' : 'VERIFIED';
+    
+    const isVisible = !needsReview;
     const isFeatured = record['مميز بالواجهة؟'] === 'نعم';
 
     const product = await prisma.product.upsert({
@@ -98,7 +128,10 @@ async function main() {
         seasonId: season?.id,
         familyId: family?.id,
         isVisible,
-        isFeatured
+        isFeatured,
+        needsReview,
+        reviewReasons,
+        stockStatus
       },
       create: {
         sku,
@@ -111,7 +144,10 @@ async function main() {
         seasonId: season?.id,
         familyId: family?.id,
         isVisible,
-        isFeatured
+        isFeatured,
+        needsReview,
+        reviewReasons,
+        stockStatus
       }
     });
 
@@ -146,7 +182,6 @@ async function main() {
     }
 
     // Handle Image
-    const imageName = record['اسم الصورة']?.trim();
     if (imageName && imageName !== 'missing') {
       const imagePath = path.resolve(process.cwd(), '../source-data/products', imageName);
       if (fs.existsSync(imagePath)) {
@@ -158,14 +193,13 @@ async function main() {
           }
         });
       } else {
+        // Only push to missingImages once (it is already pushed at the top if missing, so let's log file missing here)
         missingImages.push(`Row ${i + 2} (${sku}): File ${imageName} not found`);
       }
-    } else {
-      missingImages.push(`Row ${i + 2} (${sku}): No image specified`);
     }
 
     // Handle Pricing & Variants
-    const useGlobalPricing = record['يستخدم الأسعار العامة؟'] === 'نعم';
+    // useGlobalPricing is already declared above
     const prices = {
       '50ml': parseFloat(record['سعر 50ml خاص'] || '0'),
       '100ml': parseFloat(record['سعر 100ml خاص'] || '0'),
@@ -203,18 +237,22 @@ async function main() {
   if (!fs.existsSync(reportsDir)) fs.mkdirSync(reportsDir);
 
   fs.writeFileSync(path.join(reportsDir, 'invalid-products.csv'), invalidProducts.join('\n'));
+  fs.writeFileSync(path.join(reportsDir, 'skipped-template-rows.csv'), skippedTemplateRows.join('\n'));
   fs.writeFileSync(path.join(reportsDir, 'missing-images.csv'), missingImages.join('\n'));
   
   const mdReport = `
 # Import Report
 
-- **Total Rows Processed:** ${records.length}
-- **Successfully Imported:** ${successCount}
-- **Missing Images:** ${missingImages.length}
-- **Invalid Products:** ${invalidProducts.length}
+- **Physical CSV Lines:** ${records.length + 1}
+- **Parsed Data Rows:** ${records.length}
+- **Valid Product Rows:** ${successCount}
+- **Blank/Template Rows Skipped:** ${skippedTemplateRows.length}
+- **Invalid Nonblank Product Rows:** ${invalidProducts.length}
+- **Distinct Products:** ${successCount}
+- **Missing Images for Valid Products:** ${missingImages.length}
 - **External Integration:** Pending credentials - Local bypass used
 
-Please check the generated CSV files for details on missing images and errors.
+Please check the generated CSV files in the reports directory for details.
   `.trim();
   fs.writeFileSync(path.join(reportsDir, 'product-import-report.md'), mdReport);
 

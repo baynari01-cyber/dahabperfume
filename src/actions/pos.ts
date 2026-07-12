@@ -52,19 +52,20 @@ export async function processPOSCheckout(data: any) {
           // FORMULA_BASED deduction
           for (const formulaItem of formula.items) {
             const requiredQty = formulaItem.quantity * quantity;
-            const stock = formulaItem.material.stock;
 
-            if (!stock || stock.quantity < requiredQty) {
+            // Atomic conditional update on RawMaterialStock
+            const affected = await tx.$executeRaw`
+              UPDATE "RawMaterialStock"
+              SET quantity = quantity - ${requiredQty}
+              WHERE "materialId" = ${formulaItem.materialId} AND quantity >= ${requiredQty}
+            `;
+
+            if (affected === 0) {
+              const currentStock = formulaItem.material.stock?.quantity || 0;
               throw new Error(
-                `مخزون غير كافٍ للمادة الخام ${formulaItem.material.name} المطلوبة لتركيبة ${variant.product.nameAr}. المتاح: ${stock?.quantity || 0}, المطلوب: ${requiredQty}`
+                `مخزون غير كافٍ للمادة الخام ${formulaItem.material.name} المطلوبة لتركيبة ${variant.product.nameAr}. المتاح: ${currentStock}, المطلوب: ${requiredQty}`
               );
             }
-
-            // Deduct raw material stock
-            await tx.rawMaterialStock.update({
-              where: { materialId: formulaItem.materialId },
-              data: { quantity: stock.quantity - requiredQty }
-            });
 
             // Log raw material movement
             await tx.rawMaterialMovement.create({
@@ -85,15 +86,16 @@ export async function processPOSCheckout(data: any) {
             });
           }
         } else {
-          // FINISHED_PRODUCT stock check and deduction
-          if (variant.stock < quantity) {
-            throw new Error(`مخزون غير كافٍ للمنتج (SKU: ${variant.sku}). المتاح: ${variant.stock}`);
-          }
+          // FINISHED_PRODUCT stock check and deduction using atomic conditional update
+          const affected = await tx.$executeRaw`
+            UPDATE "ProductVariant"
+            SET stock = stock - ${quantity}
+            WHERE id = ${variant.id} AND stock >= ${quantity}
+          `;
 
-          await tx.productVariant.update({
-            where: { id: variant.id },
-            data: { stock: variant.stock - quantity }
-          });
+          if (affected === 0) {
+            throw new Error(`مخزون غير كافٍ للمنتج (SKU: ${variant.sku}). المتاح أقل من الكمية المطلوبة.`);
+          }
         }
 
         // Log final product inventory movement

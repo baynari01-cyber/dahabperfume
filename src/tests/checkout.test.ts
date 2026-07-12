@@ -4,7 +4,7 @@ vi.mock('@/lib/db', () => {
   return {
     prisma: {
       order: {
-        findFirst: vi.fn(),
+        findUnique: vi.fn(),
         create: vi.fn(),
       },
       productVariant: {
@@ -85,7 +85,7 @@ describe('Storefront Checkout Business Flow', () => {
 
   it('Protects against duplicate submission using idempotency check', async () => {
     // Mock existing recent order
-    (prisma.order.findFirst as any).mockResolvedValue({
+    (prisma.order.findUnique as any).mockResolvedValue({
       id: 'ord-existing',
       reference: 'ORD-EXISTING',
       totalAmount: 2700,

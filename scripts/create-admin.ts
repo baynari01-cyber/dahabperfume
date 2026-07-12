@@ -72,6 +72,75 @@ async function main() {
     }
   });
 
+  // Create default SiteSettings for Announcement Bar
+  await prisma.siteSettings.upsert({
+    where: { key: 'announcement_bar' },
+    update: {},
+    create: {
+      key: 'announcement_bar',
+      value: JSON.stringify({ textAr: 'توصيل مجاني للطلبات فوق 50 د.أ', textEn: 'Free delivery for orders above 50 JOD' })
+    }
+  });
+
+  // Create default SiteSettings for Homepage Content
+  await prisma.siteSettings.upsert({
+    where: { key: 'homepage_content' },
+    update: {},
+    create: {
+      key: 'homepage_content',
+      value: JSON.stringify({
+        heroTitleAr: 'حين تُترجم الفخامة إلى عطر',
+        heroTitleEn: 'When Luxury Translates to Fragrance',
+        heroDescAr: 'دهب للعطور.. نفحات مختارة بعناية من الشرق، لترافق هويتك وتُشعرك بالأصالة والتميز.',
+        heroDescEn: 'Dahab Perfumes... carefully selected notes from the East, to accompany your identity and make you feel authentic.'
+      })
+    }
+  });
+
+  // Create default SiteSettings for Brand Story
+  await prisma.siteSettings.upsert({
+    where: { key: 'brand_story' },
+    update: {},
+    create: {
+      key: 'brand_story',
+      value: JSON.stringify({
+        titleAr: 'عن دهب للعطور',
+        titleEn: 'About Dahab Perfumes',
+        contentAr: 'دهب للعطور.. دار عطور شرقية أصيلة تأسست لتقدم فخامة تناسب شخصيتك وهويتك العطرية الفريدة.',
+        contentEn: 'Dahab Perfumes... an authentic oriental fragrance house established to present luxury matching your unique personality.'
+      })
+    }
+  });
+
+  // Create default SiteSettings for Location Info
+  await prisma.siteSettings.upsert({
+    where: { key: 'store_location_info' },
+    update: {},
+    create: {
+      key: 'store_location_info',
+      value: JSON.stringify({
+        addressAr: 'عمان، الأردن - شارع مكة',
+        addressEn: 'Amman, Jordan - Mecca St',
+        hoursAr: '10:00 ص - 10:00 م',
+        hoursEn: '10:00 AM - 10:00 PM',
+        phone: '+962785050655'
+      })
+    }
+  });
+
+  // Create default SiteSettings for Social Links
+  await prisma.siteSettings.upsert({
+    where: { key: 'social_links' },
+    update: {},
+    create: {
+      key: 'social_links',
+      value: JSON.stringify({
+        instagram: 'https://instagram.com/dahab',
+        facebook: 'https://facebook.com/dahab'
+      })
+    }
+  });
+
   console.log('System Admin user created: system@dahab.local / admin123');
 }
 

@@ -31,17 +31,10 @@ export async function processCheckout(prevState: any, formData: FormData) {
     return { error: 'السلة فارغة أو غير صالحة' };
   }
 
-  // Idempotency check: Look for matching recent order (within last 2 minutes) to prevent duplicate submission
+  // Idempotency check: Look for matching order by unique key
   if (idempotencyKey) {
-    const existing = await prisma.order.findFirst({
-      where: {
-        customerName,
-        customerPhone,
-        notes: `IdempotencyKey: ${idempotencyKey}`,
-        createdAt: {
-          gte: new Date(Date.now() - 2 * 60 * 1000)
-        }
-      }
+    const existing = await prisma.order.findUnique({
+      where: { idempotencyKey }
     });
     if (existing) {
       // Return previous result instead of creating new order
@@ -129,7 +122,7 @@ export async function processCheckout(prevState: any, formData: FormData) {
         status: 'AWAITING_WHATSAPP',
         totalAmount: grandTotal,
         shippingCost,
-        notes: idempotencyKey ? `IdempotencyKey: ${idempotencyKey}` : undefined,
+        idempotencyKey: idempotencyKey || undefined,
         items: {
           create: orderItemsData
         },
@@ -146,8 +139,21 @@ export async function processCheckout(prevState: any, formData: FormData) {
 
   // Get WhatsApp official number from database setting
   const setting = await prisma.siteSettings.findUnique({ where: { key: 'whatsapp_number' } });
-  const config = setting ? JSON.parse(setting.value) : { number: '962785050655' };
-  const whatsappNumber = config.number || '962785050655';
+  let whatsappNumber = '';
+  if (setting) {
+    try {
+      const config = JSON.parse(setting.value);
+      whatsappNumber = config.number || '';
+    } catch (e) {}
+  }
+
+  if (!whatsappNumber) {
+    if (process.env.NODE_ENV === 'production') {
+      return { error: 'قناة الدفع والاتصال (واتساب) غير متوفرة حالياً، يرجى المحاولة لاحقاً' };
+    } else {
+      whatsappNumber = '962785050655'; // Development seed value
+    }
+  }
 
   // 3. Generate secure WhatsApp message
   let message = `مرحباً دهب للعطور،\nأود تأكيد طلبي الجديد رقم: ${reference}\n\n`;
