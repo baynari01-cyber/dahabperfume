@@ -1,5 +1,6 @@
 import React from 'react';
 import { prisma } from '@/lib/db';
+import { filsToDisplay } from '@/lib/money';
 
 export default async function ShippingPage({ params }: { params: Promise<{ locale: string }> }) {
   const resolvedParams = await params;
@@ -42,11 +43,11 @@ export default async function ShippingPage({ params }: { params: Promise<{ local
                 {zones.map((zone) => (
                   <tr key={zone.id} className="text-zinc-650">
                     <td className="py-3 px-4 font-bold">{isAr ? zone.nameAr : zone.nameEn}</td>
-                    <td className="py-3 px-4">{(zone.fee / 100).toFixed(2)} {isAr ? 'د.أ' : 'JOD'}</td>
+                    <td className="py-3 px-4">{filsToDisplay(zone.fee, isAr ? 'ar' : 'en')}</td>
                     <td className="py-3 px-4">{zone.estimatedDeliveryTime}</td>
                     <td className="py-3 px-4">
                       {zone.freeShippingThreshold 
-                        ? `${(zone.freeShippingThreshold / 100).toFixed(2)} ${isAr ? 'د.أ' : 'JOD'}`
+                        ? filsToDisplay(zone.freeShippingThreshold, isAr ? 'ar' : 'en')
                         : (isAr ? 'غير متوفر' : 'N/A')}
                     </td>
                   </tr>

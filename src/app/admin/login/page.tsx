@@ -7,8 +7,12 @@ export default function AdminLoginPage() {
   const [state, formAction, isPending] = useActionState(login, null);
 
   useEffect(() => {
-    if (state?.requiresMfa && state?.tempEmployeeId) {
-      window.location.href = `/admin/login/mfa?id=${state.tempEmployeeId}`;
+    if (state?.requiresMfa && state?.mfaToken) {
+      if (state.mfaSetupRequired) {
+        window.location.href = `/admin/login/mfa/setup?token=${state.mfaToken}`;
+      } else {
+        window.location.href = `/admin/login/mfa?token=${state.mfaToken}`;
+      }
     }
   }, [state]);
 

@@ -2,6 +2,7 @@
 
 import React, { useActionState, useEffect, useState } from 'react';
 import { processCheckout } from '@/actions/checkout';
+import { filsToDisplay } from '@/lib/money';
 import Link from 'next/link';
 
 export default function CheckoutPage({ params }: { params: Promise<{ locale: string }> }) {
@@ -193,7 +194,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ locale: str
                       </p>
                     </div>
                     <span className="font-bold text-zinc-700">
-                      {((item.price * item.quantity) / 100).toFixed(2)} د.أ
+                      {filsToDisplay(item.price * item.quantity, isAr ? 'ar' : 'en')}
                     </span>
                   </div>
                 ))}
@@ -201,19 +202,19 @@ export default function CheckoutPage({ params }: { params: Promise<{ locale: str
                 <div className="pt-4 space-y-2 border-t border-zinc-200">
                   <div className="flex justify-between text-zinc-600">
                     <span>{isAr ? 'المجموع الفرعي' : 'Subtotal'}</span>
-                    <span>{(getSubtotal() / 100).toFixed(2)} د.أ</span>
+                    <span>{filsToDisplay(getSubtotal(), isAr ? 'ar' : 'en')}</span>
                   </div>
                   <div className="flex justify-between text-zinc-600">
                     <span>{isAr ? 'رسوم التوصيل' : 'Shipping Fee'}</span>
                     <span>
                       {getShippingFee() > 0 
-                        ? `${(getShippingFee() / 100).toFixed(2)} د.أ` 
+                        ? filsToDisplay(getShippingFee(), isAr ? 'ar' : 'en') 
                         : (isAr ? 'شحن مجاني' : 'Free Shipping')}
                     </span>
                   </div>
                   <div className="flex justify-between text-xl font-bold text-[var(--color-forest-900)] pt-2 border-t">
                     <span>{isAr ? 'الإجمالي' : 'Total'}</span>
-                    <span>{(getGrandTotal() / 100).toFixed(2)} د.أ</span>
+                    <span>{filsToDisplay(getGrandTotal(), isAr ? 'ar' : 'en')}</span>
                   </div>
                 </div>
               </div>

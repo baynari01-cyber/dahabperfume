@@ -2,7 +2,7 @@
 
 import { prisma } from '@/lib/db';
 import { verifyPassword, createSession, setSessionCookie, deleteSessionCookie, invalidateSession, getCurrentSession } from '@/lib/auth';
-import { verifyTOTP } from '@/lib/totp';
+import { verifyTOTP, generateTOTPSecret, getTOTPProvisioningUrl } from '@/lib/totp';
 import { z } from 'zod';
 import { redirect } from 'next/navigation';
 import { headers } from 'next/headers';
@@ -100,9 +100,18 @@ export async function login(prevState: any, formData: FormData) {
     }
   });
 
-  // If MFA is enabled, redirect to OTP screen instead of setting session cookie directly
-  if (employee.mfaEnabled) {
-    return { requiresMfa: true, tempEmployeeId: employee.id };
+  const isAdmin = employee.role.name === 'Admin' || employee.role.name === 'Super Admin';
+  if (employee.mfaEnabled || isAdmin) {
+    const token = crypto.randomBytes(32).toString('hex');
+    await prisma.pendingMfaChallenge.deleteMany({ where: { employeeId: employee.id } });
+    await prisma.pendingMfaChallenge.create({
+      data: {
+        employeeId: employee.id,
+        token,
+        expiresAt: new Date(Date.now() + 5 * 60 * 1000)
+      }
+    });
+    return { requiresMfa: true, mfaToken: token, mfaSetupRequired: !employee.mfaEnabled };
   }
 
   // Create standard session
@@ -123,29 +132,35 @@ export async function login(prevState: any, formData: FormData) {
   const { token, expiresAt } = await createSession(employee.id);
   await setSessionCookie(token, expiresAt);
   
-  redirect('/admin');
+  if (employee.role.name.toLowerCase() === 'cashier') {
+    redirect('/pos/cashier');
+  } else {
+    redirect('/admin');
+  }
 }
 
 export async function verifyMfaLogin(prevState: any, formData: FormData) {
   const code = formData.get('code') as string;
-  const tempEmployeeId = formData.get('tempEmployeeId') as string;
+  const token = formData.get('token') as string;
 
   const headersList = await headers();
   const ipAddress = headersList.get('x-forwarded-for') || 'unknown';
   const userAgent = headersList.get('user-agent') || 'unknown';
 
-  if (!code || !tempEmployeeId) {
+  if (!code || !token) {
     return { error: 'الرمز المدخل غير صالح' };
   }
 
-  const employee = await prisma.employee.findUnique({
-    where: { id: tempEmployeeId },
-    include: { role: true }
+  const challenge = await prisma.pendingMfaChallenge.findUnique({
+    where: { token },
+    include: { employee: { include: { role: true } } }
   });
 
-  if (!employee) {
-    return { error: 'الموظف غير موجود' };
+  if (!challenge || challenge.expiresAt < new Date()) {
+    return { error: 'انتهت صلاحية جلسة تسجيل الدخول. يرجى المحاولة مرة أخرى.' };
   }
+
+  const employee = challenge.employee;
 
   if (employee.lockoutUntil && employee.lockoutUntil > new Date()) {
     return { error: 'الحساب مقفل مؤقتاً' };
@@ -230,10 +245,90 @@ export async function verifyMfaLogin(prevState: any, formData: FormData) {
     data: { email: employee.email, ipAddress, userAgent, success: true, employeeId: employee.id }
   });
 
+  await prisma.pendingMfaChallenge.delete({ where: { id: challenge.id } });
+
   const { token, expiresAt } = await createSession(employee.id);
   await setSessionCookie(token, expiresAt);
 
-  redirect('/admin');
+  if (employee.role.name.toLowerCase() === 'cashier') {
+    redirect('/pos/cashier');
+  } else {
+    redirect('/admin');
+  }
+}
+
+export async function generateMfaSetup(token: string) {
+  const challenge = await prisma.pendingMfaChallenge.findUnique({
+    where: { token },
+    include: { employee: true }
+  });
+
+  if (!challenge || challenge.expiresAt < new Date() || challenge.employee.mfaEnabled) {
+    return { error: 'Invalid or expired setup token' };
+  }
+
+  const secret = generateTOTPSecret();
+  const qrUrl = getTOTPProvisioningUrl(challenge.employee.email, secret);
+  
+  const rawCodes = Array.from({ length: 8 }, () => crypto.randomBytes(4).toString('hex'));
+  const hashedCodes = rawCodes.map(c => crypto.createHash('sha256').update(c).digest('hex'));
+
+  return { secret, qrUrl, rawCodes, hashedCodes };
+}
+
+export async function confirmMfaSetup(prevState: any, formData: FormData) {
+  const token = formData.get('token') as string;
+  const secret = formData.get('secret') as string;
+  const code = formData.get('code') as string;
+  const hashedCodesJson = formData.get('hashedCodes') as string;
+
+  if (!token || !secret || !code || !hashedCodesJson) {
+    return { error: 'بيانات مفقودة' };
+  }
+
+  const challenge = await prisma.pendingMfaChallenge.findUnique({
+    where: { token },
+    include: { employee: { include: { role: true } } }
+  });
+
+  if (!challenge || challenge.expiresAt < new Date()) {
+    return { error: 'انتهت صلاحية الجلسة' };
+  }
+
+  const isValid = verifyTOTP(secret, code);
+  if (!isValid) {
+    return { error: 'الرمز غير صحيح' };
+  }
+
+  const employee = challenge.employee;
+
+  await prisma.employee.update({
+    where: { id: employee.id },
+    data: {
+      mfaSecret: secret,
+      mfaRecoveryCodes: hashedCodesJson,
+      mfaEnabled: true
+    }
+  });
+
+  await prisma.pendingMfaChallenge.delete({ where: { id: challenge.id } });
+
+  const headersList = await headers();
+  const ipAddress = headersList.get('x-forwarded-for') || 'unknown';
+  const userAgent = headersList.get('user-agent') || 'unknown';
+
+  await prisma.loginAttempt.create({
+    data: { email: employee.email, ipAddress, userAgent, success: true, employeeId: employee.id }
+  });
+
+  const { token: sessionToken, expiresAt } = await createSession(employee.id);
+  await setSessionCookie(sessionToken, expiresAt);
+
+  if (employee.role.name.toLowerCase() === 'cashier') {
+    redirect('/pos/cashier');
+  } else {
+    redirect('/admin');
+  }
 }
 
 export async function logout() {

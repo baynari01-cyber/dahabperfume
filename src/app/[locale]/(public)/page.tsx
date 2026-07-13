@@ -4,6 +4,7 @@ import { prisma } from '@/lib/db';
 import { getHeroSlides, getHeroCarouselSettings, getStoreLocationSettings } from '@/actions/homepage-cms';
 import { HeroCarousel } from '@/components/HeroCarousel';
 import { StoreLocationSection } from '@/components/StoreLocationSection';
+import { filsToDisplay } from '@/lib/money';
 
 interface Params {
   locale?: string;
@@ -152,7 +153,7 @@ export default async function HomePage({ params }: { params: Promise<Params> }) 
                     {isAr ? product.nameAr : product.nameEn}
                   </h3>
                   <div className="text-[var(--color-champagne-600)] font-bold text-lg">
-                    {product.variants[0] ? `${(product.variants[0].price / 100).toFixed(2)} د.أ` : (isAr ? 'نفذت الكمية' : 'Out of Stock')}
+                    {product.variants[0] ? filsToDisplay(product.variants[0].price, isAr ? 'ar' : 'en') : (isAr ? 'نفذت الكمية' : 'Out of Stock')}
                   </div>
                 </div>
                 <div className="mt-4">

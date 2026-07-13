@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { filsToDisplay } from '@/lib/money';
 
 export default function CartPage({ params }: { params: Promise<{ locale: string }> }) {
   const resolvedParams = React.use(params);
@@ -125,7 +126,7 @@ export default function CartPage({ params }: { params: Promise<{ locale: string 
                       </div>
 
                       <div className="text-[var(--color-champagne-600)] font-bold text-lg">
-                        {((item.price * item.quantity) / 100).toFixed(2)} د.أ
+                        {filsToDisplay(item.price * item.quantity, isAr ? 'ar' : 'en')}
                       </div>
                     </div>
                   </div>
@@ -142,7 +143,7 @@ export default function CartPage({ params }: { params: Promise<{ locale: string 
               <div className="space-y-4 text-zinc-700 mb-6">
                 <div className="flex justify-between">
                   <span>{isAr ? 'المجموع الفرعي' : 'Subtotal'}</span>
-                  <span className="font-bold">{(getSubtotal() / 100).toFixed(2)} د.أ</span>
+                  <span className="font-bold">{filsToDisplay(getSubtotal(), isAr ? 'ar' : 'en')}</span>
                 </div>
                 <div className="flex justify-between text-sm text-zinc-500">
                   <span>{isAr ? 'التوصيل' : 'Shipping'}</span>

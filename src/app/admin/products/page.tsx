@@ -3,6 +3,7 @@ import { requireAuth } from '@/lib/dal';
 import { prisma } from '@/lib/db';
 import { AdminSidebar } from '@/components/AdminSidebar';
 import Link from 'next/link';
+import { filsToDisplay } from '@/lib/money';
 
 export default async function AdminProductsPage() {
   const session = await requireAuth();
@@ -64,7 +65,7 @@ export default async function AdminProductsPage() {
                         <div className="flex flex-wrap gap-1">
                           {product.variants.map((v) => (
                             <span key={v.id} className="bg-[var(--color-ivory-200)] px-2 py-0.5 rounded text-xs font-bold text-[var(--color-forest-800)]">
-                              {v.size}: {(v.price / 100).toFixed(2)} د.أ
+                              {v.size}: {filsToDisplay(v.price, 'ar')}
                             </span>
                           ))}
                         </div>

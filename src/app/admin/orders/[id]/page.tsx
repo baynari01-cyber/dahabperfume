@@ -1,5 +1,6 @@
 import React from 'react';
 import { requireAuth } from '@/lib/dal';
+import { filsToDisplay } from '@/lib/money';
 import { prisma } from '@/lib/db';
 import { AdminSidebar } from '@/components/AdminSidebar';
 import { confirmStorefrontOrder } from '@/actions/orders';
@@ -112,9 +113,9 @@ export default async function AdminOrderDetailPage({
                       </div>
                       
                       <div className="text-left font-bold text-zinc-700">
-                        <span>{item.quantity} × {(item.unitPrice / 100).toFixed(2)} د.أ</span>
+                        <span>{item.quantity} × {filsToDisplay(item.unitPrice, 'ar')}</span>
                         <span className="block text-zinc-900 mt-1">
-                          {((item.unitPrice * item.quantity) / 100).toFixed(2)} د.أ
+                          {filsToDisplay(item.unitPrice * item.quantity, 'ar')}
                         </span>
                       </div>
                     </div>
@@ -126,11 +127,11 @@ export default async function AdminOrderDetailPage({
               <div className="border-t border-zinc-200 mt-6 pt-4 space-y-2 text-sm text-zinc-700">
                 <div className="flex justify-between">
                   <span>رسوم التوصيل:</span>
-                  <span>{(order.shippingCost / 100).toFixed(2)} د.أ</span>
+                  <span>{filsToDisplay(order.shippingCost, 'ar')}</span>
                 </div>
                 <div className="flex justify-between text-lg font-bold text-[var(--color-forest-900)] pt-2 border-t">
                   <span>الإجمالي الكلي:</span>
-                  <span>{(order.totalAmount / 100).toFixed(2)} د.أ</span>
+                  <span>{filsToDisplay(order.totalAmount, 'ar')}</span>
                 </div>
               </div>
             </div>

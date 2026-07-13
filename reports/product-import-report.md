@@ -5,8 +5,8 @@
 - **Valid Product Rows:** 331
 - **Blank/Template Rows Skipped:** 672
 - **Invalid Nonblank Product Rows:** 0
-- **Distinct Products:** 498
-- **Total Variants:** 1160
+- **Distinct Products:** 522
+- **Total Variants:** 1184
 - **Total Accords Dictionary:** 33
 - **Total ProductAccord Links:** 1655
 - **Images Present:** 329

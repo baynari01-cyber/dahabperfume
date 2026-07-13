@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/db';
 import { notFound } from 'next/navigation';
+import { filsToDisplay } from '@/lib/money';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -79,7 +80,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           </p>
 
           <div className="text-2xl font-bold text-[var(--color-champagne-600)] mb-2">
-            {lowestPrice > 0 ? `${(lowestPrice / 100).toFixed(2)} د.أ` : 'السعر غير متوفر'}
+            {lowestPrice > 0 ? filsToDisplay(lowestPrice, isAr ? 'ar' : 'en') : 'السعر غير متوفر'}
           </div>
 
           <div className="mb-8">

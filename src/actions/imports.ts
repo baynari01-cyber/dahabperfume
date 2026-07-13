@@ -240,7 +240,8 @@ export async function executeImportCommit(jobId: string) {
             variants: {
               create: [
                 { sku: `${sku}-50ml`, size: '50ml', price: 10000, stock: 10, isActive: true },
-                { sku: `${sku}-100ml`, size: '100ml', price: 15000, stock: 10, isActive: true }
+                { sku: `${sku}-100ml`, size: '100ml', price: 15000, stock: 10, isActive: true },
+                { sku: `${sku}-200ml`, size: '200ml', price: 30000, stock: 10, isActive: true }
               ]
             }
           }
@@ -308,8 +309,8 @@ export async function executeImportCommit(jobId: string) {
     skippedRows: job.skippedRows,
     missingImages: 0,
     duplicateSKUs: 0,
-    createdVariants: result.createdCount * 2,
-    updatedVariants: result.updatedCount * 2,
+    createdVariants: result.createdCount * 3,
+    updatedVariants: result.updatedCount * 3,
     linkedAccords: 0,
     hiddenProducts: 0,
     warnings: 0,

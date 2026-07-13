@@ -1,5 +1,6 @@
 import React from 'react';
 import { requireAuth } from '@/lib/dal';
+import { filsToDisplay } from '@/lib/money';
 import { prisma } from '@/lib/db';
 import { AdminSidebar } from '@/components/AdminSidebar';
 
@@ -48,7 +49,7 @@ export default async function AdminReportsPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="bg-white p-6 rounded-lg shadow-sm border border-[var(--color-ivory-200)] text-center">
             <h3 className="text-sm font-bold text-zinc-500 mb-1">صافي الإيرادات الكلية</h3>
-            <p className="text-3xl font-bold text-emerald-600">{(totalRevenue / 100).toFixed(2)} د.أ</p>
+            <p className="text-3xl font-bold text-emerald-600">{filsToDisplay(totalRevenue, 'ar')}</p>
           </div>
           <div className="bg-white p-6 rounded-lg shadow-sm border border-[var(--color-ivory-200)] text-center">
             <h3 className="text-sm font-bold text-zinc-500 mb-1">عدد الفواتير الصادرة</h3>
@@ -56,7 +57,7 @@ export default async function AdminReportsPage() {
           </div>
           <div className="bg-white p-6 rounded-lg shadow-sm border border-[var(--color-ivory-200)] text-center">
             <h3 className="text-sm font-bold text-zinc-500 mb-1">متوسط قيمة الفاتورة</h3>
-            <p className="text-3xl font-bold text-[var(--color-forest-900)]">{(averageTicketValue / 100).toFixed(2)} د.أ</p>
+            <p className="text-3xl font-bold text-[var(--color-forest-900)]">{filsToDisplay(averageTicketValue, 'ar')}</p>
           </div>
         </div>
 
@@ -73,7 +74,7 @@ export default async function AdminReportsPage() {
                   </div>
                   <div className="text-left">
                     <span className="font-bold text-[var(--color-forest-800)]">{item.qty} قطعة</span>
-                    <span className="block text-xs text-zinc-400">{(item.total / 100).toFixed(2)} د.أ</span>
+                    <span className="block text-xs text-zinc-400">{filsToDisplay(item.total, 'ar')}</span>
                   </div>
                 </div>
               ))}

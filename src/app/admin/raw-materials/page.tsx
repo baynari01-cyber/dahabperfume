@@ -1,4 +1,6 @@
 import React from 'react';
+import Link from 'next/link';
+import { filsToDisplay } from '@/lib/money';
 import { requireAuth } from '@/lib/dal';
 import { prisma } from '@/lib/db';
 import { AdminSidebar } from '@/components/AdminSidebar';
@@ -59,7 +61,7 @@ export default async function AdminRawMaterialsPage() {
                       {minThresh} {mat.unit}
                     </td>
                     <td className="px-6 py-4 font-bold text-[var(--color-forest-800)]">
-                      {(mat.costPerUnit / 100).toFixed(2)} د.أ
+                      {filsToDisplay(mat.costPerUnit, 'ar')}
                     </td>
                   </tr>
                 );

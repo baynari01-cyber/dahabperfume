@@ -1,9 +1,9 @@
 {
-  "jobId": "e0e51710-81a3-48b5-be3e-ab4d751b80d3",
+  "jobId": "a10a0dff-3249-43aa-8c42-a2dcf53bfa6e",
   "filename": "products_upload_test.csv",
   "sourceType": "CSV",
-  "startedAt": "2026-07-12T19:19:28.517Z",
-  "completedAt": "2026-07-12T19:19:29.095Z",
+  "startedAt": "2026-07-12T19:30:33.395Z",
+  "completedAt": "2026-07-12T19:30:33.984Z",
   "physicalRows": 4,
   "parsedRows": 3,
   "validRows": 2,
@@ -21,13 +21,13 @@
   "warnings": 0,
   "errors": 1,
   "databaseCountsBefore": {
-    "products": 516,
-    "variants": 1178,
+    "products": 519,
+    "variants": 1181,
     "categories": 7
   },
   "databaseCountsAfter": {
-    "products": 518,
-    "variants": 1182,
+    "products": 521,
+    "variants": 1185,
     "categories": 7
   }
 }

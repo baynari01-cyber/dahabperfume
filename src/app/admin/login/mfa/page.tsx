@@ -3,8 +3,8 @@
 import React, { useActionState, use } from 'react';
 import { verifyMfaLogin } from '@/actions/auth';
 
-export default function AdminMfaLoginPage({ searchParams }: { searchParams: Promise<{ id?: string }> }) {
-  const { id: tempEmployeeId } = use(searchParams);
+export default function AdminMfaLoginPage({ searchParams }: { searchParams: Promise<{ token?: string }> }) {
+  const { token } = use(searchParams);
   const [state, formAction, isPending] = useActionState(verifyMfaLogin, null);
 
   return (
@@ -20,7 +20,7 @@ export default function AdminMfaLoginPage({ searchParams }: { searchParams: Prom
         </div>
 
         <form className="mt-6 space-y-6" action={formAction}>
-          <input type="hidden" name="tempEmployeeId" value={tempEmployeeId || ''} />
+          <input type="hidden" name="token" value={token || ''} />
 
           <div className="space-y-4">
             <div>

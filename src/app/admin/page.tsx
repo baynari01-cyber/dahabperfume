@@ -2,6 +2,7 @@ import React from 'react';
 import { requireAuth } from '@/lib/dal';
 import { prisma } from '@/lib/db';
 import { AdminSidebar } from '@/components/AdminSidebar';
+import { filsToDisplay } from '@/lib/money';
 import Link from 'next/link';
 
 export default async function AdminDashboardPage() {
@@ -65,7 +66,7 @@ export default async function AdminDashboardPage() {
           <div className="bg-white p-6 rounded-lg shadow-sm border border-[var(--color-ivory-200)]">
             <h3 className="text-sm font-bold text-zinc-500 mb-2">إجمالي المبيعات (POS)</h3>
             <p className="text-3xl font-bold text-emerald-600">
-              {(totalSalesRevenue / 100).toFixed(2)} د.أ
+              {filsToDisplay(totalSalesRevenue, 'ar')}
             </p>
           </div>
 
@@ -90,7 +91,7 @@ export default async function AdminDashboardPage() {
                   </div>
                   <div className="text-left">
                     <span className="text-sm font-bold text-[var(--color-champagne-600)]">
-                      {(order.totalAmount / 100).toFixed(2)} د.أ
+                      {filsToDisplay(order.totalAmount, 'ar')}
                     </span>
                     <span className={`block text-[10px] px-2 py-0.5 rounded font-bold mt-1 ${order.status === 'CONFIRMED' ? 'bg-green-150 text-green-800' : 'bg-amber-100 text-amber-800'}`}>
                       {order.status}

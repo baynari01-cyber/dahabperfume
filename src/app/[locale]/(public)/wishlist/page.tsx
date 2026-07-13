@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { filsToDisplay } from '@/lib/money';
 
 export default function WishlistPage({ params }: { params: Promise<{ locale: string }> }) {
   const resolvedParams = React.use(params);
@@ -76,7 +77,7 @@ export default function WishlistPage({ params }: { params: Promise<{ locale: str
                     {item.size}
                   </p>
                   <div className="text-[var(--color-champagne-600)] font-bold text-lg mb-4">
-                    {(item.price / 100).toFixed(2)} د.أ
+                    {filsToDisplay(item.price, isAr ? 'ar' : 'en')}
                   </div>
                   
                   <div className="flex gap-3">

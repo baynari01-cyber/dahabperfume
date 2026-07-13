@@ -9,7 +9,7 @@ const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
-  const actions = ['manage:products', 'manage:orders', 'pos:access', 'manage:inventory', 'manage:settings'];
+  const actions = ['manage:products', 'manage:orders', 'orders.confirm', 'pos:access', 'manage:inventory', 'manage:settings'];
   
   for (const action of actions) {
     await prisma.permission.upsert({

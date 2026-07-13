@@ -1,5 +1,6 @@
 import React from 'react';
 import { requireAuth } from '@/lib/dal';
+import { filsToDisplay } from '@/lib/money';
 import { prisma } from '@/lib/db';
 import { AdminSidebar } from '@/components/AdminSidebar';
 
@@ -51,10 +52,10 @@ export default async function AdminSalesPage() {
                     <td className="px-6 py-4 font-bold font-mono text-zinc-900">{sale.reference}</td>
                     <td className="px-6 py-4">{sale.employee.name}</td>
                     <td className="px-6 py-4">{sale.customerName}</td>
-                    <td className="px-6 py-4">{(sale.subtotal / 100).toFixed(2)} د.أ</td>
-                    <td className="px-6 py-4">{(sale.tax / 100).toFixed(2)} د.أ</td>
+                    <td className="px-6 py-4">{filsToDisplay(sale.subtotal, 'ar')}</td>
+                    <td className="px-6 py-4">{filsToDisplay(sale.tax, 'ar')}</td>
                     <td className="px-6 py-4 font-bold text-emerald-600">
-                      {(sale.total / 100).toFixed(2)} د.أ
+                      {filsToDisplay(sale.total, 'ar')}
                     </td>
                     <td className="px-6 py-4">
                       <span className="bg-zinc-150 px-2.5 py-0.5 rounded text-xs font-bold text-zinc-700">

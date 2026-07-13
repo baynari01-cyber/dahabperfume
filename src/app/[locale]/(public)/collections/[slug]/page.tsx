@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import { filsToDisplay } from '@/lib/money';
 import { prisma } from '@/lib/db';
 import { notFound } from 'next/navigation';
 
@@ -76,7 +77,7 @@ export default async function CollectionDetailPage({
                   {product.nameAr}
                 </h3>
                 <div className="mt-auto text-[var(--color-champagne-600)] font-bold text-lg">
-                  {lowestPrice > 0 ? `${(lowestPrice / 100).toFixed(2)} د.أ` : 'نفذت الكمية'}
+                  {lowestPrice > 0 ? filsToDisplay(lowestPrice, isAr ? 'ar' : 'en') : 'نفذت الكمية'}
                 </div>
               </div>
             </Link>

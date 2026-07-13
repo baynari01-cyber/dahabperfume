@@ -2,6 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import { prisma } from '@/lib/db';
 import { notFound } from 'next/navigation';
+import { filsToDisplay } from '@/lib/money';
 
 export default async function OrderSuccessPage({
   params
@@ -31,10 +32,10 @@ export default async function OrderSuccessPage({
   msg += `رقم الهاتف: ${order.customerPhone}\n\n`;
   msg += `تفاصيل الطلب:\n`;
   for (const it of order.items) {
-    msg += `- ${it.name} (${it.size}) x${it.quantity} = ${(it.total / 100).toFixed(2)} د.أ\n`;
+    msg += `- ${it.name} (${it.size}) x${it.quantity} = ${filsToDisplay(it.total, 'ar')}\n`;
   }
-  msg += `\nرسوم التوصيل: ${(order.shippingCost / 100).toFixed(2)} د.أ\n`;
-  msg += `الإجمالي: ${(order.totalAmount / 100).toFixed(2)} د.أ\n\n`;
+  msg += `\nرسوم التوصيل: ${filsToDisplay(order.shippingCost, 'ar')}\n`;
+  msg += `الإجمالي: ${filsToDisplay(order.totalAmount, 'ar')}\n\n`;
   msg += `شكراً لكم.`;
   const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(msg)}`;
 
@@ -68,7 +69,7 @@ export default async function OrderSuccessPage({
           </div>
           <div className="flex justify-between text-lg font-bold text-[var(--color-forest-900)] pt-2">
             <span>{isAr ? 'المبلغ الإجمالي:' : 'Grand Total:'}</span>
-            <span>{(order.totalAmount / 100).toFixed(2)} د.أ</span>
+            <span>{filsToDisplay(order.totalAmount, isAr ? 'ar' : 'en')}</span>
           </div>
         </div>
 

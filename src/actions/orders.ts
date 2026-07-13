@@ -6,7 +6,7 @@ import { calculateInclusiveTax, calculateExclusiveTax } from '@/lib/money';
 
 export async function confirmStorefrontOrder(orderId: string) {
   // 1. Require authorized permission
-  const session = await requirePermission('pos:access');
+  const session = await requirePermission('orders.confirm');
   const employeeId = session.employeeId;
 
   try {

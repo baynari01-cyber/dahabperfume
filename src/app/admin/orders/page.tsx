@@ -3,6 +3,7 @@ import { requireAuth } from '@/lib/dal';
 import { prisma } from '@/lib/db';
 import { AdminSidebar } from '@/components/AdminSidebar';
 import Link from 'next/link';
+import { filsToDisplay } from '@/lib/money';
 
 export default async function AdminOrdersPage() {
   const session = await requireAuth();
@@ -48,7 +49,7 @@ export default async function AdminOrdersPage() {
                   <td className="px-6 py-4">{order.customerName}</td>
                   <td className="px-6 py-4 font-mono text-sm">{order.customerPhone}</td>
                   <td className="px-6 py-4 font-bold text-[var(--color-forest-800)]">
-                    {(order.totalAmount / 100).toFixed(2)} د.أ
+                    {filsToDisplay(order.totalAmount, 'ar')}
                   </td>
                   <td className="px-6 py-4">
                     <span className={`inline-flex px-2 py-0.5 rounded text-xs font-bold ${order.status === 'CONFIRMED' ? 'bg-green-100 text-green-800' : order.status === 'AWAITING_WHATSAPP' ? 'bg-amber-100 text-amber-800' : 'bg-zinc-150 text-zinc-600'}`}>
