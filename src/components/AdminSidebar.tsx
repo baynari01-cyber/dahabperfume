@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { logout } from '@/actions/auth';
+import Image from 'next/image';
 
 interface AdminSidebarProps {
   employeeName: string;
@@ -29,22 +30,16 @@ export function AdminSidebar({ employeeName, permissions = [] }: AdminSidebarPro
   }, [permissions]);
 
   const allLinks = [
-    { href: '/admin', label: 'لوحة التحكم', permission: null },
+    { href: '/admin/dashboard', label: 'لوحة التحكم', permission: null },
+    { href: '/admin/dashboard/pos', label: 'الكاشير (نظام البيع)', permission: 'pos:access' },
     { href: '/admin/products', label: 'المنتجات والأسعار', permission: 'manage:products' },
     { href: '/admin/categories', label: 'تصنيفات العطور', permission: 'manage:products' },
-    { href: '/admin/collections', label: 'المجموعات التسويقية', permission: 'manage:products' },
     { href: '/admin/orders', label: 'طلبات المتجر', permission: 'manage:orders' },
     { href: '/admin/sales', label: 'المبيعات والفواتير', permission: 'manage:orders' },
-    { href: '/admin/inventory', label: 'حركة المخزون', permission: 'manage:inventory' },
-    { href: '/admin/inventory/counts', label: 'مطابقة وجرد المخزون', permission: 'manage:inventory' },
-    { href: '/admin/raw-materials', label: 'المواد الخام', permission: 'manage:inventory' },
-    { href: '/admin/formulas', label: 'تركيبات العطور', permission: 'manage:inventory' },
+    { href: '/admin/inventory', label: 'المخزون', permission: 'manage:inventory' },
     { href: '/admin/employees', label: 'الموظفين والصلاحيات', permission: 'manage:settings' },
-    { href: '/admin/reports', label: 'التقارير والإحصائيات', permission: 'manage:settings' },
     { href: '/admin/content', label: 'المحتوى والمدونة (CMS)', permission: 'manage:settings' },
-    { href: '/admin/imports', label: 'سجلات الاستيراد', permission: 'manage:settings' },
-    { href: '/admin/audit-logs', label: 'سجل العمليات (Audit)', permission: 'manage:settings' },
-    { href: '/admin/settings', label: 'الإعدادات العامة', permission: 'manage:settings' }
+    { href: '/admin/audit-logs', label: 'سجل العمليات (Audit)', permission: 'manage:settings' }
   ];
 
   // Filter links based on employee permissions.
@@ -92,6 +87,9 @@ export function AdminSidebar({ employeeName, permissions = [] }: AdminSidebarPro
       >
         {/* Brand Header */}
         <div className="p-6 border-b border-[var(--color-forest-800)] flex flex-col items-center">
+          <div className="bg-white/5 p-2 rounded-full mb-3">
+            <img src="/logo.png" alt="Dahab Perfumes Logo" width="48" height="48" className="object-contain" style={{ width: "auto", height: "auto" }} />
+          </div>
           <span className="font-heading font-bold text-2xl tracking-widest text-[var(--color-champagne-400)] mb-1">
             دهب للعطور
           </span>

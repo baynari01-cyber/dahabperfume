@@ -67,6 +67,11 @@ export async function rateLimit(options: {
   };
 }
 
+export async function checkRateLimit(key: string, route: string, maxAttempts: number, durationMinutes: number): Promise<boolean> {
+  const result = await rateLimit({ key, route, maxAttempts, durationMinutes });
+  return result.success;
+}
+
 /**
  * Gets the current failed attempt count and lock status for an account (email).
  */

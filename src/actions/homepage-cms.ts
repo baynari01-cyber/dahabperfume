@@ -81,10 +81,10 @@ const locationSettingsSchema = z.object({
   addressEn: z.string().min(1),
   latitude: z.number().min(-90).max(90),
   longitude: z.number().min(-180).max(180),
-  mapPlaceUrl: z.string().url(),
-  mapEmbedUrl: z.string().url(),
-  phone: z.string().min(5),
-  whatsapp: z.string().min(5),
+  mapPlaceUrl: z.string().optional().nullable(),
+  mapEmbedUrl: z.string().optional().nullable(),
+  phone: z.string().optional().nullable(),
+  whatsapp: z.string().optional().nullable(),
   openingHours: z.string().min(1),
   locationSectionEnabled: z.boolean(),
   directionsButtonEnabled: z.boolean(),
@@ -152,8 +152,7 @@ export async function getHeroSlides() {
     orderBy: { displayOrder: 'asc' },
     include: {
       product: true,
-      category: true,
-      collection: true
+      category: true
     }
   });
 }
@@ -295,14 +294,14 @@ export async function getStoreLocationSettings() {
     return {
       id: 'default',
       storeName: 'Dahab Perfumes',
-      addressAr: 'عمان، الأردن - شارع الجاردنز',
-      addressEn: 'Gardens St, Amman, Jordan',
-      latitude: 31.9822,
-      longitude: 35.8925,
-      mapPlaceUrl: 'https://maps.google.com',
-      mapEmbedUrl: 'https://maps.google.com',
-      phone: '0790000000',
-      whatsapp: '962790000000',
+      addressAr: 'عمان، الأردن',
+      addressEn: 'Amman, Jordan',
+      latitude: 31.9522,
+      longitude: 35.9334,
+      mapPlaceUrl: '',
+      mapEmbedUrl: '',
+      phone: '',
+      whatsapp: '',
       openingHours: '10:00 AM - 11:00 PM',
       locationSectionEnabled: true,
       directionsButtonEnabled: true,
@@ -321,13 +320,26 @@ export async function updateStoreLocationSettings(data: z.infer<typeof locationS
 
   const parsed = locationSettingsSchema.parse(data);
 
-  validateSafeUrl(parsed.mapPlaceUrl);
-  validateSafeUrl(parsed.mapEmbedUrl);
+  if (parsed.mapPlaceUrl) validateSafeUrl(parsed.mapPlaceUrl);
+  if (parsed.mapEmbedUrl) validateSafeUrl(parsed.mapEmbedUrl);
 
   const updated = await prisma.storeLocationSettings.upsert({
     where: { id: 'default' },
-    update: { ...parsed },
-    create: { ...parsed, id: 'default' }
+    update: { 
+      ...parsed,
+      mapPlaceUrl: parsed.mapPlaceUrl || '',
+      mapEmbedUrl: parsed.mapEmbedUrl || '',
+      phone: parsed.phone || '',
+      whatsapp: parsed.whatsapp || ''
+    },
+    create: { 
+      ...parsed, 
+      id: 'default',
+      mapPlaceUrl: parsed.mapPlaceUrl || '',
+      mapEmbedUrl: parsed.mapEmbedUrl || '',
+      phone: parsed.phone || '',
+      whatsapp: parsed.whatsapp || ''
+    }
   });
 
   await prisma.auditLog.create({

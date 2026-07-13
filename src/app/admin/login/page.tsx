@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect } from 'react';
 import { login } from '@/actions/auth';
+import Image from 'next/image';
 
 export default function AdminLoginPage() {
   const [state, formAction, isPending] = useActionState(login, null);
@@ -19,8 +20,9 @@ export default function AdminLoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-zinc-50 dark:bg-zinc-900 px-4">
       <div className="max-w-md w-full space-y-8 bg-white dark:bg-zinc-800 p-8 rounded-xl shadow-lg border border-zinc-100 dark:border-zinc-700">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-zinc-900 dark:text-white">
+        <div className="flex flex-col items-center">
+          <img src="/logo.png" alt="Dahab Perfumes Logo" width="64" height="64" className="mb-4" style={{ width: "auto", height: "auto" }} />
+          <h2 className="text-center text-3xl font-extrabold text-zinc-900 dark:text-white">
             Dahab Perfumes Admin
           </h2>
           <p className="mt-2 text-center text-sm text-zinc-600 dark:text-zinc-400">

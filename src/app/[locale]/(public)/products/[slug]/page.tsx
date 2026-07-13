@@ -80,7 +80,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           </p>
 
           <div className="text-2xl font-bold text-[var(--color-champagne-600)] mb-2">
-            {lowestPrice > 0 ? filsToDisplay(lowestPrice, isAr ? 'ar' : 'en') : 'السعر غير متوفر'}
+            {lowestPrice > 0 ? filsToDisplay(lowestPrice, locale === 'ar' ? 'ar' : 'en') : 'السعر غير متوفر'}
           </div>
 
           <div className="mb-8">

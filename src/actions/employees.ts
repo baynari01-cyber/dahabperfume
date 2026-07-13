@@ -1,7 +1,7 @@
 'use server';
 
 import { prisma } from '@/lib/db';
-import { requirePermission } from '@/lib/dal';
+import { requirePermission, requireSuperAdmin } from '@/lib/dal';
 import * as argon2 from 'argon2';
 import crypto from 'crypto';
 
@@ -15,7 +15,7 @@ export async function createEmployee(data: {
   bootstrapAdminId: string; // The performing employee (Admin)
 }) {
   try {
-    const session = await requirePermission('manage:settings');
+    const session = await requireSuperAdmin();
 
     const existing = await prisma.employee.findUnique({
       where: { email: data.email }
@@ -53,6 +53,9 @@ export async function createEmployee(data: {
       });
     }
 
+    const headersList = await (await import('next/headers')).headers();
+    const ipAddress = headersList.get('x-forwarded-for') || 'unknown';
+
     // Write audit log
     await prisma.auditLog.create({
       data: {
@@ -60,6 +63,7 @@ export async function createEmployee(data: {
         action: 'EMPLOYEE_CREATED',
         entityType: 'Employee',
         entityId: employee.id,
+        ipAddress,
         details: JSON.stringify({ name: data.name, email: data.email, roleId: data.roleId })
       }
     });
@@ -80,7 +84,7 @@ export async function updateEmployee(data: {
   adminId: string;
 }) {
   try {
-    const session = await requirePermission('manage:settings');
+    const session = await requireSuperAdmin();
 
     const targetEmployee = await prisma.employee.findUnique({
       where: { id: data.id },
@@ -134,6 +138,9 @@ export async function updateEmployee(data: {
       where: { employeeId: data.id }
     });
 
+    const headersList = await (await import('next/headers')).headers();
+    const ipAddress = headersList.get('x-forwarded-for') || 'unknown';
+
     // Write audit log
     await prisma.auditLog.create({
       data: {
@@ -141,6 +148,7 @@ export async function updateEmployee(data: {
         action: 'EMPLOYEE_UPDATED',
         entityType: 'Employee',
         entityId: data.id,
+        ipAddress,
         details: JSON.stringify({ name: data.name, email: data.email })
       }
     });
@@ -160,7 +168,7 @@ export async function addEmployeePermissionOverride(data: {
   adminId: string;
 }) {
   try {
-    const session = await requirePermission('manage:settings');
+    const session = await requireSuperAdmin();
 
     const expiresAt = data.expiresInMinutes
       ? new Date(Date.now() + data.expiresInMinutes * 60 * 1000)
@@ -194,12 +202,16 @@ export async function addEmployeePermissionOverride(data: {
       where: { employeeId: data.employeeId }
     });
 
+    const headersList = await (await import('next/headers')).headers();
+    const ipAddress = headersList.get('x-forwarded-for') || 'unknown';
+
     await prisma.auditLog.create({
       data: {
         employeeId: data.adminId,
         action: 'PERMISSION_OVERRIDE_ADDED',
         entityType: 'EmployeePermission',
         entityId: `${data.employeeId}:${data.permissionId}`,
+        ipAddress,
         details: JSON.stringify(data)
       }
     });
@@ -212,7 +224,7 @@ export async function addEmployeePermissionOverride(data: {
 
 export async function toggleEmployeeStatus(employeeId: string, adminId: string) {
   try {
-    const session = await requirePermission('manage:settings');
+    const session = await requireSuperAdmin();
 
     const employee = await prisma.employee.findUnique({
       where: { id: employeeId },
@@ -246,12 +258,16 @@ export async function toggleEmployeeStatus(employeeId: string, adminId: string) 
       where: { employeeId }
     });
 
+    const headersList = await (await import('next/headers')).headers();
+    const ipAddress = headersList.get('x-forwarded-for') || 'unknown';
+
     await prisma.auditLog.create({
       data: {
         employeeId: adminId,
         action: 'EMPLOYEE_STATUS_TOGGLED',
         entityType: 'Employee',
         entityId: employeeId,
+        ipAddress,
         details: JSON.stringify({ email: employee.email, isActive: newActiveState })
       }
     });
@@ -264,7 +280,7 @@ export async function toggleEmployeeStatus(employeeId: string, adminId: string) 
 
 export async function forcePasswordChange(employeeId: string, adminId: string) {
   try {
-    const session = await requirePermission('manage:settings');
+    const session = await requireSuperAdmin();
     await prisma.employee.update({
       where: { id: employeeId },
       data: { mustChangePassword: true }
@@ -275,12 +291,16 @@ export async function forcePasswordChange(employeeId: string, adminId: string) {
       where: { employeeId }
     });
 
+    const headersList = await (await import('next/headers')).headers();
+    const ipAddress = headersList.get('x-forwarded-for') || 'unknown';
+
     await prisma.auditLog.create({
       data: {
         employeeId: adminId,
         action: 'FORCE_PASSWORD_CHANGE',
         entityType: 'Employee',
         entityId: employeeId,
+        ipAddress,
         details: null
       }
     });
@@ -305,7 +325,7 @@ export async function getEmployeeSessions(employeeId: string) {
 
 export async function revokeEmployeeSession(sessionId: string, adminId: string) {
   try {
-    const session = await requirePermission('manage:settings');
+    const session = await requireSuperAdmin();
     const targetSession = await prisma.session.findUnique({ where: { id: sessionId } });
     if (!targetSession) return { success: false, error: 'الجلسة غير موجودة' };
 
@@ -313,12 +333,16 @@ export async function revokeEmployeeSession(sessionId: string, adminId: string) 
       where: { id: sessionId }
     });
 
+    const headersList = await (await import('next/headers')).headers();
+    const ipAddress = headersList.get('x-forwarded-for') || 'unknown';
+
     await prisma.auditLog.create({
       data: {
         employeeId: adminId,
         action: 'SESSION_REVOKED',
         entityType: 'Session',
         entityId: sessionId,
+        ipAddress,
         details: JSON.stringify({ employeeId: targetSession.employeeId })
       }
     });
@@ -331,10 +355,13 @@ export async function revokeEmployeeSession(sessionId: string, adminId: string) 
 
 export async function revokeAllEmployeeSessions(employeeId: string, adminId: string) {
   try {
-    const session = await requirePermission('manage:settings');
+    const session = await requireSuperAdmin();
     await prisma.session.deleteMany({
       where: { employeeId }
     });
+
+    const headersList = await (await import('next/headers')).headers();
+    const ipAddress = headersList.get('x-forwarded-for') || 'unknown';
 
     await prisma.auditLog.create({
       data: {
@@ -342,6 +369,7 @@ export async function revokeAllEmployeeSessions(employeeId: string, adminId: str
         action: 'ALL_SESSIONS_REVOKED',
         entityType: 'Employee',
         entityId: employeeId,
+        ipAddress,
         details: null
       }
     });

@@ -2,6 +2,7 @@
 
 import React, { useState, useTransition } from 'react';
 import { processPOSCheckout } from '@/actions/pos';
+import { X } from 'lucide-react';
 
 interface POSCounterProps {
   products: any[];
@@ -396,7 +397,7 @@ export function POSCounter({ products, settings }: POSCounterProps) {
                 onClick={() => setSelectedProduct(null)}
                 className="text-zinc-400 hover:text-zinc-600 font-bold text-xl px-2"
               >
-                ✕
+                <X className="w-5 h-5" />
               </button>
             </div>
             

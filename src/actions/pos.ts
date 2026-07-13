@@ -4,6 +4,8 @@ import { prisma } from '@/lib/db';
 import { requirePermission } from '@/lib/dal';
 import crypto from 'crypto';
 import { calculateInclusiveTax, calculateExclusiveTax, validatePaymentAllocation } from '@/lib/money';
+import { checkRateLimit } from '@/lib/rate-limit';
+import { headers } from 'next/headers';
 
 // Global mutex map to serialize concurrent checkout execution per product variant
 const checkoutMutexes = new Map<string, Promise<void>>();
@@ -13,6 +15,13 @@ export async function processPOSCheckout(data: any): Promise<
   | { success: false; error: string; saleId?: never; reference?: never; total?: never }
 > {
   const { items, customerName, paymentMethod, amountTendered, idempotencyKey } = data;
+
+  const headersList = await headers();
+  const ipAddress = headersList.get('x-forwarded-for') || 'unknown';
+  
+  if (!(await checkRateLimit(`pos_checkout_${ipAddress}`, 'pos_checkout', 20, 60))) {
+    return { success: false, error: 'تم تجاوز الحد المسموح من الطلبات، يرجى المحاولة بعد دقيقة.' };
+  }
 
   // 1. Synchronously acquire/register idempotency lock to block race conditions
   let resolveMutex: (() => void) | null = null;
@@ -172,165 +181,31 @@ export async function processPOSCheckout(data: any): Promise<
           unitPrice = globalPrices[variant.size] || variant.price;
         }
 
-        // 2. Inventory Deductions based on mode
-        const inventoryMode = variant.product.inventoryMode;
+        // 2. Inventory Deductions based on stockLiters
+        const sizeStr = variant.size.toLowerCase();
+        let litersToDeduct = 0;
+        if (sizeStr.includes('ml')) {
+           const ml = parseInt(sizeStr);
+           if (!isNaN(ml)) litersToDeduct = (ml / 1000) * quantity;
+        } else if (sizeStr.includes('l')) {
+           const l = parseInt(sizeStr);
+           if (!isNaN(l)) litersToDeduct = l * quantity;
+        }
 
-        if (inventoryMode === 'DIRECT_LIQUID') {
-          // DIRECT_LIQUID mode: deduct dynamically from bulk ProductLiquidStock
-          const sizeVolume = parseInt(variant.size.replace('ml', ''), 10);
-          if (isNaN(sizeVolume)) {
-            throw new Error(`حجم غير صالح للمنتج (Size: ${variant.size})`);
-          }
-          const requestedMl = sizeVolume * quantity;
-
-          // Attempt conditional atomic database operation
-          const updatedStock = await tx.productLiquidStock.updateMany({
-            where: {
-              productId: variant.productId,
-              verificationStatus: 'VERIFIED',
-              quantityMl: { gte: requestedMl }
-            },
-            data: {
-              quantityMl: { decrement: requestedMl }
-            }
-          });
-
-          if (updatedStock.count === 0) {
-            throw new Error(`مخزون غير كافٍ أو غير مؤكد للمنتج السائل (SKU: ${variant.sku})`);
-          }
-
-          // Fetch the values after decrement to record in movement ledger
-          const currentStock = await tx.productLiquidStock.findUnique({
-            where: { productId: variant.productId }
-          });
-          const afterMl = currentStock?.quantityMl || 0;
-          const beforeMl = afterMl + requestedMl;
-
-          // Create ProductLiquidMovement ledger entry
-          await tx.productLiquidMovement.create({
-            data: {
-              productId: variant.productId,
-              type: 'SALE_CONSUMPTION',
-              quantityBeforeMl: beforeMl,
-              quantityChangeMl: -requestedMl,
-              quantityAfterMl: afterMl,
-              employeeId,
-              reason: `POS Sale: ${variant.sku} x${quantity}`
-            }
-          });
-
-        } else {
-          // Check if there is an active Formula for this product & size
-          const formula = await tx.productFormula.findFirst({
-            where: {
-              productId: variant.productId,
-              size: variant.size,
-              isActive: true
-            },
-            include: {
-              items: {
-                include: {
-                  material: {
-                    include: { stock: true }
-                  }
-                }
+        if (litersToDeduct > 0) {
+            const updatedProduct = await tx.product.updateMany({
+              where: {
+                id: variant.productId,
+                stockLiters: { gte: litersToDeduct }
+              },
+              data: {
+                stockLiters: { decrement: litersToDeduct }
               }
+            });
+
+            if (updatedProduct.count === 0) {
+              throw new Error(`مخزون غير كافٍ للمنتج (${variant.product.nameAr})`);
             }
-          });
-
-          if (formula) {
-            // FORMULA_BASED deduction: atomically deduct raw materials
-            for (const formulaItem of formula.items) {
-              const requiredQty = formulaItem.quantity * quantity;
-
-              let updatedMaterialCount = 0;
-              if (tx.rawMaterialStock.updateMany) {
-                const updatedMaterial = await tx.rawMaterialStock.updateMany({
-                  where: {
-                    materialId: formulaItem.materialId,
-                    quantity: { gte: requiredQty }
-                  },
-                  data: {
-                    quantity: { decrement: requiredQty }
-                  }
-                });
-                updatedMaterialCount = updatedMaterial.count;
-              } else {
-                const currentStock = formulaItem.material.stock?.quantity || 0;
-                if (currentStock < requiredQty) {
-                  throw new Error(`مخزون غير كافٍ للمادة الخام ${formulaItem.material.name}`);
-                }
-                await tx.rawMaterialStock.update({
-                  where: { materialId: formulaItem.materialId },
-                  data: { quantity: { decrement: requiredQty } }
-                });
-                updatedMaterialCount = 1;
-              }
-
-              if (updatedMaterialCount === 0) {
-                throw new Error(
-                  `مخزون غير كافٍ للمادة الخام ${formulaItem.material.name} المطلوبة لتركيبة ${variant.product.nameAr}.`
-                );
-              }
-              
-              // Log raw material movement
-              await tx.rawMaterialMovement.create({
-                data: {
-                  materialId: formulaItem.materialId,
-                  type: 'CONSUMPTION',
-                  quantity: -requiredQty,
-                  notes: `POS Sale Formula consumption`
-                }
-              });
-
-              // Create Consumption record
-              await tx.consumptionRecord.create({
-                data: {
-                  materialId: formulaItem.materialId,
-                  quantity: requiredQty
-                }
-              });
-            }
-          } else {
-            // FINISHED_PRODUCT stock decrement atomically
-            let updatedVariantCount = 0;
-            if (tx.productVariant.updateMany) {
-              const updatedVariant = await tx.productVariant.updateMany({
-                where: {
-                  id: variant.id,
-                  stock: { gte: quantity }
-                },
-                data: {
-                  stock: { decrement: quantity }
-                }
-              });
-              updatedVariantCount = updatedVariant.count;
-            } else {
-              if (variant.stock < quantity) {
-                throw new Error(`مخزون غير كافٍ للمنتج (SKU: ${variant.sku}). المتاح أقل من الكمية المطلوبة.`);
-              }
-              await tx.productVariant.update({
-                where: { id: variant.id },
-                data: { stock: { decrement: quantity } }
-              });
-              updatedVariantCount = 1;
-            }
-
-            if (updatedVariantCount === 0) {
-              throw new Error(`مخزون غير كافٍ للمنتج (SKU: ${variant.sku}). المتاح أقل من الكمية المطلوبة.`);
-            }
-          }
-
-          // Create standard Finished Product inventory movement
-          await tx.inventoryMovement.create({
-            data: {
-              sku: variant.sku,
-              type: 'SALE',
-              quantity: -quantity,
-              employeeId,
-              reference: 'POS_SALE'
-            }
-          });
         }
 
         const total = unitPrice * quantity;
@@ -463,11 +338,7 @@ export async function processPOSCheckout(data: any): Promise<
         }
       });
 
-      // Update Consumption records to link to Sale ID
-      await tx.consumptionRecord.updateMany({
-        where: { saleId: null },
-        data: { saleId: sale.id }
-      });
+
 
       return { success: true as const, saleId: sale.id, reference: sale.reference, total: grandTotal };
     });
@@ -553,8 +424,9 @@ export async function closeShift(actualCashFils: number, notes?: string) {
     // Sum cash & card applied from invoices created during this shift
     const invoices = await prisma.invoice.findMany({
       where: {
-        confirmedByEmployeeId: session.employeeId,
-        createdAt: { gte: activeShift.openedAt }
+        sale: {
+          shiftId: activeShift.id
+        }
       }
     });
 

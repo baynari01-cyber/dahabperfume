@@ -16,7 +16,7 @@ interface CMSHomepageFormProps {
   locationSettings: any;
   products: any[];
   categories: any[];
-  collections: any[];
+
   adminId: string;
 }
 
@@ -26,7 +26,6 @@ export function CMSHomepageForm({
   locationSettings: initialLocationSettings,
   products,
   categories,
-  collections,
   adminId 
 }: CMSHomepageFormProps) {
   const [carousel, setCarousel] = useState(initialCarouselSettings);
@@ -52,7 +51,6 @@ export function CMSHomepageForm({
     altEn: '',
     destinationType: 'NONE',
     productId: '',
-    collectionId: '',
     categoryId: '',
     internalPath: '',
     externalUrl: '',
@@ -102,7 +100,6 @@ export function CMSHomepageForm({
         const formatted = {
           ...newSlide,
           productId: newSlide.productId || null,
-          collectionId: newSlide.collectionId || null,
           categoryId: newSlide.categoryId || null,
           startsAt: newSlide.startsAt || null,
           endsAt: newSlide.endsAt || null
@@ -127,7 +124,6 @@ export function CMSHomepageForm({
             altEn: '',
             destinationType: 'NONE',
             productId: '',
-            collectionId: '',
             categoryId: '',
             internalPath: '',
             externalUrl: '',
@@ -154,7 +150,6 @@ export function CMSHomepageForm({
         const formatted = {
           ...editingSlide,
           productId: editingSlide.productId || null,
-          collectionId: editingSlide.collectionId || null,
           categoryId: editingSlide.categoryId || null,
           startsAt: editingSlide.startsAt || null,
           endsAt: editingSlide.endsAt || null
@@ -463,21 +458,7 @@ export function CMSHomepageForm({
                 </div>
               )}
 
-              {editingSlide.destinationType === 'COLLECTION' && (
-                <div className="space-y-1">
-                  <label className="text-[10px] text-zinc-500 font-bold">اختر المجموعة</label>
-                  <select
-                    value={editingSlide.collectionId || ''}
-                    onChange={(e) => setEditingSlide({ ...editingSlide, collectionId: e.target.value })}
-                    className="w-full border rounded p-2 text-xs bg-white"
-                  >
-                    <option value="">-- اختر --</option>
-                    {collections.map(c => (
-                      <option key={c.id} value={c.id}>{c.name}</option>
-                    ))}
-                  </select>
-                </div>
-              )}
+
 
               {editingSlide.destinationType === 'CATEGORY' && (
                 <div className="space-y-1">
@@ -617,8 +598,7 @@ export function CMSHomepageForm({
                 >
                   <option value="NONE">بدون رابط (NONE)</option>
                   <option value="PRODUCT">منتج محدد (PRODUCT)</option>
-                  <option value="COLLECTION">مجموعة محددة (COLLECTION)</option>
-                  <option value="CATEGORY">تصنيف محدد (CATEGORY)</option>
+                  <option value="CATEGORY">تصنيف/مجموعة محددة (CATEGORY)</option>
                   <option value="INTERNAL_ROUTE">رابط داخلي مخصص</option>
                   <option value="EXTERNAL_URL">رابط خارجي مخصص</option>
                 </select>
@@ -640,21 +620,7 @@ export function CMSHomepageForm({
                 </div>
               )}
 
-              {newSlide.destinationType === 'COLLECTION' && (
-                <div className="space-y-1">
-                  <label className="text-[10px] text-zinc-500 font-bold">اختر المجموعة</label>
-                  <select
-                    value={newSlide.collectionId}
-                    onChange={(e) => setNewSlide({ ...newSlide, collectionId: e.target.value })}
-                    className="w-full border rounded p-2 text-xs bg-white"
-                  >
-                    <option value="">-- اختر --</option>
-                    {collections.map(c => (
-                      <option key={c.id} value={c.id}>{c.name}</option>
-                    ))}
-                  </select>
-                </div>
-              )}
+
 
               {newSlide.destinationType === 'CATEGORY' && (
                 <div className="space-y-1">

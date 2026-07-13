@@ -21,10 +21,7 @@ export default async function AdminCMSHomepagePage() {
     select: { id: true, name: true }
   });
 
-  const collections = await prisma.collection.findMany({
-    orderBy: { name: 'asc' },
-    select: { id: true, name: true }
-  });
+
 
   // Load current page CMS configurations
   const carouselSettings = await getHeroCarouselSettings();
@@ -47,7 +44,6 @@ export default async function AdminCMSHomepagePage() {
           locationSettings={locationSettings}
           products={products}
           categories={categories}
-          collections={collections}
           adminId={session.employeeId}
         />
       </main>

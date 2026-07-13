@@ -2,6 +2,7 @@
 
 import React, { useState, useTransition } from 'react';
 import { updatePOSSettings, POSSettings } from '@/actions/settings-crud';
+import { Lock } from 'lucide-react';
 
 interface POSSettingsFormProps {
   initialSettings: POSSettings;
@@ -238,8 +239,8 @@ export function POSSettingsForm({ initialSettings, adminId }: POSSettingsFormPro
             </div>
 
             {settings.posIdleRequirePin && (
-              <div className="border border-red-900/50 bg-red-950/20 px-3 py-1.5 rounded text-[9px] text-red-400 font-bold">
-                🔒 يتطلب إدخال رمز PIN لإلغاء القفل
+              <div className="border border-red-900/50 bg-red-950/20 px-3 py-1.5 rounded text-[9px] text-red-400 font-bold flex items-center gap-1.5 justify-center">
+                <Lock className="w-3 h-3" /> يتطلب إدخال رمز PIN لإلغاء القفل
               </div>
             )}
 

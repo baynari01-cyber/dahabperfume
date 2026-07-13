@@ -44,7 +44,7 @@ export async function createSession(employeeId: string) {
     },
   });
 
-  return { token, expiresAt };
+  return { token, expiresAt, role: employee?.role?.name || 'User' };
 }
 
 export async function validateSessionToken(token: string) {
@@ -122,7 +122,7 @@ export async function invalidateSession(token: string) {
   });
 }
 
-export async function setSessionCookie(token: string, expiresAt: Date) {
+export async function setSessionCookie(token: string, expiresAt: Date, role?: string) {
   const cookieStore = await cookies();
   cookieStore.set(SESSION_COOKIE_NAME, token, {
     httpOnly: true,
@@ -131,11 +131,21 @@ export async function setSessionCookie(token: string, expiresAt: Date) {
     expires: expiresAt,
     path: '/',
   });
+  if (role) {
+    cookieStore.set('dahab_role', role, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      expires: expiresAt,
+      path: '/',
+    });
+  }
 }
 
 export async function deleteSessionCookie() {
   const cookieStore = await cookies();
   cookieStore.delete(SESSION_COOKIE_NAME);
+  cookieStore.delete('dahab_role');
 }
 
 export async function getCurrentSession() {

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 
 export function Footer() {
   return (
@@ -8,8 +9,13 @@ export function Footer() {
           
           {/* Logo & About */}
           <div className="col-span-1 md:col-span-1">
-            <Link href="/ar" className="inline-block text-[var(--color-champagne-600)] font-heading font-bold text-3xl tracking-widest mb-6">
-              DAHAB
+            <Link href="/ar" className="flex items-center gap-3 mb-6">
+              <div className="bg-white/10 p-2 rounded-lg">
+                <Image src="/logo.png" alt="Dahab Perfumes Logo" width={48} height={48} className="object-contain w-12 h-12" />
+              </div>
+              <span className="text-[var(--color-champagne-600)] font-heading font-bold text-3xl tracking-widest">
+                DAHAB
+              </span>
             </Link>
             <p className="text-zinc-300 mb-6 leading-relaxed">
               دهب للعطور.. نفحات مختارة بعناية من الشرق، لترافق هويتك وتُشعرك بالأصالة والتميز. فخامة تُترجم إلى عطر.

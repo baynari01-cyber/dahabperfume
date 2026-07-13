@@ -2,46 +2,80 @@ import React from 'react';
 import Link from 'next/link';
 import { requirePermission } from '@/lib/dal';
 import { prisma } from '@/lib/db';
+import { AdminSidebar } from '@/components/AdminSidebar';
+import { ProductEditForm } from '@/components/ProductEditForm';
+import { notFound } from 'next/navigation';
 
-export default async function AdminPage() {
-  // Enforce server-side authorization check
-  const session = await requirePermission('manage:settings');
+export default async function AdminProductEditPage({
+  params
+}: {
+  params: Promise<{ id: string }>
+}) {
+  const session = await requirePermission('manage:products');
   const user = await prisma.employee.findUnique({
     where: { id: session.employeeId },
     include: { role: true }
   });
 
-  return (
-    <div className="min-h-screen bg-zinc-50 font-sans flex">
-      {/* Sidebar Navigation */}
-      <aside className="w-64 bg-[var(--color-forest-950)] text-white p-6 flex flex-col gap-6">
-        <div className="font-heading text-xl font-bold border-b border-[var(--color-forest-800)] pb-4 text-[var(--color-champagne-300)]">
-          Dahab Admin
-        </div>
-        <nav className="flex flex-col gap-2">
-          <Link href="/admin/products" className="hover:text-[var(--color-champagne-200)] py-2 transition-colors">Products</Link>
-          <Link href="/admin/orders" className="hover:text-[var(--color-champagne-200)] py-2 transition-colors">Orders</Link>
-          <Link href="/admin/sales" className="hover:text-[var(--color-champagne-200)] py-2 transition-colors">Sales & POS Reports</Link>
-          <Link href="/admin/inventory" className="hover:text-[var(--color-champagne-200)] py-2 transition-colors">Inventory</Link>
-          <Link href="/admin/raw-materials" className="hover:text-[var(--color-champagne-200)] py-2 transition-colors">Raw Materials</Link>
-          <Link href="/admin/formulas" className="hover:text-[var(--color-champagne-200)] py-2 transition-colors">Formulas</Link>
-          <Link href="/admin/employees" className="hover:text-[var(--color-champagne-200)] py-2 transition-colors">Employees & Roles</Link>
-        </nav>
-      </aside>
+  const { id } = await params;
 
-      {/* Main Content Area */}
-      <main className="flex-1 p-8">
-        <div className="bg-white rounded-xl shadow-sm border border-zinc-100 p-8">
-          <h1 className="text-2xl font-bold text-[var(--color-forest-900)] mb-4 border-b border-zinc-100 pb-4">
-            Dashboard / PRODUCTS [ID]
-          </h1>
-          <p className="text-zinc-500 mb-6">
-            Logged in as: <strong className="text-zinc-700">{user?.name}</strong> ({user?.role?.name})
-          </p>
-          <div className="bg-zinc-50 rounded-lg p-6 border border-dashed border-zinc-200 text-sm text-zinc-600">
-            Feature module for admin: products/[id] is fully wired to server authorization constraints.
+  const product = await prisma.product.findUnique({
+    where: { id },
+    include: {
+      category: true,
+      images: true,
+      variants: { orderBy: { createdAt: 'asc' } }
+    }
+  });
+
+  if (!product) notFound();
+
+  const categories = await prisma.category.findMany({ orderBy: { name: 'asc' } });
+
+  const initialData = {
+    nameAr: product.nameAr,
+    nameEn: product.nameEn,
+    sku: product.sku,
+    shortDescription: product.shortDescription,
+    longDescription: product.longDescription,
+    isVisible: product.isVisible,
+    categoryId: product.categoryId,
+    stockLiters: product.stockLiters,
+    variants: product.variants.map(v => ({
+      id: v.id,
+      size: v.size,
+      sku: v.sku,
+      price: v.price,
+      isActive: v.isActive
+    })),
+    images: product.images.map(img => ({
+      id: img.id,
+      url: img.url,
+      isMain: img.isMain
+    }))
+  };
+
+  return (
+    <div className="flex h-screen bg-[var(--color-ivory-100)]" dir="rtl">
+      <AdminSidebar employeeName={user?.name || ''} />
+
+      <main className="flex-1 overflow-y-auto p-8 font-sans">
+        <div className="mb-8 border-b border-[var(--color-ivory-200)] pb-4">
+          <div className="flex items-center gap-3 mb-2">
+            <Link href="/admin/products" className="text-sm text-zinc-500 hover:underline">المنتجات</Link>
+            <span className="text-zinc-300">/</span>
+            <span className="text-sm font-bold text-zinc-700">تعديل المنتج</span>
           </div>
+          <h1 className="text-3xl font-bold font-heading text-[var(--color-forest-900)]">
+            تعديل: {product.nameAr}
+          </h1>
         </div>
+
+        <ProductEditForm
+          productId={id}
+          initialData={initialData}
+          categories={categories.map(c => ({ id: c.id, name: c.name }))}
+        />
       </main>
     </div>
   );

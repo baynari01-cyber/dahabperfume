@@ -1,11 +1,11 @@
 'use server';
 
 import { prisma } from '@/lib/db';
-import { requirePermission } from '@/lib/dal';
+import { requirePermission, requireSuperAdmin } from '@/lib/dal';
 
 export async function updateGlobalSizePrice(size: string, priceInFils: number, adminId: string) {
   try {
-    await requirePermission('manage:settings');
+    await requireSuperAdmin();
 
     if (priceInFils <= 0) {
       return { success: false, error: 'يجب أن يكون السعر قيمة موجبة' };

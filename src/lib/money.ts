@@ -1,5 +1,3 @@
-import 'server-only';
-
 /**
  * MONEY MODULE FOR JORDANIAN FILS (1 JOD = 1000 fils)
  *

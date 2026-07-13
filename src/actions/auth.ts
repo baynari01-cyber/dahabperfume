@@ -13,6 +13,37 @@ const loginSchema = z.object({
   password: z.string().min(1),
 });
 
+async function checkRateLimit(ipAddress: string, route: string, maxPoints: number, windowMinutes: number) {
+  const key = crypto.createHash('sha256').update(ipAddress).digest('hex');
+  const now = new Date();
+  
+  // Cleanup expired
+  await prisma.rateLimitEvent.deleteMany({
+    where: { key, route, expireAt: { lt: now } }
+  });
+
+  const events = await prisma.rateLimitEvent.findMany({
+    where: { key, route, expireAt: { gt: now } }
+  });
+
+  const totalPoints = events.reduce((sum, e) => sum + e.points, 0);
+
+  if (totalPoints >= maxPoints) {
+    return false;
+  }
+
+  await prisma.rateLimitEvent.create({
+    data: {
+      key,
+      route,
+      points: 1,
+      expireAt: new Date(now.getTime() + windowMinutes * 60 * 1000)
+    }
+  });
+
+  return true;
+}
+
 const MAX_FAILED_ATTEMPTS = 5;
 const LOCKOUT_MINUTES = 15;
 
@@ -25,6 +56,10 @@ export async function login(prevState: any, formData: FormData) {
 
   if (!parsed.success) {
     return { error: 'يرجى التحقق من البريد الإلكتروني وكلمة المرور' };
+  }
+
+  if (!(await checkRateLimit(ipAddress, 'login', 10, 15))) {
+    return { error: 'لقد تجاوزت الحد المسموح به من المحاولات. يرجى المحاولة لاحقاً.' };
   }
   
   const { email, password } = parsed.data;
@@ -100,8 +135,9 @@ export async function login(prevState: any, formData: FormData) {
     }
   });
 
-  const isAdmin = employee.role.name === 'Admin' || employee.role.name === 'Super Admin';
-  if (employee.mfaEnabled || isAdmin) {
+  // MFA is temporarily disabled as per user request. 
+  // It will only trigger if an employee has already explicitly enabled it.
+  if (employee.mfaEnabled) {
     const token = crypto.randomBytes(32).toString('hex');
     await prisma.pendingMfaChallenge.deleteMany({ where: { employeeId: employee.id } });
     await prisma.pendingMfaChallenge.create({
@@ -129,8 +165,8 @@ export async function login(prevState: any, formData: FormData) {
     }
   });
 
-  const { token, expiresAt } = await createSession(employee.id);
-  await setSessionCookie(token, expiresAt);
+  const { token, expiresAt, role } = await createSession(employee.id);
+  await setSessionCookie(token, expiresAt, role);
   
   if (employee.role.name.toLowerCase() === 'cashier') {
     redirect('/pos/cashier');
@@ -149,6 +185,10 @@ export async function verifyMfaLogin(prevState: any, formData: FormData) {
 
   if (!code || !token) {
     return { error: 'الرمز المدخل غير صالح' };
+  }
+
+  if (!(await checkRateLimit(ipAddress, 'mfa_verify', 5, 5))) {
+    return { error: 'لقد تجاوزت الحد المسموح به من المحاولات. يرجى المحاولة لاحقاً.' };
   }
 
   const challenge = await prisma.pendingMfaChallenge.findUnique({
@@ -247,8 +287,8 @@ export async function verifyMfaLogin(prevState: any, formData: FormData) {
 
   await prisma.pendingMfaChallenge.delete({ where: { id: challenge.id } });
 
-  const { token, expiresAt } = await createSession(employee.id);
-  await setSessionCookie(token, expiresAt);
+  const { token: sessionToken, expiresAt, role } = await createSession(employee.id);
+  await setSessionCookie(sessionToken, expiresAt, role);
 
   if (employee.role.name.toLowerCase() === 'cashier') {
     redirect('/pos/cashier');
@@ -321,8 +361,8 @@ export async function confirmMfaSetup(prevState: any, formData: FormData) {
     data: { email: employee.email, ipAddress, userAgent, success: true, employeeId: employee.id }
   });
 
-  const { token: sessionToken, expiresAt } = await createSession(employee.id);
-  await setSessionCookie(sessionToken, expiresAt);
+  const { token: sessionToken, expiresAt, role } = await createSession(employee.id);
+  await setSessionCookie(sessionToken, expiresAt, role);
 
   if (employee.role.name.toLowerCase() === 'cashier') {
     redirect('/pos/cashier');
@@ -338,12 +378,17 @@ export async function logout() {
     const token = (await cookies()).get('dahab_session')?.value;
     if (token) {
       await invalidateSession(token);
+      
+      const headersList = await headers();
+      const ipAddress = headersList.get('x-forwarded-for') || 'unknown';
+      
       await prisma.auditLog.create({
         data: {
           employeeId: session.employeeId,
           action: 'SESSION_REVOKED',
           entityType: 'Session',
           entityId: session.id,
+          ipAddress,
           details: 'User logged out'
         }
       });

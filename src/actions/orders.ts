@@ -36,71 +36,31 @@ export async function confirmStorefrontOrder(orderId: string) {
           throw new Error(`المنتج غير متوفر (SKU: ${item.sku})`);
         }
 
-        // Check if there is an active Formula for this product & size
-        const formula = await tx.productFormula.findFirst({
-          where: {
-            productId: variant.productId,
-            size: variant.size,
-            isActive: true
-          },
-          include: {
-            items: {
-              include: {
-                material: {
-                  include: { stock: true }
-                }
-              }
-            }
-          }
-        });
+        // 1. Inventory Deductions based on stockLiters
+        const sizeStr = variant.size.toLowerCase();
+        let litersToDeduct = 0;
+        if (sizeStr.includes('ml')) {
+           const ml = parseInt(sizeStr);
+           if (!isNaN(ml)) litersToDeduct = (ml / 1000) * item.quantity;
+        } else if (sizeStr.includes('l')) {
+           const l = parseInt(sizeStr);
+           if (!isNaN(l)) litersToDeduct = l * item.quantity;
+        }
 
-        if (formula) {
-          // FORMULA_BASED deduction
-          for (const formulaItem of formula.items) {
-            const requiredQty = formulaItem.quantity * item.quantity;
-
-            const currentStock = formulaItem.material.stock?.quantity || 0;
-            if (currentStock < requiredQty) {
-              throw new Error(
-                `مخزون غير كافٍ للمادة الخام ${formulaItem.material.name} المطلوبة لتركيبة ${variant.product.nameAr}. المتاح: ${currentStock}, المطلوب: ${requiredQty}`
-              );
-            }
-
-            // Decrement material stock
-            await tx.rawMaterialStock.update({
-              where: { materialId: formulaItem.materialId },
-              data: { quantity: { decrement: requiredQty } }
-            });
-
-            // Log raw material movement
-            await tx.rawMaterialMovement.create({
+        if (litersToDeduct > 0) {
+            const updatedProduct = await tx.product.updateMany({
+              where: {
+                id: variant.productId,
+                stockLiters: { gte: litersToDeduct }
+              },
               data: {
-                materialId: formulaItem.materialId,
-                type: 'CONSUMPTION',
-                quantity: -requiredQty,
-                notes: `Order Confirmation Formula consumption for Order ${order.reference}`
+                stockLiters: { decrement: litersToDeduct }
               }
             });
 
-            // Create Consumption record
-            await tx.consumptionRecord.create({
-              data: {
-                materialId: formulaItem.materialId,
-                quantity: requiredQty
-              }
-            });
-          }
-        } else {
-          // Check finished product stock
-          if (variant.stock < item.quantity) {
-            throw new Error(`مخزون غير كافٍ للمنتج (SKU: ${variant.sku}). المتاح أقل من الكمية المطلوبة.`);
-          }
-
-          // Decrement variant stock
-          await tx.productVariant.update({
-            where: { id: variant.id },
-            data: { stock: { decrement: item.quantity } }
-          });
+            if (updatedProduct.count === 0) {
+              throw new Error(`مخزون غير كافٍ للمنتج (${variant.product.nameAr})`);
+            }
         }
 
         // Log final product inventory movement
@@ -109,11 +69,14 @@ export async function confirmStorefrontOrder(orderId: string) {
             sku: variant.sku,
             type: 'SALE',
             quantity: -item.quantity,
+            quantityBefore: variant.product.stockLiters,
+            quantityAfter: variant.product.stockLiters - litersToDeduct,
             employeeId,
             reference: `ORDER_CONFIRMATION_${order.reference}`
           }
         });
       }
+
 
       // 4. Load tax settings and compute totals
       const settings = await tx.globalPricingSettings.findUnique({ where: { id: '1' } });
@@ -349,5 +312,139 @@ export async function recordInvoiceRefund(
     return result;
   } catch (error: any) {
     return { success: false, error: error.message };
+  }
+}
+
+export async function cancelStorefrontOrder(orderId: string) {
+  const session = await requirePermission('orders.confirm'); // Or manage_orders
+  const employeeId = session.employeeId;
+
+  try {
+    const result = await prisma.$transaction(async (tx) => {
+      const order = await tx.order.findUnique({
+        where: { id: orderId },
+        include: { items: true }
+      });
+
+      if (!order) {
+        throw new Error('الطلب غير موجود');
+      }
+
+      if (order.status === 'CANCELLED') {
+        throw new Error('الطلب ملغي مسبقاً');
+      }
+
+      // If it was CONFIRMED, inventory was deducted. We must return it.
+      if (order.status === 'CONFIRMED') {
+        for (const item of order.items) {
+          const variant = await tx.productVariant.findUnique({
+            where: { id: item.variantId },
+            include: { product: true }
+          });
+
+          if (!variant) continue;
+
+          // Restore Inventory
+          const sizeStr = variant.size.toLowerCase();
+          let litersToRestore = 0;
+          if (sizeStr.includes('ml')) {
+             const ml = parseInt(sizeStr);
+             if (!isNaN(ml)) litersToRestore = (ml / 1000) * item.quantity;
+          } else if (sizeStr.includes('l')) {
+             const l = parseInt(sizeStr);
+             if (!isNaN(l)) litersToRestore = l * item.quantity;
+          }
+
+          if (litersToRestore > 0) {
+              await tx.product.update({
+                where: { id: variant.productId },
+                data: { stockLiters: { increment: litersToRestore } }
+              });
+          }
+
+          await tx.inventoryMovement.create({
+            data: {
+              sku: variant.sku,
+              type: 'RETURN',
+              quantity: item.quantity,
+              quantityBefore: variant.product.stockLiters,
+              quantityAfter: variant.product.stockLiters + litersToRestore,
+              employeeId,
+              reference: `ORDER_CANCELLATION_${order.reference}`
+            }
+          });
+        }
+      }
+
+      // Update order status
+      const updatedOrder = await tx.order.update({
+        where: { id: orderId },
+        data: { status: 'CANCELLED' }
+      });
+
+      // Write order status history
+      await tx.orderStatusHistory.create({
+        data: {
+          orderId: order.id,
+          status: 'CANCELLED',
+          notes: `Order cancelled by employee: ${employeeId}`
+        }
+      });
+
+      // Write audit log
+      await tx.auditLog.create({
+        data: {
+          employeeId,
+          action: 'ORDER_CANCELLED',
+          entityType: 'Order',
+          entityId: order.id,
+          details: JSON.stringify({ reference: order.reference, previousStatus: order.status })
+        }
+      });
+
+      return updatedOrder;
+    });
+
+    return { success: true, order: result };
+  } catch (error: any) {
+    return { success: false, error: error.message || 'حدث خطأ أثناء الإلغاء' };
+  }
+}
+
+export async function updateOrderStatus(orderId: string, status: string, shippingCost: number) {
+  const session = await requirePermission('orders.confirm');
+  
+  try {
+    const order = await prisma.order.findUnique({
+      where: { id: orderId }
+    });
+
+    if (!order) {
+      throw new Error('الطلب غير موجود');
+    }
+
+    const newTotal = order.totalAmount - order.shippingCost + shippingCost;
+
+    await prisma.order.update({
+      where: { id: orderId },
+      data: {
+        status,
+        shippingCost,
+        totalAmount: newTotal
+      }
+    });
+
+    await prisma.orderStatusHistory.create({
+      data: {
+        orderId,
+        status,
+        notes: `تم تحديث الحالة إلى ${status} ورسوم التوصيل إلى ${shippingCost}`
+      }
+    });
+
+    return { success: true };
+  } catch (error: any) {
+    console.error('Update Order Status Error:', error);
+    return { success: false, error: error.message || 'حدث خطأ غير معروف' };
   }
 }

@@ -3,9 +3,9 @@ import { requireAuth } from '@/lib/dal';
 import { filsToDisplay } from '@/lib/money';
 import { prisma } from '@/lib/db';
 import { AdminSidebar } from '@/components/AdminSidebar';
-import { confirmStorefrontOrder } from '@/actions/orders';
+import { updateOrderStatus, confirmStorefrontOrder } from '@/actions/orders';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 
 export default async function AdminOrderDetailPage({
   params
@@ -26,6 +26,9 @@ export default async function AdminOrderDetailPage({
             }
           }
         }
+      },
+      statusHistory: {
+        orderBy: { createdAt: 'desc' }
       }
     }
   });
@@ -38,11 +41,28 @@ export default async function AdminOrderDetailPage({
   async function handleConfirm(formData: FormData) {
     'use server';
     const res = await confirmStorefrontOrder(id);
-    // Note: in Server Actions under Next.js 16/15, we can return results or redirect
     if (res.success) {
-      // Re-fetch/refresh or redirect
+       // redirect or just refresh
+    } else {
+       console.error("Error confirming order:", res.error);
     }
   }
+
+  async function handleUpdateStatus(formData: FormData) {
+    'use server';
+    const newStatus = formData.get('status') as string;
+    const shippingCostJD = parseFloat(formData.get('shippingCost') as string);
+    const shippingCost = Math.round((shippingCostJD || 0) * 1000); // convert JD to fils
+
+    const res = await updateOrderStatus(id, newStatus, shippingCost);
+    if (res.success) {
+      redirect(`/admin/orders/${id}`);
+    } else {
+      console.error("Error updating status:", res.error);
+    }
+  }
+
+  const orderSubtotal = order.totalAmount - order.shippingCost;
 
   return (
     <div className="flex h-screen bg-[var(--color-ivory-100)]" dir="rtl">
@@ -74,8 +94,8 @@ export default async function AdminOrderDetailPage({
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-zinc-700">
                 <p><strong>اسم العميل:</strong> {order.customerName}</p>
-                <p><strong>رقم الهاتف:</strong> {order.customerPhone}</p>
-                <p><strong>حالة التوصيل الحالية:</strong> {order.status}</p>
+                <p><strong>رقم الهاتف:</strong> <span dir="ltr">{order.customerPhone}</span></p>
+                <p><strong>حالة الطلب:</strong> <span className="font-bold">{order.status}</span></p>
                 <p><strong>تاريخ التسجيل:</strong> {new Date(order.createdAt).toLocaleString('ar-JO')}</p>
               </div>
             </div>
@@ -88,9 +108,7 @@ export default async function AdminOrderDetailPage({
               <div className="divide-y divide-zinc-100">
                 {order.items.map((item) => {
                   const dbProduct = item.product;
-                  const dbVariant = dbProduct?.variants.find(v => v.id === item.variantId);
-                  const currentStock = dbVariant?.stock ?? 0;
-                  const isUnverified = dbProduct?.stockStatus === 'UNVERIFIED';
+                  const currentStock = dbProduct?.stockLiters ?? 0;
 
                   return (
                     <div key={item.id} className="py-4 flex justify-between items-center text-sm">
@@ -99,71 +117,101 @@ export default async function AdminOrderDetailPage({
                         <p className="text-xs text-zinc-500 mt-1">
                           الحجم: {item.size} | SKU: {item.sku}
                         </p>
-                        <div className="mt-2 flex items-center gap-3">
-                          {isUnverified ? (
-                            <span className="bg-amber-100 text-amber-800 px-2 py-0.5 rounded text-[10px] font-bold">
-                              بانتظار التحقق من المخزن (UNVERIFIED)
-                            </span>
-                          ) : (
-                            <span className="bg-green-100 text-green-800 px-2 py-0.5 rounded text-[10px] font-bold">
-                              مخزون مسجل: {currentStock}
-                            </span>
-                          )}
-                        </div>
+                        <p className="text-xs text-blue-600 mt-1">
+                          مخزون المنتج الحالي: {currentStock.toFixed(3)} لتر
+                        </p>
                       </div>
-                      
-                      <div className="text-left font-bold text-zinc-700">
-                        <span>{item.quantity} × {filsToDisplay(item.unitPrice, 'ar')}</span>
-                        <span className="block text-zinc-900 mt-1">
-                          {filsToDisplay(item.unitPrice * item.quantity, 'ar')}
-                        </span>
+                      <div className="text-left">
+                        <p className="font-bold text-emerald-600">{filsToDisplay(item.total, 'ar')}</p>
+                        <p className="text-xs text-zinc-500 mt-1">{item.quantity} × {filsToDisplay(item.unitPrice, 'ar')}</p>
                       </div>
                     </div>
                   );
                 })}
               </div>
-              
-              {/* Financial summary */}
-              <div className="border-t border-zinc-200 mt-6 pt-4 space-y-2 text-sm text-zinc-700">
-                <div className="flex justify-between">
+              <div className="mt-6 border-t pt-4 space-y-2 text-sm">
+                <div className="flex justify-between text-zinc-600">
+                  <span>المجموع الفرعي (بدون توصيل):</span>
+                  <span>{filsToDisplay(orderSubtotal, 'ar')}</span>
+                </div>
+                <div className="flex justify-between text-zinc-600">
                   <span>رسوم التوصيل:</span>
                   <span>{filsToDisplay(order.shippingCost, 'ar')}</span>
                 </div>
-                <div className="flex justify-between text-lg font-bold text-[var(--color-forest-900)] pt-2 border-t">
-                  <span>الإجمالي الكلي:</span>
+                <div className="flex justify-between text-lg font-bold text-[var(--color-forest-900)] pt-2 border-t mt-2">
+                  <span>المجموع الإجمالي المطلوب:</span>
                   <span>{filsToDisplay(order.totalAmount, 'ar')}</span>
                 </div>
               </div>
             </div>
+            
+            {/* History */}
+            <div className="bg-white p-6 rounded-lg border border-[var(--color-ivory-200)] shadow-sm">
+              <h2 className="text-lg font-bold text-[var(--color-forest-900)] mb-4 border-b pb-2">
+                سجل حالات الطلب
+              </h2>
+              <div className="space-y-4">
+                 {order.statusHistory.map(hist => (
+                    <div key={hist.id} className="border-r-2 border-[var(--color-champagne-400)] pr-4 text-sm">
+                       <p className="font-bold text-zinc-800">{hist.status}</p>
+                       <p className="text-xs text-zinc-500">{new Date(hist.createdAt).toLocaleString('ar-JO')}</p>
+                       {hist.notes && <p className="text-xs text-zinc-600 mt-1 bg-zinc-50 p-2 rounded">{hist.notes}</p>}
+                    </div>
+                 ))}
+                 {order.statusHistory.length === 0 && <p className="text-sm text-zinc-500">لا يوجد سجل حالات.</p>}
+              </div>
+            </div>
           </div>
 
-          {/* Action sidebar */}
+          {/* Actions & Status Management */}
           <div className="space-y-6">
-            <div className="bg-white p-6 rounded-lg border border-[var(--color-ivory-200)] shadow-sm">
+            <div className="bg-white p-6 rounded-lg border border-[var(--color-ivory-200)] shadow-sm sticky top-6">
               <h3 className="text-lg font-bold text-[var(--color-forest-900)] mb-4 border-b pb-2">
-                تأكيد ومعالجة الطلب
+                إدارة الطلب
               </h3>
-              
-              {order.status === 'CONFIRMED' ? (
-                <div className="p-4 bg-green-50 text-green-800 rounded font-bold text-center text-sm border border-green-200">
-                  تم تأكيد هذا الطلب مسبقاً بنجاح ومزامنة المخازن.
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <p className="text-xs text-zinc-500 leading-relaxed">
-                    عند تأكيد الطلب، سيقوم النظام بالخصم التلقائي والآمن لكميات المواد الخام والمنتجات الجاهزة من المخازن بموثوقية كاملة.
-                  </p>
-                  
+
+              {order.status === 'AWAITING_WHATSAPP' || order.status === 'PENDING' ? (
+                <div className="space-y-4 mb-6 pb-6 border-b border-zinc-100">
+                  <p className="text-sm text-zinc-600">الطلب جديد بانتظار التأكيد. الضغط على تأكيد سيقوم بتسجيل المبيعات وخصم مخزون اللترات فوراً.</p>
                   <form action={handleConfirm}>
-                    <button
-                      type="submit"
-                      className="w-full bg-[var(--color-forest-900)] hover:bg-[var(--color-forest-800)] text-white py-3 rounded font-bold transition-colors text-sm"
-                    >
+                    <button type="submit" className="w-full bg-[var(--color-forest-900)] text-white font-bold py-3 rounded hover:bg-[var(--color-forest-800)] transition-colors">
                       تأكيد الطلب وخصم المخزون
                     </button>
                   </form>
                 </div>
-              )}
+              ) : null}
+
+              <form action={handleUpdateStatus} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-bold text-zinc-700 mb-1">تحديث الحالة</label>
+                  <select name="status" defaultValue={order.status} className="w-full border rounded p-2 text-sm outline-none focus:border-[var(--color-champagne-600)]">
+                    <option value="AWAITING_WHATSAPP">بانتظار التأكيد (AWAITING_WHATSAPP)</option>
+                    <option value="PENDING">معلق (PENDING)</option>
+                    <option value="CONFIRMED">تم التأكيد (CONFIRMED)</option>
+                    <option value="PREPARING">قيد التجهيز (PREPARING)</option>
+                    <option value="PREPARED">تم التجهيز / جاهز للتوصيل (PREPARED)</option>
+                    <option value="SHIPPED">قيد التوصيل (SHIPPED)</option>
+                    <option value="DELIVERED">تم التوصيل / مكتمل (DELIVERED)</option>
+                    <option value="CANCELLED">ملغي (CANCELLED)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-bold text-zinc-700 mb-1">رسوم التوصيل (دينار أردني)</label>
+                  <input 
+                    type="number" 
+                    step="0.01" 
+                    name="shippingCost" 
+                    defaultValue={(order.shippingCost / 1000).toFixed(3)}
+                    className="w-full border rounded p-2 text-sm outline-none focus:border-[var(--color-champagne-600)]"
+                  />
+                  <p className="text-[10px] text-zinc-500 mt-1">عند تعديل رسوم التوصيل، سيتم إعادة احتساب الإجمالي النهائي للطلب تلقائياً.</p>
+                </div>
+
+                <button type="submit" className="w-full bg-blue-600 text-white font-bold py-2.5 rounded hover:bg-blue-700 transition-colors text-sm">
+                  حفظ التعديلات
+                </button>
+              </form>
             </div>
           </div>
         </div>

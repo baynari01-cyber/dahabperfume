@@ -1,13 +1,10 @@
 import Link from 'next/link';
+import Image from 'next/image';
 
 export function Header() {
   return (
     <header className="w-full bg-[var(--color-ivory-100)] border-b border-[var(--color-ivory-200)] sticky top-0 z-50">
-      {/* Top Bar */}
-      <div className="bg-[var(--color-forest-900)] text-white text-xs md:text-sm py-2 text-center font-bold">
-        توصيل مجاني لجميع الطلبات داخل الأردن
-      </div>
-      
+
       {/* Main Navigation */}
       <div className="container mx-auto px-6 py-4 flex items-center justify-between">
         
@@ -34,8 +31,9 @@ export function Header() {
         </nav>
 
         {/* Right Side: Logo */}
-        <Link href="/ar" className="flex items-center text-[var(--color-champagne-600)] font-heading font-bold text-2xl tracking-widest">
-          DAHAB
+        <Link href="/ar" className="flex items-center gap-2">
+          <Image src="/logo.png" alt="Dahab Perfumes Logo" width={40} height={40} className="object-contain w-10 h-10" />
+          <span className="text-[var(--color-champagne-600)] font-heading font-bold text-xl tracking-widest hidden sm:inline-block">DAHAB</span>
         </Link>
       </div>
     </header>

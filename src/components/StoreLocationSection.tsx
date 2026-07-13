@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useParams } from 'next/navigation';
+import { AlertTriangle, MapPin, Clock, Phone, Map, MessageCircle } from 'lucide-react';
 
 export interface StoreLocationSettings {
   id: string;
@@ -29,7 +30,7 @@ interface StoreLocationSectionProps {
 export function StoreLocationSection({ settings }: StoreLocationSectionProps) {
   const { locale = 'ar' } = useParams() as { locale?: string };
   const isAr = locale === 'ar';
-  const [loadMap, setLoadMap] = useState(false);
+  const [loadMap, setLoadMap] = useState(true);
 
   if (!settings.locationSectionEnabled) {
     return null;
@@ -46,8 +47,8 @@ export function StoreLocationSection({ settings }: StoreLocationSectionProps) {
 
   if (!isConfigValid) {
     return (
-      <section className="py-12 bg-[var(--color-ivory-100)] border-t border-[var(--color-ivory-200)] text-center text-xs text-red-650" dir="rtl">
-        ⚠️ تنبيه إداري: بعض إعدادات موقع المتجر أو روابط الخرائط غير مكتملة في لوحة التحكم. يرجى مراجعتها وتعبئة كافة البيانات المطلوبة.
+      <section className="py-12 bg-[var(--color-ivory-100)] border-t border-[var(--color-ivory-200)] text-center text-xs text-red-650 flex items-center justify-center gap-2" dir="rtl">
+        <AlertTriangle className="w-4 h-4 text-red-600" /> تنبيه إداري: بعض إعدادات موقع المتجر أو روابط الخرائط غير مكتملة في لوحة التحكم. يرجى مراجعتها وتعبئة كافة البيانات المطلوبة.
       </section>
     );
   }
@@ -100,7 +101,7 @@ export function StoreLocationSection({ settings }: StoreLocationSectionProps) {
               {/* Address details */}
               <div className="space-y-4 text-xs md:text-sm">
                 <div className="flex items-start gap-3">
-                  <span className="text-lg">📍</span>
+                  <MapPin className="w-5 h-5 text-[var(--color-champagne-600)] mt-0.5" />
                   <div>
                     <h4 className="font-bold text-zinc-700">{isAr ? 'عنوان المعرض' : 'Showroom Address'}</h4>
                     <p className="text-zinc-500 mt-1 leading-relaxed">
@@ -110,7 +111,7 @@ export function StoreLocationSection({ settings }: StoreLocationSectionProps) {
                 </div>
 
                 <div className="flex items-start gap-3">
-                  <span className="text-lg">⏰</span>
+                  <Clock className="w-5 h-5 text-[var(--color-champagne-600)] mt-0.5" />
                   <div>
                     <h4 className="font-bold text-zinc-700">{isAr ? 'ساعات العمل' : 'Opening Hours'}</h4>
                     <p className="text-zinc-500 mt-1">
@@ -120,7 +121,7 @@ export function StoreLocationSection({ settings }: StoreLocationSectionProps) {
                 </div>
 
                 <div className="flex items-start gap-3">
-                  <span className="text-lg">📞</span>
+                  <Phone className="w-5 h-5 text-[var(--color-champagne-600)] mt-0.5" />
                   <div>
                     <h4 className="font-bold text-zinc-700">{isAr ? 'الاتصال الهاتفي' : 'Phone Contact'}</h4>
                     <p className="text-zinc-500 mt-1" dir="ltr">
@@ -138,7 +139,7 @@ export function StoreLocationSection({ settings }: StoreLocationSectionProps) {
                   onClick={handleDirectionsClick}
                   className="w-full bg-[var(--color-forest-900)] hover:bg-[var(--color-forest-800)] text-white text-xs font-bold py-3 rounded-sm transition-all shadow-sm flex items-center justify-center gap-2"
                 >
-                  <span>🗺️</span>
+                  <Map className="w-4 h-4" />
                   <span>{isAr ? 'الحصول على الاتجاهات' : 'Get Directions'}</span>
                 </button>
               )}
@@ -147,7 +148,7 @@ export function StoreLocationSection({ settings }: StoreLocationSectionProps) {
                 onClick={handlePhoneClick}
                 className="w-full border border-zinc-200 hover:bg-zinc-50 text-zinc-700 text-xs font-bold py-3 rounded-sm transition-all flex items-center justify-center gap-2"
               >
-                <span>📞</span>
+                <Phone className="w-4 h-4" />
                 <span>{isAr ? 'اتصال هاتفي' : 'Call Now'}</span>
               </button>
 
@@ -155,7 +156,7 @@ export function StoreLocationSection({ settings }: StoreLocationSectionProps) {
                 onClick={handleWhatsAppClick}
                 className="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-3 rounded-sm transition-all flex items-center justify-center gap-2"
               >
-                <span className="font-bold">💬</span>
+                <MessageCircle className="w-4 h-4 font-bold" />
                 <span>{isAr ? 'واتساب' : 'WhatsApp'}</span>
               </button>
             </div>
@@ -167,7 +168,7 @@ export function StoreLocationSection({ settings }: StoreLocationSectionProps) {
               // Lazy loaded Iframe
               <iframe
                 title={isAr ? 'خريطة موقع معرض دهب للعطور' : 'Dahab Perfumes Store Map'}
-                src={`${settings.mapEmbedUrl}&z=${settings.mapZoom}`}
+                src={settings.mapEmbedUrl}
                 width="100%"
                 height="100%"
                 style={{ border: 0 }}
@@ -180,7 +181,7 @@ export function StoreLocationSection({ settings }: StoreLocationSectionProps) {
               // Privacy and Performance placeholder
               <div className="absolute inset-0 w-full h-full flex flex-col items-center justify-center p-6 text-center bg-[var(--color-forest-950)] text-white select-none">
                 <div className="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-2xl mb-4 shadow-inner">
-                  📍
+                  <MapPin className="w-6 h-6 text-white/70" />
                 </div>
                 
                 <h4 className="text-sm font-bold text-[var(--color-champagne-400)] mb-1">

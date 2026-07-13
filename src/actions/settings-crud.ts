@@ -1,13 +1,14 @@
 'use server';
 
 import { prisma } from '@/lib/db';
-import { requirePermission } from '@/lib/dal';
+import { requirePermission, requireSuperAdmin } from '@/lib/dal';
+import { z } from 'zod';
 
 /**
  * Common helper to save a settings object to SiteSettings key.
  */
 async function saveSiteSettings(key: string, value: any, adminId: string, actionName: string) {
-  const session = await requirePermission('manage:settings');
+  const session = await requireSuperAdmin();
   const stringValue = JSON.stringify(value);
 
   const before = await prisma.siteSettings.findUnique({ where: { key } });
@@ -18,6 +19,9 @@ async function saveSiteSettings(key: string, value: any, adminId: string, action
     create: { key, value: stringValue }
   });
 
+  const headersList = await (await import('next/headers')).headers();
+  const ipAddress = headersList.get('x-forwarded-for') || 'unknown';
+
   // Record audit log
   await prisma.auditLog.create({
     data: {
@@ -25,6 +29,7 @@ async function saveSiteSettings(key: string, value: any, adminId: string, action
       action: actionName,
       entityType: 'SiteSettings',
       entityId: key,
+      ipAddress,
       details: JSON.stringify({ before: before?.value || null, after: stringValue })
     }
   });
@@ -35,11 +40,18 @@ async function saveSiteSettings(key: string, value: any, adminId: string, action
 /**
  * Common helper to get a settings object.
  */
-async function getSiteSettings<T>(key: string, defaultValue: T): Promise<T> {
+async function getSiteSettings<T>(key: string, defaultValue: T, schema?: z.ZodSchema<T>): Promise<T> {
   const settings = await prisma.siteSettings.findUnique({ where: { key } });
   if (!settings) return defaultValue;
   try {
-    return JSON.parse(settings.value) as T;
+    const parsed = JSON.parse(settings.value);
+    if (schema) {
+      const result = schema.safeParse(parsed);
+      if (result.success) return result.data;
+      console.warn(`[SiteSettings] Invalid data for ${key}, using defaults.`);
+      return defaultValue;
+    }
+    return parsed as T;
   } catch {
     return defaultValue;
   }
@@ -57,7 +69,7 @@ export async function getTaxSettings() {
 
 export async function updateTaxSettings(data: { taxEnabled: boolean; taxRate: number; pricesIncludeTax: boolean }, adminId: string) {
   try {
-    const session = await requirePermission('manage:settings');
+    const session = await requireSuperAdmin();
     const before = await prisma.globalPricingSettings.findUnique({ where: { id: '1' } });
 
     await prisma.globalPricingSettings.upsert({
@@ -75,12 +87,16 @@ export async function updateTaxSettings(data: { taxEnabled: boolean; taxRate: nu
       }
     });
 
+    const headersList = await (await import('next/headers')).headers();
+    const ipAddress = headersList.get('x-forwarded-for') || 'unknown';
+
     await prisma.auditLog.create({
       data: {
         employeeId: session.employeeId,
         action: 'TAX_SETTINGS_UPDATED',
         entityType: 'GlobalPricingSettings',
         entityId: '1',
+        ipAddress,
         details: JSON.stringify({ before, after: data })
       }
     });
@@ -100,7 +116,7 @@ export async function getShippingZones() {
 
 export async function updateShippingZone(data: { id?: string; nameAr: string; nameEn: string; fee: number; estimatedDeliveryTime: string; isEnabled: boolean }) {
   try {
-    const session = await requirePermission('manage:settings');
+    const session = await requireSuperAdmin();
     
     if (data.id) {
       const zone = await prisma.shippingZone.update({
@@ -113,12 +129,16 @@ export async function updateShippingZone(data: { id?: string; nameAr: string; na
           isEnabled: data.isEnabled
         }
       });
+      const headersList = await (await import('next/headers')).headers();
+      const ipAddress = headersList.get('x-forwarded-for') || 'unknown';
+
       await prisma.auditLog.create({
         data: {
           employeeId: session.employeeId,
           action: 'SHIPPING_ZONE_UPDATED',
           entityType: 'ShippingZone',
           entityId: zone.id,
+          ipAddress,
           details: JSON.stringify(zone)
         }
       });
@@ -132,12 +152,16 @@ export async function updateShippingZone(data: { id?: string; nameAr: string; na
           isEnabled: data.isEnabled
         }
       });
+      const headersList = await (await import('next/headers')).headers();
+      const ipAddress = headersList.get('x-forwarded-for') || 'unknown';
+
       await prisma.auditLog.create({
         data: {
           employeeId: session.employeeId,
           action: 'SHIPPING_ZONE_CREATED',
           entityType: 'ShippingZone',
           entityId: zone.id,
+          ipAddress,
           details: JSON.stringify(zone)
         }
       });
@@ -150,14 +174,18 @@ export async function updateShippingZone(data: { id?: string; nameAr: string; na
 
 export async function deleteShippingZone(id: string) {
   try {
-    const session = await requirePermission('manage:settings');
+    const session = await requireSuperAdmin();
     await prisma.shippingZone.delete({ where: { id } });
+    const headersList = await (await import('next/headers')).headers();
+    const ipAddress = headersList.get('x-forwarded-for') || 'unknown';
+
     await prisma.auditLog.create({
       data: {
         employeeId: session.employeeId,
         action: 'SHIPPING_ZONE_DELETED',
         entityType: 'ShippingZone',
         entityId: id,
+        ipAddress,
         details: null
       }
     });
@@ -181,6 +209,19 @@ export interface POSSettings {
   posIdleMessageEn: string;
   posSessionLifetimeHours: number;
 }
+const posSettingsSchema = z.object({
+  requireShiftToSell: z.boolean().catch(true),
+  defaultIdleLockSeconds: z.number().catch(240),
+  allowManagerOverride: z.boolean().catch(true),
+  posIdleEnabled: z.boolean().catch(true),
+  posIdleTimeoutMinutes: z.number().catch(4),
+  posIdleShowClock: z.boolean().catch(true),
+  posIdleShowDate: z.boolean().catch(true),
+  posIdleRequirePin: z.boolean().catch(false),
+  posIdleMessageAr: z.string().catch('شاشة خمول مؤقتة - يرجى الضغط للمتابعة'),
+  posIdleMessageEn: z.string().catch('Idle screen - Please press to continue'),
+  posSessionLifetimeHours: z.number().catch(15)
+});
 export async function getPOSSettings(): Promise<POSSettings> {
   return await getSiteSettings<POSSettings>('pos_settings', {
     requireShiftToSell: true,
@@ -194,10 +235,10 @@ export async function getPOSSettings(): Promise<POSSettings> {
     posIdleMessageAr: 'شاشة خمول مؤقتة - يرجى الضغط للمتابعة',
     posIdleMessageEn: 'Idle screen - Please press to continue',
     posSessionLifetimeHours: 15
-  });
+  }, posSettingsSchema);
 }
 export async function updatePOSSettings(data: POSSettings, adminId: string) {
-  const session = await requirePermission('settings.pos');
+  const session = await requireSuperAdmin();
 
   if (data.posIdleTimeoutMinutes < 1 || data.posIdleTimeoutMinutes > 60) {
     throw new Error('مهلة الخمول يجب أن تكون بين دقيقة و 60 دقيقة');
@@ -216,12 +257,16 @@ export async function updatePOSSettings(data: POSSettings, adminId: string) {
     create: { key, value: stringValue }
   });
 
+  const headersList = await (await import('next/headers')).headers();
+  const ipAddress = headersList.get('x-forwarded-for') || 'unknown';
+
   await prisma.auditLog.create({
     data: {
       employeeId: session.employeeId,
       action: 'POS_SETTINGS_UPDATED',
       entityType: 'SiteSettings',
       entityId: key,
+      ipAddress,
       details: JSON.stringify({ before: before?.value ? JSON.parse(before.value) : null, after: data })
     }
   });
@@ -235,12 +280,17 @@ export interface SecuritySettings {
   requireMFA: boolean;
   maxLoginAttempts: number;
 }
+const securitySettingsSchema = z.object({
+  passwordMinLength: z.number().catch(15),
+  requireMFA: z.boolean().catch(true),
+  maxLoginAttempts: z.number().catch(5)
+});
 export async function getSecuritySettings(): Promise<SecuritySettings> {
   return await getSiteSettings<SecuritySettings>('security_settings', {
     passwordMinLength: 15,
     requireMFA: true,
     maxLoginAttempts: 5
-  });
+  }, securitySettingsSchema);
 }
 export async function updateSecuritySettings(data: SecuritySettings, adminId: string) {
   return await saveSiteSettings('security_settings', data, adminId, 'SECURITY_SETTINGS_UPDATED');
@@ -248,7 +298,7 @@ export async function updateSecuritySettings(data: SecuritySettings, adminId: st
 
 // 5. Backups Settings
 export async function triggerBackupDownload() {
-  const session = await requirePermission('manage:settings');
+  const session = await requireSuperAdmin();
   const categories = await prisma.category.findMany();
   const products = await prisma.product.findMany();
   const variants = await prisma.productVariant.findMany();
@@ -260,12 +310,16 @@ export async function triggerBackupDownload() {
     variants
   };
 
+  const headersList = await (await import('next/headers')).headers();
+  const ipAddress = headersList.get('x-forwarded-for') || 'unknown';
+
   await prisma.auditLog.create({
     data: {
       employeeId: session.employeeId,
       action: 'DATABASE_BACKUP_EXPORTED',
       entityType: 'SystemBackup',
       entityId: 'export',
+      ipAddress,
       details: JSON.stringify({ itemsCount: products.length })
     }
   });
@@ -279,12 +333,17 @@ export interface NotificationsSettings {
   whatsappNumber: string;
   emailAlerts: boolean;
 }
+const notificationsSettingsSchema = z.object({
+  whatsappNotifications: z.boolean().catch(false),
+  whatsappNumber: z.string().catch(''),
+  emailAlerts: z.boolean().catch(false)
+});
 export async function getNotificationsSettings(): Promise<NotificationsSettings> {
   return await getSiteSettings<NotificationsSettings>('notifications_settings', {
     whatsappNotifications: false,
     whatsappNumber: '',
     emailAlerts: false
-  });
+  }, notificationsSettingsSchema);
 }
 export async function updateNotificationsSettings(data: NotificationsSettings, adminId: string) {
   return await saveSiteSettings('notifications_settings', data, adminId, 'NOTIFICATIONS_SETTINGS_UPDATED');
@@ -295,11 +354,15 @@ export interface IntegrationsSettings {
   supabaseStorageUrl: string;
   whatsappGatewayApiKey: string;
 }
+const integrationsSettingsSchema = z.object({
+  supabaseStorageUrl: z.string().catch(''),
+  whatsappGatewayApiKey: z.string().catch('')
+});
 export async function getIntegrationsSettings(): Promise<IntegrationsSettings> {
   return await getSiteSettings<IntegrationsSettings>('integrations_settings', {
     supabaseStorageUrl: '',
     whatsappGatewayApiKey: ''
-  });
+  }, integrationsSettingsSchema);
 }
 export async function updateIntegrationsSettings(data: IntegrationsSettings, adminId: string) {
   return await saveSiteSettings('integrations_settings', data, adminId, 'INTEGRATIONS_SETTINGS_UPDATED');
@@ -312,13 +375,19 @@ export interface SEOSettings {
   metaDescriptionAr: string;
   metaDescriptionEn: string;
 }
+const seoSettingsSchema = z.object({
+  metaTitleAr: z.string().catch('دهب للعطور'),
+  metaTitleEn: z.string().catch('Dahab Perfumes'),
+  metaDescriptionAr: z.string().catch('متجر عطور دهب الفاخرة عطور فرنسية بجودة عالية وأسعار منافسة'),
+  metaDescriptionEn: z.string().catch('Luxury Dahab Perfumes online store')
+});
 export async function getSEOSettings(): Promise<SEOSettings> {
   return await getSiteSettings<SEOSettings>('seo_settings', {
     metaTitleAr: 'دهب للعطور',
     metaTitleEn: 'Dahab Perfumes',
     metaDescriptionAr: 'متجر عطور دهب الفاخرة عطور فرنسية بجودة عالية وأسعار منافسة',
     metaDescriptionEn: 'Luxury Dahab Perfumes online store'
-  });
+  }, seoSettingsSchema);
 }
 export async function updateSEOSettings(data: SEOSettings, adminId: string) {
   return await saveSiteSettings('seo_settings', data, adminId, 'SEO_SETTINGS_UPDATED');
@@ -329,11 +398,15 @@ export interface LocalizationSettings {
   defaultLocale: string;
   supportedLocales: string[];
 }
+const localizationSettingsSchema = z.object({
+  defaultLocale: z.string().catch('ar'),
+  supportedLocales: z.array(z.string()).catch(['ar', 'en'])
+});
 export async function getLocalizationSettings(): Promise<LocalizationSettings> {
   return await getSiteSettings<LocalizationSettings>('localization_settings', {
     defaultLocale: 'ar',
     supportedLocales: ['ar', 'en']
-  });
+  }, localizationSettingsSchema);
 }
 export async function updateLocalizationSettings(data: LocalizationSettings, adminId: string) {
   return await saveSiteSettings('localization_settings', data, adminId, 'LOCALIZATION_SETTINGS_UPDATED');

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useTransition } from 'react';
+import { X } from 'lucide-react';
 import { processPOSCheckout } from '@/actions/pos';
 import { MainAccordsBars } from './MainAccordsBars';
 
@@ -23,7 +24,6 @@ interface ProductVariant {
   size: string;
   sku: string;
   price: number;
-  stock: number;
   isActive: boolean;
   usesGlobalPricing: boolean;
 }
@@ -35,11 +35,8 @@ interface ProductItem {
   sku: string;
   shortDescription: string | null;
   stockStatus: string;
-  inventoryMode: string;
-  category: { name: string };
+  stockLiters: number;
   variants: ProductVariant[];
-  notes: ProductNote[];
-  accords: ProductAccord[];
 }
 
 interface POSCashierWorkspaceProps {
@@ -147,8 +144,9 @@ export function POSCashierWorkspace({
   useEffect(() => {
     const interval = setInterval(() => {
       const now = new Date();
-      setCurrentTime(now.toLocaleTimeString('ar-JO', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
-      setCurrentDate(now.toLocaleDateString('ar-JO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }));
+      // Always display in English for consistency with design
+      setCurrentTime(now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }));
+      setCurrentDate(now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }));
 
       // Session expiration countdown
       const expiry = new Date(sessionExpiresAt).getTime();
@@ -427,7 +425,6 @@ export function POSCashierWorkspace({
                   className="bg-white p-3 rounded-lg border border-[var(--color-ivory-200)] shadow-sm hover:border-[var(--color-champagne-600)] hover:shadow transition-all text-right flex flex-col justify-between h-32 active:scale-95 duration-100 animate-fade-in"
                 >
                   <div>
-                    <span className="text-[10px] text-zinc-400 block mb-0.5">{product.category.name}</span>
                     <span className="font-bold text-zinc-900 text-xs md:text-sm line-clamp-2 leading-tight">
                       {product.nameAr}
                     </span>
@@ -591,13 +588,13 @@ export function POSCashierWorkspace({
             <div className="flex justify-between items-start border-b pb-3">
               <div>
                 <h3 className="text-xl font-bold text-[var(--color-forest-900)]">{selectedProduct.nameAr}</h3>
-                <span className="text-[10px] text-zinc-400">SKU: {selectedProduct.sku} | Mode: {selectedProduct.inventoryMode}</span>
+                <span className="text-[10px] text-zinc-400">SKU: {selectedProduct.sku}</span>
               </div>
               <button
                 onClick={() => setSelectedProduct(null)}
                 className="text-zinc-400 hover:text-zinc-600 text-xl font-bold px-2"
               >
-                ✕
+                <X className="w-5 h-5" />
               </button>
             </div>
 
@@ -610,35 +607,10 @@ export function POSCashierWorkspace({
             {/* Accords Breakdown Section */}
             <div>
               <h4 className="text-xs font-bold text-neutral-800 mb-2">المكونات العطرية الأساسية (Main Accords)</h4>
-              <MainAccordsBars accords={selectedProduct.accords} locale="ar" />
+              
             </div>
 
-            {/* Notes Breakdown Section */}
-            {selectedProduct.notes && selectedProduct.notes.length > 0 && (
-              <div className="space-y-3 pt-2 border-t border-zinc-100">
-                <h4 className="text-xs font-bold text-neutral-800">مكونات الهرم العطري (Fragrance Notes Hierarchy)</h4>
-                <div className="grid grid-cols-3 gap-2 text-center text-xs">
-                  <div className="bg-amber-50/50 p-2 rounded border border-amber-100/50">
-                    <span className="font-bold text-amber-800 block text-[10px] mb-1">القمة (Top)</span>
-                    <span className="text-zinc-700 leading-tight block">
-                      {selectedProduct.notes.filter(n => n.noteType === 'TOP').map(n => n.nameAr).join('، ') || '-'}
-                    </span>
-                  </div>
-                  <div className="bg-rose-50/50 p-2 rounded border border-rose-100/50">
-                    <span className="font-bold text-rose-800 block text-[10px] mb-1">الوسط (Heart)</span>
-                    <span className="text-zinc-700 leading-tight block">
-                      {selectedProduct.notes.filter(n => n.noteType === 'HEART').map(n => n.nameAr).join('، ') || '-'}
-                    </span>
-                  </div>
-                  <div className="bg-orange-50/50 p-2 rounded border border-orange-100/50">
-                    <span className="font-bold text-orange-800 block text-[10px] mb-1">القاعدة (Base)</span>
-                    <span className="text-zinc-700 leading-tight block">
-                      {selectedProduct.notes.filter(n => n.noteType === 'BASE').map(n => n.nameAr).join('، ') || '-'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            )}
+
 
             {/* Variant Size selector buttons */}
             <div className="space-y-2 pt-3 border-t">
@@ -648,14 +620,12 @@ export function POSCashierWorkspace({
                   <button
                     key={v.id}
                     onClick={() => handleAddVariant(v)}
-                    disabled={!v.isActive || (selectedProduct.inventoryMode === 'FINISHED_PRODUCT' && v.stock <= 0)}
+                    disabled={!v.isActive || selectedProduct.stockLiters <= 0}
                     className="flex flex-col items-center justify-center p-3 border border-zinc-200 rounded-lg hover:border-[var(--color-champagne-600)] hover:bg-neutral-50/30 transition-all text-center disabled:opacity-40 active:scale-95"
                   >
                     <span className="font-bold text-zinc-900 text-sm">{v.size}</span>
                     <span className="text-xs text-[var(--color-champagne-600)] font-bold mt-1">{(v.price / 1000).toFixed(3)} د.أ</span>
-                    {selectedProduct.inventoryMode === 'FINISHED_PRODUCT' && (
-                      <span className="text-[9px] text-zinc-400 mt-0.5">مخزون: {v.stock}</span>
-                    )}
+                    
                   </button>
                 ))}
               </div>
@@ -708,8 +678,8 @@ export function POSCashierWorkspace({
             {/* Transparent Dahab Logo Rendering */}
             <div className="w-32 h-32 bg-white/5 rounded-full p-4 flex items-center justify-center shadow-lg border border-white/10">
               <img
-                src="/logo-dahab.jpg"
-                alt="Dahab Perfumes"
+                src="/logo.png"
+                alt="Dahab Perfumes Logo"
                 onError={(e) => {
                   (e.target as HTMLElement).style.display = 'none';
                 }}
@@ -735,11 +705,7 @@ export function POSCashierWorkspace({
               </div>
             </div>
 
-            <div className="border border-amber-900/60 bg-amber-950/20 px-6 py-3.5 rounded text-xs text-amber-300 max-w-xs leading-relaxed">
-              تنبيه إداري: يرجى تزويد النظام بشعار شفاف بصيغة SVG/PNG كبديل لملف JPG الحالي.
-            </div>
-
-            <p className="text-neutral-500 animate-pulse text-xs">اضغط في أي مكان على الشاشة للمتابعة...</p>
+            <p className="text-neutral-500 animate-pulse text-xs mt-4">اضغط في أي مكان على الشاشة للمتابعة...</p>
           </div>
         </div>
       )}

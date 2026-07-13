@@ -5,6 +5,7 @@ import { getHeroSlides, getHeroCarouselSettings, getStoreLocationSettings } from
 import { HeroCarousel } from '@/components/HeroCarousel';
 import { StoreLocationSection } from '@/components/StoreLocationSection';
 import { filsToDisplay } from '@/lib/money';
+import { Sparkles } from 'lucide-react';
 
 interface Params {
   locale?: string;
@@ -43,6 +44,56 @@ export default async function HomePage({ params }: { params: Promise<Params> }) 
   // 3. Fetch Store location settings
   const locationSettings = await getStoreLocationSettings();
 
+  // Default mock collections if none configured in CMS
+  const defaultSlides: any[] = [
+    {
+      id: 'default-1',
+      titleAr: 'مجموعة الصيف',
+      titleEn: 'Summer Collection',
+      descriptionAr: 'انتعاش يدوم طوال اليوم مع أرقى الحمضيات والأزهار',
+      descriptionEn: 'Long lasting freshness with the finest citrus and florals',
+      eyebrowAr: 'جديد',
+      eyebrowEn: 'New Arrival',
+      ctaAr: 'تسوق الآن',
+      ctaEn: 'Shop Now',
+      imageDesktopPath: '/logo.png', // Temporary fallback image
+      imageMobilePath: '/logo.png',
+      altAr: 'مجموعة الصيف',
+      altEn: 'Summer Collection',
+      destinationType: 'URL',
+      internalPath: '/collections/summer',
+      displayOrder: 1,
+      isEnabled: true,
+      openInNewTab: false,
+      overlayStrength: 40,
+      textPosition: 'CENTER'
+    },
+    {
+      id: 'default-2',
+      titleAr: 'مجموعة العود الملكي',
+      titleEn: 'Royal Oud Collection',
+      descriptionAr: 'فخامة الشرق الأصيلة المستخلصة من أندر أنواع العود',
+      descriptionEn: 'Authentic oriental luxury extracted from the rarest Oud',
+      eyebrowAr: 'الأكثر مبيعاً',
+      eyebrowEn: 'Best Seller',
+      ctaAr: 'اكتشف المجموعة',
+      ctaEn: 'Discover',
+      imageDesktopPath: '/logo.png',
+      imageMobilePath: '/logo.png',
+      altAr: 'مجموعة العود الملكي',
+      altEn: 'Royal Oud Collection',
+      destinationType: 'URL',
+      internalPath: '/collections/oud',
+      displayOrder: 2,
+      isEnabled: true,
+      openInNewTab: false,
+      overlayStrength: 50,
+      textPosition: 'CENTER'
+    }
+  ];
+
+  const carouselSlidesToDisplay = activeSlides.length > 0 ? activeSlides : defaultSlides;
+
   return (
     <main className="flex-1" dir={isAr ? 'rtl' : 'ltr'}>
       {/* Localized Business Structured Data (JSON-LD) */}
@@ -52,7 +103,7 @@ export default async function HomePage({ params }: { params: Promise<Params> }) 
           dangerouslySetInnerHTML={{
             __html: JSON.stringify({
               '@context': 'https://schema.org',
-              '@type': 'PerfumeStore',
+              '@type': 'HealthAndBeautyBusiness',
               'name': locationSettings.storeName,
               'url': 'https://dahabperfumes.com',
               'telephone': locationSettings.phone,
@@ -110,19 +161,46 @@ export default async function HomePage({ params }: { params: Promise<Params> }) 
 
           {/* Carousel Column */}
           <div className="lg:col-span-6 w-full">
-            {carouselSettings.enabled && activeSlides.length > 0 ? (
-              <HeroCarousel slides={activeSlides} settings={carouselSettings} />
+            {carouselSettings.enabled && carouselSlidesToDisplay.length > 0 ? (
+              <HeroCarousel slides={carouselSlidesToDisplay} settings={carouselSettings} />
             ) : (
               // Non-ad Hero fallback composition
               <div className="relative w-full aspect-[4/3] rounded-md overflow-hidden bg-white/5 border border-white/10 flex items-center justify-center p-6">
-                <div className="text-center space-y-4 opacity-40">
-                  <span className="text-4xl block">🏺</span>
+                <div className="text-center space-y-4 opacity-40 flex flex-col items-center">
+                  <Sparkles className="w-12 h-12 text-[var(--color-champagne-400)]" />
                   <span className="text-xs text-zinc-300 block font-heading tracking-widest uppercase">Dahab Perfumes</span>
                 </div>
               </div>
             )}
           </div>
 
+        </div>
+      </section>
+
+      {/* اختر العطر Section */}
+      <section id="find-your-scent" className="py-16 bg-white">
+        <div className="container mx-auto px-6">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold font-heading text-[var(--color-forest-900)] mb-4">
+              {isAr ? 'اختر العطر حسب الحالة، لا حسب الزحمة.' : 'Choose your scent by mood, not by trend.'}
+            </h2>
+            <div className="w-16 h-1 bg-[var(--color-champagne-600)] mx-auto rounded-full" />
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center max-w-5xl mx-auto">
+            <div className="p-8 bg-zinc-50 rounded-lg border border-zinc-100 hover:shadow-md transition-shadow">
+              <h3 className="text-xl font-bold text-[var(--color-forest-900)] mb-4">{isAr ? 'رجالي' : 'Men'}</h3>
+              <p className="text-zinc-600">{isAr ? 'عطور رجالية بحضور فخم وثبات يدوم طويلاً.' : 'Men\'s fragrances with a luxurious presence and long-lasting hold.'}</p>
+            </div>
+            <div className="p-8 bg-zinc-50 rounded-lg border border-zinc-100 hover:shadow-md transition-shadow">
+              <h3 className="text-xl font-bold text-[var(--color-forest-900)] mb-4">{isAr ? 'نسائي' : 'Women'}</h3>
+              <p className="text-zinc-600">{isAr ? 'تركيبات ناعمة وجذابة تناسب كافة المناسبات.' : 'Soft and attractive compositions suitable for all occasions.'}</p>
+            </div>
+            <div className="p-8 bg-zinc-50 rounded-lg border border-zinc-100 hover:shadow-md transition-shadow">
+              <h3 className="text-xl font-bold text-[var(--color-forest-900)] mb-4">{isAr ? 'عود' : 'Oud'}</h3>
+              <p className="text-zinc-600">{isAr ? 'عود، عنبر، مسك وتوابل دافئة بحضور واضح.' : 'Oud, amber, musk and warm spices with a clear presence.'}</p>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -163,6 +241,111 @@ export default async function HomePage({ params }: { params: Promise<Params> }) 
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* تجربة شراء أهدأ */}
+      <section className="py-20 bg-zinc-900 text-white text-center">
+        <div className="container mx-auto px-6 max-w-4xl space-y-8">
+          <h2 className="text-3xl md:text-4xl font-bold font-heading text-[var(--color-champagne-400)]">
+            {isAr ? 'تجربة شراء أهدأ' : 'A Calmer Shopping Experience'}
+          </h2>
+          <p className="text-lg md:text-xl text-zinc-300 leading-relaxed max-w-3xl mx-auto">
+            {isAr ? 'لا تحتاج أن تعرف أسماء النوتات. نساعدك تختار الأثر.' : 'You don\'t need to know the notes. We help you choose the impact.'}
+          </p>
+          <p className="text-zinc-400 leading-relaxed max-w-2xl mx-auto">
+            {isAr 
+              ? 'في دهب، الاختيار يبدأ من المناسبة، قوة الحضور، وذوقك الشخصي. يمكنك زيارة المعرض أو إرسال رسالة واتساب ليقترح لك الفريق خيارات مناسبة.'
+              : 'At Dahab, the choice begins with the occasion, the strength of presence, and your personal taste. You can visit the showroom or send a WhatsApp message for our team to suggest suitable options.'}
+          </p>
+          <div className="pt-4 flex flex-col sm:flex-row justify-center items-center gap-4">
+             <Link 
+                href={locationSettings.mapPlaceUrl || 'https://maps.app.goo.gl/6vNgkpRotjgZZA1E6'}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-8 py-3 bg-[var(--color-champagne-600)] hover:bg-[var(--color-champagne-500)] text-white font-bold rounded-sm transition-all shadow-md"
+              >
+                {isAr ? 'افتح موقع المعرض' : 'Open Showroom Location'}
+              </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Brand Story */}
+      <section id="brand-story" className="py-20 bg-white">
+        <div className="container mx-auto px-6">
+          <div className="max-w-4xl mx-auto text-center space-y-8">
+            <span className="text-[var(--color-champagne-600)] font-bold tracking-widest uppercase text-sm">
+              {isAr ? 'عن دهب للعطور' : 'About Dahab Perfumes'}
+            </span>
+            <h2 className="text-4xl font-bold font-heading text-[var(--color-forest-900)]">
+              {isAr ? 'قصتنا' : 'Our Story'}
+            </h2>
+            <p className="text-xl text-zinc-700 font-medium italic">
+              {isAr ? 'رحلة من الشغف والإبداع في قلب وسط البلد، عمّان.' : 'A journey of passion and creativity in the heart of Downtown, Amman.'}
+            </p>
+            <div className="space-y-4 text-zinc-600 leading-relaxed text-justify md:text-center">
+              <p>
+                {isAr 
+                  ? 'منذ عام 2007، حُفرت رحلتنا بالشغف والإبداع والتميّز. بدأت الحكاية من متجر صغير في وسط البلد تحت اسم "دهب"، حيث أصبح وجهة لعشاق العطور وخلطات العطور الفريدة.'
+                  : 'Since 2007, our journey has been engraved with passion, creativity, and excellence. The story began in a small store in Downtown under the name "Dahab", where it became a destination for perfume lovers and unique blends.'}
+              </p>
+              <p>
+                {isAr 
+                  ? 'مع مرور الوقت، توسّعنا لنبدأ فصلاً جديداً من النمو والتميّز. واليوم، نحن إحدى كبرى محلات العطور في المملكة الأردنية الهاشمية، شهادةً على عقود من العمل المتفاني والالتزام بالجودة.'
+                  : 'Over time, we expanded to begin a new chapter of growth and excellence. Today, we are one of the largest perfume stores in the Hashemite Kingdom of Jordan, a testament to decades of dedicated work and commitment to quality.'}
+              </p>
+              <p className="font-bold text-[var(--color-forest-900)] text-lg pt-4">
+                {isAr 
+                  ? 'نمزج بين أصالة تراثنا وشغفنا بالابتكار لنخلق روائح تلامس القلب وتبقى للأبد.'
+                  : 'We blend the authenticity of our heritage with our passion for innovation to create scents that touch the heart and last forever.'}
+              </p>
+            </div>
+            
+            <div className="pt-8 flex flex-col sm:flex-row justify-center items-center gap-4">
+              <a href="#store-location" className="px-8 py-3 bg-[var(--color-forest-900)] hover:bg-[var(--color-forest-800)] text-white font-bold rounded-sm transition-all shadow-md">
+                {isAr ? 'زيارة المعرض' : 'Visit Showroom'}
+              </a>
+              <a href={`tel:${locationSettings.phone}`} className="px-8 py-3 bg-transparent border-2 border-[var(--color-forest-900)] text-[var(--color-forest-900)] hover:bg-[var(--color-forest-900)] hover:text-white font-bold rounded-sm transition-all">
+                {isAr ? 'تواصل معنا' : 'Contact Us'}
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+      
+      {/* Quote Section */}
+      <section className="py-24 bg-[var(--color-ivory-50)] border-y border-[var(--color-ivory-200)] relative overflow-hidden">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 text-9xl text-[var(--color-ivory-200)] opacity-50 select-none font-serif">"</div>
+        <div className="container mx-auto px-6 text-center relative z-10">
+          <p className="text-2xl md:text-3xl font-heading font-medium text-[var(--color-forest-900)] leading-relaxed max-w-4xl mx-auto">
+            {isAr 
+              ? '«نحن عشاق العطور وصناع الذكريات، نؤمن بأن كل عطر يحمل قصة، وكل شعور له نفحة.»'
+              : '"We are perfume lovers and memory makers, we believe that every perfume carries a story, and every feeling has a scent."'}
+          </p>
+        </div>
+      </section>
+
+      {/* Stats/Benefits Section */}
+      <section id="benefits" className="py-16 bg-[var(--color-forest-900)] text-white text-center">
+        <div className="container mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-12 divide-y md:divide-y-0 md:divide-x md:divide-x-reverse divide-white/20">
+          <div className="space-y-3 pt-8 md:pt-0">
+            <div className="text-4xl font-bold font-heading text-[var(--color-champagne-400)]">2007</div>
+            <div className="text-lg font-bold">{isAr ? 'منذ عام' : 'Since'}</div>
+            <div className="text-sm text-zinc-300">{isAr ? 'رحلة من الشغف والإبداع في قلب عمّان.' : 'A journey of passion and creativity in the heart of Amman.'}</div>
+          </div>
+          <div className="space-y-3 pt-8 md:pt-0">
+            <div className="text-4xl font-bold font-heading text-[var(--color-champagne-400)]">4.7</div>
+            <div className="text-lg font-bold">{isAr ? 'نجوم' : 'Stars'}</div>
+            <div className="text-sm text-zinc-300">{isAr ? '216+ تقييم حقيقي على جوجل' : '216+ Real reviews on Google'}</div>
+          </div>
+          <div className="space-y-3 pt-8 md:pt-0">
+            <div className="text-4xl font-bold font-heading text-[var(--color-champagne-400)] text-xl">
+              {isAr ? 'وسط البلد' : 'Downtown'}
+            </div>
+            <div className="text-lg font-bold">{isAr ? 'موقعنا' : 'Location'}</div>
+            <div className="text-sm text-zinc-300">{isAr ? 'شارع الأمير محمد، عمّان.' : 'Prince Mohammed St, Amman.'}</div>
           </div>
         </div>
       </section>

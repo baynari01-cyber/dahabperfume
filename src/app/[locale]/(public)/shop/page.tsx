@@ -92,7 +92,7 @@ export default async function ShopPage({ params }: { params: Promise<{ locale: s
                     <h3 className="text-lg font-bold text-[var(--color-forest-900)] mb-1 group-hover:text-[var(--color-champagne-600)] transition-colors">{product.nameAr}</h3>
                     <p className="text-xs text-zinc-500 mb-2">{product.category.name}</p>
                     <div className="mt-auto text-[var(--color-champagne-600)] font-bold text-lg">
-                      {lowestPrice > 0 ? filsToDisplay(lowestPrice, isAr ? 'ar' : 'en') : 'نفذت الكمية'}
+                      {lowestPrice > 0 ? filsToDisplay(lowestPrice, locale === 'ar' ? 'ar' : 'en') : 'نفذت الكمية'}
                     </div>
                   </div>
                   <div className="mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">

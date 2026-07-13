@@ -9,12 +9,23 @@ export async function requireAuth() {
   if (!session) {
     redirect('/admin/login');
   }
+
+  // Note: Absolute POS Cashier Isolation (P2-002) is enforced by Next.js middleware
+  // which blocks Cashier roles from accessing /admin/* routes entirely.
   
   return session;
 }
 
 export async function requirePermission(action: string) {
   const session = await requireAuth();
+  
+  // P1-009: Sync Permissions to Schema
+  // Dynamically register the permission if it does not exist, so admins can manage it.
+  await prisma.permission.upsert({
+    where: { action },
+    update: {},
+    create: { action, description: `Auto-registered permission for ${action}` }
+  });
   
   const overrides = await prisma.employeePermission.findMany({
     where: {
@@ -48,6 +59,16 @@ export async function requirePermission(action: string) {
   
   if (!hasRolePermission) {
     throw new Error(`Unauthorized Access: Missing ${action}`);
+  }
+  
+  return session;
+}
+
+export async function requireSuperAdmin() {
+  const session = await requireAuth();
+  
+  if (session.employee.role.name !== 'Admin' && session.employee.role.name !== 'Super Admin') {
+    throw new Error('Unauthorized Access: Super Admin required');
   }
   
   return session;
