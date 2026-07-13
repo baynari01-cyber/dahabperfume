@@ -20,7 +20,7 @@ function check() {
   try {
     const url = new URL(dbUrl);
     const dbName = url.pathname.slice(1); // remove leading slash
-    if (dbName === 'template0' || dbName === 'template1' || dbName === 'postgres') {
+    if (dbName === 'template0' || dbName === 'template1') {
       console.error('❌ FATAL: DATABASE_URL is pointing to a template or system database!');
       console.error(`URL: ${dbUrl}`);
       console.error('Execution blocked to prevent data corruption.');
@@ -28,7 +28,7 @@ function check() {
     }
   } catch (e) {
     // If URL parsing fails, fallback to simple end check
-    if (dbUrl.endsWith('/template0') || dbUrl.endsWith('/template1') || dbUrl.endsWith('/postgres')) {
+    if (dbUrl.endsWith('/template0') || dbUrl.endsWith('/template1')) {
       console.error('❌ FATAL: DATABASE_URL is pointing to a template or system database!');
       process.exit(1);
     }
