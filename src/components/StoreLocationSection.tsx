@@ -76,7 +76,7 @@ export function StoreLocationSection({ settings }: StoreLocationSectionProps) {
           <span className="text-[10px] tracking-widest font-bold text-[var(--color-champagne-600)] uppercase block">
             {isAr ? 'موقعنا الرسمي' : 'Our Showroom'}
           </span>
-          <h2 className="text-2xl md:text-3xl font-bold font-heading text-[var(--color-forest-900)]">
+          <h2 className="text-2xl md:text-3xl font-bold font-heading text-[var(--color-charcoal-900)]">
             {isAr ? 'تفضل بزيارة معرض دهب للعطور' : 'Visit Dahab Perfumes Store'}
           </h2>
           <div className="w-16 h-1 bg-[var(--color-champagne-600)] mx-auto rounded-full" />
@@ -90,7 +90,7 @@ export function StoreLocationSection({ settings }: StoreLocationSectionProps) {
             <div className="space-y-6">
               {/* Store Title */}
               <div>
-                <h3 className="text-xl font-bold text-[var(--color-forest-900)]">
+                <h3 className="text-xl font-bold text-[var(--color-charcoal-900)]">
                   {settings.storeName}
                 </h3>
                 <p className="text-xs text-zinc-400 mt-1">
@@ -137,7 +137,7 @@ export function StoreLocationSection({ settings }: StoreLocationSectionProps) {
               {settings.directionsButtonEnabled && (
                 <button
                   onClick={handleDirectionsClick}
-                  className="w-full bg-[var(--color-forest-900)] hover:bg-[var(--color-forest-800)] text-white text-xs font-bold py-3 rounded-sm transition-all shadow-sm flex items-center justify-center gap-2"
+                  className="w-full bg-[var(--color-charcoal-900)] hover:bg-[var(--color-charcoal-800)] text-white text-xs font-bold py-3 rounded-sm transition-all shadow-sm flex items-center justify-center gap-2"
                 >
                   <Map className="w-4 h-4" />
                   <span>{isAr ? 'الحصول على الاتجاهات' : 'Get Directions'}</span>
@@ -181,7 +181,7 @@ export function StoreLocationSection({ settings }: StoreLocationSectionProps) {
               </>
             ) : (
               // Privacy and Performance placeholder
-              <div className="absolute inset-0 w-full h-full flex flex-col items-center justify-center p-6 text-center bg-[var(--color-forest-950)] text-white select-none">
+              <div className="absolute inset-0 w-full h-full flex flex-col items-center justify-center p-6 text-center bg-[var(--color-charcoal-950)] text-white select-none">
                 <div className="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-2xl mb-4 shadow-inner">
                   <MapPin className="w-6 h-6 text-white/70" />
                 </div>

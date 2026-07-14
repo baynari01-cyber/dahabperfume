@@ -37,7 +37,7 @@ export function ShopFilters({ categories, initialMinPrice = 0, initialMaxPrice =
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-sm border border-[var(--color-ivory-200)] sticky top-24">
-      <h3 className="font-bold text-lg text-[var(--color-forest-900)] mb-4 border-b pb-2">تصفية البحث</h3>
+      <h3 className="font-bold text-lg text-[var(--color-charcoal-900)] mb-4 border-b pb-2">تصفية البحث</h3>
       
       <div className="mb-6">
         <h4 className="font-bold text-sm text-zinc-700 mb-3">المجموعة</h4>
@@ -124,7 +124,7 @@ export function ShopFilters({ categories, initialMinPrice = 0, initialMaxPrice =
       
       <button 
         onClick={handleApply}
-        className="w-full bg-[var(--color-forest-900)] hover:bg-[var(--color-forest-800)] text-white py-2 rounded-md font-bold text-sm transition-colors"
+        className="w-full bg-[var(--color-charcoal-900)] hover:bg-[var(--color-charcoal-800)] text-white py-2 rounded-md font-bold text-sm transition-colors"
       >
         تطبيق الفلاتر
       </button>

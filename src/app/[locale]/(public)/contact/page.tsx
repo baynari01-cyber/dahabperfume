@@ -17,13 +17,13 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
   return (
     <div className="container mx-auto px-6 py-16">
       <div className="max-w-3xl mx-auto bg-white border border-[var(--color-ivory-200)] rounded-lg p-10 shadow-sm">
-        <h1 className="text-4xl font-bold font-heading text-[var(--color-forest-900)] mb-8 border-b pb-4">
+        <h1 className="text-4xl font-bold font-heading text-[var(--color-charcoal-900)] mb-8 border-b pb-4">
           {isAr ? 'تواصل معنا' : 'Contact Us'}
         </h1>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
           <div>
-            <h2 className="text-xl font-bold text-[var(--color-forest-900)] mb-4">
+            <h2 className="text-xl font-bold text-[var(--color-charcoal-900)] mb-4">
               {isAr ? 'معلومات الاتصال' : 'Contact Info'}
             </h2>
             <div className="space-y-4 text-zinc-700">
@@ -51,7 +51,7 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
           </div>
 
           <div>
-            <h2 className="text-xl font-bold text-[var(--color-forest-900)] mb-4">
+            <h2 className="text-xl font-bold text-[var(--color-charcoal-900)] mb-4">
               {isAr ? 'أرسل لنا رسالة' : 'Send a Message'}
             </h2>
             <form className="space-y-4">
@@ -87,7 +87,7 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
               </div>
               <button
                 type="submit"
-                className="w-full bg-[var(--color-forest-900)] hover:bg-[var(--color-forest-800)] text-white py-3 rounded font-bold transition-colors"
+                className="w-full bg-[var(--color-charcoal-900)] hover:bg-[var(--color-charcoal-800)] text-white py-3 rounded font-bold transition-colors"
               >
                 {isAr ? 'إرسال' : 'Send'}
               </button>

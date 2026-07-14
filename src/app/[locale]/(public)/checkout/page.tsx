@@ -90,7 +90,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ locale: str
 
   return (
     <div className="container mx-auto px-6 py-12 bg-[var(--color-ivory-100)] min-h-screen">
-      <h1 className="text-3xl font-bold font-heading text-[var(--color-forest-900)] mb-8">
+      <h1 className="text-3xl font-bold font-heading text-[var(--color-charcoal-900)] mb-8">
         {isAr ? 'إتمام الشراء' : 'Checkout'}
       </h1>
       
@@ -214,7 +214,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ locale: str
               <button
                 type="submit"
                 disabled={isPending || cartItems.length === 0}
-                className="w-full bg-[var(--color-forest-900)] hover:bg-[var(--color-forest-800)] text-white font-bold py-4 rounded transition-colors disabled:opacity-50"
+                className="w-full bg-[var(--color-charcoal-900)] hover:bg-[var(--color-charcoal-800)] text-white font-bold py-4 rounded transition-colors disabled:opacity-50"
               >
                 {isPending ? (isAr ? 'جاري المعالجة...' : 'Processing...') : (isAr ? 'تأكيد الطلب عبر واتساب' : 'Confirm Order via WhatsApp')}
               </button>
@@ -287,7 +287,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ locale: str
                         : (isAr ? 'شحن مجاني' : 'Free Shipping')}
                     </span>
                   </div>
-                  <div className="flex justify-between text-xl font-bold text-[var(--color-forest-900)] pt-2 border-t">
+                  <div className="flex justify-between text-xl font-bold text-[var(--color-charcoal-900)] pt-2 border-t">
                     <span>{isAr ? 'الإجمالي' : 'Total'}</span>
                     <span>{filsToDisplay(getGrandTotal(), isAr ? 'ar' : 'en')}</span>
                   </div>

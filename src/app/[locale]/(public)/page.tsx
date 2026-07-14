@@ -5,10 +5,7 @@ import { getHeroSlides, getHeroCarouselSettings, getStoreLocationSettings } from
 import { HeroCarousel } from '@/components/HeroCarousel';
 import { StoreLocationSection } from '@/components/StoreLocationSection';
 import { WishlistHeart } from '@/components/WishlistHeart';
-<<<<<<< HEAD
-=======
 import { MobileCategoriesFeed } from '@/components/MobileCategoriesFeed';
->>>>>>> f8d5952 (hehhee)
 import { filsToDisplay } from '@/lib/money';
 import { Sparkles } from 'lucide-react';
 
@@ -50,10 +47,6 @@ export default async function StoreFrontPage({ params }: { params: Promise<Param
   // 3. Fetch Store location settings
   const locationSettings = await getStoreLocationSettings();
 
-<<<<<<< HEAD
-  // 4. Fetch Collections (Categories)
-  const collections = await prisma.category.findMany();
-=======
   // 4. Fetch Collections (Categories) with products for mobile feed
   const collections = await prisma.category.findMany({
     include: {
@@ -70,7 +63,6 @@ export default async function StoreFrontPage({ params }: { params: Promise<Param
       }
     }
   });
->>>>>>> f8d5952 (hehhee)
 
   // Default mock collections if none configured in CMS
   const defaultSlides: any[] = [
@@ -154,7 +146,7 @@ export default async function StoreFrontPage({ params }: { params: Promise<Param
       )}
 
       {/* Hero Section */}
-      <section className="relative w-full bg-[var(--color-forest-900)] text-white py-12 md:py-20 overflow-hidden flex items-center min-h-[550px]">
+      <section className="relative w-full bg-[var(--color-charcoal-900)] text-white py-12 md:py-20 overflow-hidden flex items-center min-h-[550px]">
         <div className="container mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-20">
           
           {/* Content Column */}
@@ -209,7 +201,7 @@ export default async function StoreFrontPage({ params }: { params: Promise<Param
       <section id="find-your-scent" className="py-16 bg-white">
         <div className="container mx-auto px-6">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold font-heading text-[var(--color-forest-900)] mb-4">
+            <h2 className="text-3xl font-bold font-heading text-[var(--color-charcoal-900)] mb-4">
               {isAr ? 'اختر العطر حسب الحالة، لا حسب الزحمة.' : 'Choose your scent by mood, not by trend.'}
             </h2>
             <div className="w-16 h-1 bg-[var(--color-champagne-600)] mx-auto rounded-full" />
@@ -224,22 +216,22 @@ export default async function StoreFrontPage({ params }: { params: Promise<Param
                       <img src={collection.imagePath.startsWith('local://') ? '/product-placeholder.png' : collection.imagePath} alt={collection.name} className="w-full h-full object-cover" />
                     </div>
                   )}
-                  <h3 className="text-xl font-bold text-[var(--color-forest-900)] mb-2">{collection.name}</h3>
+                  <h3 className="text-xl font-bold text-[var(--color-charcoal-900)] mb-2">{collection.name}</h3>
                   {collection.description && <p className="text-zinc-600 line-clamp-2 text-sm">{collection.description}</p>}
                 </div>
               </Link>
             )) : (
               <>
                 <div className="p-8 bg-zinc-50 rounded-lg border border-zinc-100 hover:shadow-md transition-shadow">
-                  <h3 className="text-xl font-bold text-[var(--color-forest-900)] mb-4">{isAr ? 'رجالي' : 'Men'}</h3>
+                  <h3 className="text-xl font-bold text-[var(--color-charcoal-900)] mb-4">{isAr ? 'رجالي' : 'Men'}</h3>
                   <p className="text-zinc-600">{isAr ? 'عطور رجالية بحضور فخم وثبات يدوم طويلاً.' : 'Men\'s fragrances with a luxurious presence and long-lasting hold.'}</p>
                 </div>
                 <div className="p-8 bg-zinc-50 rounded-lg border border-zinc-100 hover:shadow-md transition-shadow">
-                  <h3 className="text-xl font-bold text-[var(--color-forest-900)] mb-4">{isAr ? 'نسائي' : 'Women'}</h3>
+                  <h3 className="text-xl font-bold text-[var(--color-charcoal-900)] mb-4">{isAr ? 'نسائي' : 'Women'}</h3>
                   <p className="text-zinc-600">{isAr ? 'تركيبات ناعمة وجذابة تناسب كافة المناسبات.' : 'Soft and attractive compositions suitable for all occasions.'}</p>
                 </div>
                 <div className="p-8 bg-zinc-50 rounded-lg border border-zinc-100 hover:shadow-md transition-shadow">
-                  <h3 className="text-xl font-bold text-[var(--color-forest-900)] mb-4">{isAr ? 'عود' : 'Oud'}</h3>
+                  <h3 className="text-xl font-bold text-[var(--color-charcoal-900)] mb-4">{isAr ? 'عود' : 'Oud'}</h3>
                   <p className="text-zinc-600">{isAr ? 'عود، عنبر، مسك وتوابل دافئة بحضور واضح.' : 'Oud, amber, musk and warm spices with a clear presence.'}</p>
                 </div>
               </>
@@ -255,20 +247,16 @@ export default async function StoreFrontPage({ params }: { params: Promise<Param
           {/* Mobile Specific: Categories Feed */}
           <MobileCategoriesFeed categories={collections} locale={locale} isAr={isAr} />
 
-<<<<<<< HEAD
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-=======
           {/* Desktop Specific: Featured Products Grid */}
           <div className="hidden md:block">
             <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold text-[var(--color-forest-900)] mb-4">
+              <h2 className="text-3xl md:text-4xl font-bold text-[var(--color-charcoal-900)] mb-4">
                 {isAr ? 'الأكثر مبيعاً' : 'Best Sellers'}
               </h2>
               <div className="w-24 h-1 bg-[var(--color-champagne-600)] mx-auto" />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
->>>>>>> f8d5952 (hehhee)
             {featuredProducts.map((product) => {
               const mainImage = product.images.find(img => img.isMain) || product.images[0];
               const lowestPrice = product.variants.length > 0 
@@ -289,7 +277,7 @@ export default async function StoreFrontPage({ params }: { params: Promise<Param
                         stockStatus: product.stockStatus
                       }} />
                     </div>
-                    <div className="absolute inset-0 flex items-center justify-center text-[var(--color-forest-600)]">
+                    <div className="absolute inset-0 flex items-center justify-center text-[var(--color-charcoal-600)]">
                       {mainImage ? (
                         <div className="w-full h-full bg-cover bg-center group-hover:scale-105 transition-transform duration-500" style={{ backgroundImage: `url(${mainImage.url.startsWith('local://') ? '/product-placeholder.png' : mainImage.url})` }} />
                       ) : (
@@ -298,7 +286,7 @@ export default async function StoreFrontPage({ params }: { params: Promise<Param
                     </div>
                   </div>
                   <div className="text-center flex-1 flex flex-col">
-                    <h3 className="text-lg font-bold text-[var(--color-forest-900)] mb-1 group-hover:text-[var(--color-champagne-600)] transition-colors">
+                    <h3 className="text-lg font-bold text-[var(--color-charcoal-900)] mb-1 group-hover:text-[var(--color-champagne-600)] transition-colors">
                       {isAr ? product.nameAr : product.nameEn}
                     </h3>
                     {product.category && <p className="text-xs text-zinc-500 mb-2">{product.category.name}</p>}
@@ -307,17 +295,14 @@ export default async function StoreFrontPage({ params }: { params: Promise<Param
                     </div>
                   </div>
                   <div className="mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <button className="w-full py-2 bg-[var(--color-forest-900)] hover:bg-[var(--color-forest-800)] text-white rounded-sm text-sm font-bold shadow-md">
+                    <button className="w-full py-2 bg-[var(--color-charcoal-900)] hover:bg-[var(--color-charcoal-800)] text-white rounded-sm text-sm font-bold shadow-md">
                       {isAr ? 'عرض التفاصيل' : 'View Details'}
                     </button>
                   </div>
                 </Link>
               );
             })}
-<<<<<<< HEAD
-=======
             </div>
->>>>>>> f8d5952 (hehhee)
           </div>
         </div>
       </section>
@@ -356,7 +341,7 @@ export default async function StoreFrontPage({ params }: { params: Promise<Param
             <span className="text-[var(--color-champagne-600)] font-bold tracking-widest uppercase text-sm">
               {isAr ? 'عن دهب للعطور' : 'About Dahab Perfumes'}
             </span>
-            <h2 className="text-4xl font-bold font-heading text-[var(--color-forest-900)]">
+            <h2 className="text-4xl font-bold font-heading text-[var(--color-charcoal-900)]">
               {isAr ? 'قصتنا' : 'Our Story'}
             </h2>
             <p className="text-xl text-zinc-700 font-medium italic">
@@ -373,7 +358,7 @@ export default async function StoreFrontPage({ params }: { params: Promise<Param
                   ? 'مع مرور الوقت، توسّعنا لنبدأ فصلاً جديداً من النمو والتميّز. واليوم، نحن إحدى كبرى محلات العطور في المملكة الأردنية الهاشمية، شهادةً على عقود من العمل المتفاني والالتزام بالجودة.'
                   : 'Over time, we expanded to begin a new chapter of growth and excellence. Today, we are one of the largest perfume stores in the Hashemite Kingdom of Jordan, a testament to decades of dedicated work and commitment to quality.'}
               </p>
-              <p className="font-bold text-[var(--color-forest-900)] text-lg pt-4">
+              <p className="font-bold text-[var(--color-charcoal-900)] text-lg pt-4">
                 {isAr 
                   ? 'نمزج بين أصالة تراثنا وشغفنا بالابتكار لنخلق روائح تلامس القلب وتبقى للأبد.'
                   : 'We blend the authenticity of our heritage with our passion for innovation to create scents that touch the heart and last forever.'}
@@ -381,10 +366,10 @@ export default async function StoreFrontPage({ params }: { params: Promise<Param
             </div>
             
             <div className="pt-8 flex flex-col sm:flex-row justify-center items-center gap-4">
-              <a href="#store-location" className="px-8 py-3 bg-[var(--color-forest-900)] hover:bg-[var(--color-forest-800)] text-white font-bold rounded-sm transition-all shadow-md">
+              <a href="#store-location" className="px-8 py-3 bg-[var(--color-charcoal-900)] hover:bg-[var(--color-charcoal-800)] text-white font-bold rounded-sm transition-all shadow-md">
                 {isAr ? 'زيارة المعرض' : 'Visit Showroom'}
               </a>
-              <a href={`tel:${locationSettings.phone}`} className="px-8 py-3 bg-transparent border-2 border-[var(--color-forest-900)] text-[var(--color-forest-900)] hover:bg-[var(--color-forest-900)] hover:text-white font-bold rounded-sm transition-all">
+              <a href={`tel:${locationSettings.phone}`} className="px-8 py-3 bg-transparent border-2 border-[var(--color-charcoal-900)] text-[var(--color-charcoal-900)] hover:bg-[var(--color-charcoal-900)] hover:text-white font-bold rounded-sm transition-all">
                 {isAr ? 'تواصل معنا' : 'Contact Us'}
               </a>
             </div>
@@ -396,7 +381,7 @@ export default async function StoreFrontPage({ params }: { params: Promise<Param
       <section className="py-24 bg-[var(--color-ivory-50)] border-y border-[var(--color-ivory-200)] relative overflow-hidden">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 text-9xl text-[var(--color-ivory-200)] opacity-50 select-none font-serif">"</div>
         <div className="container mx-auto px-6 text-center relative z-10">
-          <p className="text-2xl md:text-3xl font-heading font-medium text-[var(--color-forest-900)] leading-relaxed max-w-4xl mx-auto">
+          <p className="text-2xl md:text-3xl font-heading font-medium text-[var(--color-charcoal-900)] leading-relaxed max-w-4xl mx-auto">
             {isAr 
               ? '«نحن عشاق العطور وصناع الذكريات، نؤمن بأن كل عطر يحمل قصة، وكل شعور له نفحة.»'
               : '"We are perfume lovers and memory makers, we believe that every perfume carries a story, and every feeling has a scent."'}
@@ -405,7 +390,7 @@ export default async function StoreFrontPage({ params }: { params: Promise<Param
       </section>
 
       {/* Stats/Benefits Section */}
-      <section id="benefits" className="py-16 bg-[var(--color-forest-900)] text-white text-center">
+      <section id="benefits" className="py-16 bg-[var(--color-charcoal-900)] text-white text-center">
         <div className="container mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-12 divide-y md:divide-y-0 md:divide-x md:divide-x-reverse divide-white/20">
           <div className="space-y-3 pt-8 md:pt-0">
             <div className="text-4xl font-bold font-heading text-[var(--color-champagne-400)]">2007</div>

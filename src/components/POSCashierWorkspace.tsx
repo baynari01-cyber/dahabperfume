@@ -393,7 +393,7 @@ export function POSCashierWorkspace({
             onClick={() => setMobileTab('catalog')}
             className={`flex-1 text-center py-3 font-bold text-sm border-b-2 transition-colors ${
               mobileTab === 'catalog'
-                ? 'border-[var(--color-forest-900)] text-[var(--color-forest-900)]'
+                ? 'border-[var(--color-charcoal-900)] text-[var(--color-charcoal-900)]'
                 : 'border-transparent text-zinc-500'
             }`}
           >
@@ -403,7 +403,7 @@ export function POSCashierWorkspace({
             onClick={() => setMobileTab('cart')}
             className={`flex-1 text-center py-3 font-bold text-sm border-b-2 transition-colors relative ${
               mobileTab === 'cart'
-                ? 'border-[var(--color-forest-900)] text-[var(--color-forest-900)]'
+                ? 'border-[var(--color-charcoal-900)] text-[var(--color-charcoal-900)]'
                 : 'border-transparent text-zinc-500'
             }`}
           >
@@ -554,7 +554,7 @@ export function POSCashierWorkspace({
               )}
               <div className="flex justify-between text-base font-bold text-zinc-900 pt-1.5 border-t">
                 <span>الإجمالي الكلي</span>
-                <span className="text-lg text-[var(--color-forest-900)]">
+                <span className="text-lg text-[var(--color-charcoal-900)]">
                   {(getGrandTotal() / 1000).toFixed(3)} د.أ
                 </span>
               </div>
@@ -563,13 +563,13 @@ export function POSCashierWorkspace({
             <div className="grid grid-cols-2 gap-3 text-xs md:text-sm font-bold">
               <button
                 onClick={() => setPaymentMethod('CASH')}
-                className={`py-2 border rounded transition-colors ${paymentMethod === 'CASH' ? 'bg-[var(--color-forest-900)] text-white border-transparent' : 'bg-white text-zinc-700 border-zinc-300'}`}
+                className={`py-2 border rounded transition-colors ${paymentMethod === 'CASH' ? 'bg-[var(--color-charcoal-900)] text-white border-transparent' : 'bg-white text-zinc-700 border-zinc-300'}`}
               >
                 نقدي
               </button>
               <button
                 onClick={() => setPaymentMethod('CARD')}
-                className={`py-2 border rounded transition-colors ${paymentMethod === 'CARD' ? 'bg-[var(--color-forest-900)] text-white border-transparent' : 'bg-white text-zinc-700 border-zinc-300'}`}
+                className={`py-2 border rounded transition-colors ${paymentMethod === 'CARD' ? 'bg-[var(--color-charcoal-900)] text-white border-transparent' : 'bg-white text-zinc-700 border-zinc-300'}`}
               >
                 بطاقة
               </button>
@@ -598,7 +598,7 @@ export function POSCashierWorkspace({
             <button
               onClick={handleCheckout}
               disabled={isPending || cart.length === 0}
-              className="w-full bg-[var(--color-forest-900)] hover:bg-[var(--color-forest-800)] text-white font-bold py-3 rounded transition-colors disabled:opacity-50 text-base"
+              className="w-full bg-[var(--color-charcoal-900)] hover:bg-[var(--color-charcoal-800)] text-white font-bold py-3 rounded transition-colors disabled:opacity-50 text-base"
             >
               {isPending ? 'جاري الدفع...' : 'تأكيد الدفع وإصدار الفاتورة'}
             </button>
@@ -612,7 +612,7 @@ export function POSCashierWorkspace({
           <div className="bg-white rounded-t-2xl md:rounded-lg p-6 max-w-lg w-full shadow-2xl space-y-4 max-h-[85vh] overflow-y-auto">
             <div className="flex justify-between items-start border-b pb-3">
               <div>
-                <h3 className="text-xl font-bold text-[var(--color-forest-900)]">{selectedProduct.nameAr}</h3>
+                <h3 className="text-xl font-bold text-[var(--color-charcoal-900)]">{selectedProduct.nameAr}</h3>
                 <span className="text-[10px] text-zinc-400">SKU: {selectedProduct.sku}</span>
               </div>
               <button
@@ -681,7 +681,7 @@ export function POSCashierWorkspace({
                 <button
                   onClick={handleUnlockAction}
                   disabled={isPending}
-                  className="bg-[var(--color-forest-900)] hover:bg-[var(--color-forest-800)] text-white py-3 rounded font-bold text-sm transition-colors disabled:opacity-50"
+                  className="bg-[var(--color-charcoal-900)] hover:bg-[var(--color-charcoal-800)] text-white py-3 rounded font-bold text-sm transition-colors disabled:opacity-50"
                 >
                   {isPending ? 'جاري التحقق...' : 'فتح الشاشة'}
                 </button>

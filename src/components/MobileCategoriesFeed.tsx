@@ -40,7 +40,7 @@ export function MobileCategoriesFeed({ categories, locale, isAr }: { categories:
         return (
           <div key={category.id} className="space-y-4">
             <div className="flex items-center justify-between px-6">
-              <h3 className="text-2xl font-bold font-heading text-[var(--color-forest-900)]">
+              <h3 className="text-2xl font-bold font-heading text-[var(--color-charcoal-900)]">
                 {category.name}
               </h3>
               <Link href={`/${locale}/shop?category=${category.id}`} className="text-xs font-bold text-[var(--color-champagne-600)] hover:underline">
@@ -79,13 +79,13 @@ export function MobileCategoriesFeed({ categories, locale, isAr }: { categories:
                       {mainImage ? (
                         <div className="w-full h-full bg-cover bg-center" style={{ backgroundImage: `url(${mainImage.url.startsWith('local://') ? '/product-placeholder.png' : mainImage.url})` }} />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-[var(--color-forest-600)] text-[10px]">
+                        <div className="w-full h-full flex items-center justify-center text-[var(--color-charcoal-600)] text-[10px]">
                           {isAr ? 'صورة العطر' : 'Perfume Image'}
                         </div>
                       )}
                     </div>
                     <div className="p-3 text-center flex-1 flex flex-col">
-                      <h4 className="text-sm font-bold text-[var(--color-forest-900)] mb-1 truncate">
+                      <h4 className="text-sm font-bold text-[var(--color-charcoal-900)] mb-1 truncate">
                         {isAr ? product.nameAr : product.nameEn}
                       </h4>
                       <div className="mt-auto text-xs text-[var(--color-champagne-600)] font-bold">

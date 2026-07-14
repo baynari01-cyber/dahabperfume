@@ -47,14 +47,14 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         <span>/</span>
         <Link href={`/${locale}/shop`}>المتجر</Link>
         <span>/</span>
-        <span className="text-[var(--color-forest-900)]">{product.nameAr}</span>
+        <span className="text-[var(--color-charcoal-900)]">{product.nameAr}</span>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
         {/* Product Images */}
         <div className="space-y-4">
           <div className="aspect-square bg-[var(--color-ivory-200)] rounded-lg overflow-hidden relative border border-[var(--color-ivory-200)]">
-             <div className="absolute inset-0 flex items-center justify-center text-[var(--color-forest-600)]">
+             <div className="absolute inset-0 flex items-center justify-center text-[var(--color-charcoal-600)]">
                {mainImage ? (
                   <div className="w-full h-full bg-cover bg-center" style={{ backgroundImage: `url(${mainImage.url.startsWith('local://') ? '/product-placeholder.png' : mainImage.url})` }} />
                ) : 'صورة العطر'}
@@ -73,10 +73,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
         {/* Product Info */}
         <div className="flex flex-col">
-          <h1 className="text-3xl md:text-4xl font-bold font-heading text-[var(--color-forest-900)] mb-2">
+          <h1 className="text-3xl md:text-4xl font-bold font-heading text-[var(--color-charcoal-900)] mb-2">
             {product.nameAr}
           </h1>
-          <p className="text-[var(--color-forest-700)] text-lg mb-6">
+          <p className="text-[var(--color-charcoal-700)] text-lg mb-6">
             {product.category.name} {product.family ? `| ${product.family.name}` : ''}
           </p>
 
@@ -89,7 +89,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           {/* Accords (Olfactory Notes) */}
           {product.accords.length > 0 && (
             <div className="border-t border-[var(--color-ivory-200)] pt-8">
-              <h3 className="text-lg font-bold font-heading text-[var(--color-forest-900)] mb-6">البصمة العطرية</h3>
+              <h3 className="text-lg font-bold font-heading text-[var(--color-charcoal-900)] mb-6">البصمة العطرية</h3>
               <div className="space-y-4">
                 {product.accords.map((accord) => (
                   <div key={accord.accordId} className="flex items-center justify-between">

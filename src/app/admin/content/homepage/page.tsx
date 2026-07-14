@@ -34,7 +34,7 @@ export default async function AdminCMSHomepagePage() {
       
       <main className="flex-1 p-6 md:p-12 font-sans w-full max-w-6xl mx-auto space-y-6">
         <div>
-          <h1 className="text-2xl font-bold font-heading text-[var(--color-forest-900)]">إدارة الصفحة الرئيسية والمحتوى</h1>
+          <h1 className="text-2xl font-bold font-heading text-[var(--color-charcoal-900)]">إدارة الصفحة الرئيسية والمحتوى</h1>
           <p className="text-xs text-zinc-500 mt-1">التحكم في لافتات الإعلانات الترويجية وتحديد موقع المتجر الجغرافي المعروض.</p>
         </div>
 

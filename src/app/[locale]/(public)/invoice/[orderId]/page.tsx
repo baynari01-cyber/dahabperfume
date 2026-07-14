@@ -32,7 +32,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ orderI
       <div className="max-w-2xl mx-auto bg-white shadow-xl rounded-lg overflow-hidden border border-zinc-200">
         
         {/* Invoice Header */}
-        <div className="bg-[var(--color-forest-900)] text-white p-8 flex justify-between items-center border-b-4 border-[var(--color-champagne-600)] relative">
+        <div className="bg-[var(--color-charcoal-900)] text-white p-8 flex justify-between items-center border-b-4 border-[var(--color-champagne-600)] relative">
           {/* Logo added for print and display */}
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center p-2 shadow-md">
@@ -80,12 +80,12 @@ export default async function InvoicePage({ params }: { params: Promise<{ orderI
               {order.items.map((item) => (
                 <tr key={item.id} className="border-b border-zinc-100">
                   <td className="py-4">
-                    <p className="font-bold text-[var(--color-forest-900)]">{item.name}</p>
+                    <p className="font-bold text-[var(--color-charcoal-900)]">{item.name}</p>
                     <p className="text-xs text-zinc-500">{item.size} - SKU: {item.sku}</p>
                   </td>
                   <td className="py-4 text-center font-bold">{item.quantity}</td>
                   <td className="py-4 text-zinc-700">{filsToDisplay(item.unitPrice, 'ar')}</td>
-                  <td className="py-4 font-bold text-[var(--color-forest-900)]">{filsToDisplay(item.total, 'ar')}</td>
+                  <td className="py-4 font-bold text-[var(--color-charcoal-900)]">{filsToDisplay(item.total, 'ar')}</td>
                 </tr>
               ))}
             </tbody>
@@ -102,7 +102,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ orderI
                 <span>رسوم التوصيل</span>
                 <span>{filsToDisplay(order.shippingCost, 'ar')}</span>
               </div>
-              <div className="flex justify-between font-bold text-xl text-[var(--color-forest-900)] pt-3 border-t-2 border-zinc-200">
+              <div className="flex justify-between font-bold text-xl text-[var(--color-charcoal-900)] pt-3 border-t-2 border-zinc-200">
                 <span>الإجمالي</span>
                 <span className="text-[var(--color-champagne-600)]">{filsToDisplay(order.totalAmount, 'ar')}</span>
               </div>

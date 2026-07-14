@@ -16,7 +16,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
   return (
     <div className="container mx-auto px-6 py-16">
       <div className="max-w-3xl mx-auto bg-white border border-[var(--color-ivory-200)] rounded-lg p-10 shadow-sm">
-        <h1 className="text-4xl font-bold font-heading text-[var(--color-forest-900)] mb-8 border-b pb-4">
+        <h1 className="text-4xl font-bold font-heading text-[var(--color-charcoal-900)] mb-8 border-b pb-4">
           {isAr ? cms.titleAr : cms.titleEn}
         </h1>
         <p className="text-lg text-zinc-700 leading-relaxed whitespace-pre-line">

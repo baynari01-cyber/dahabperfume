@@ -60,7 +60,7 @@ export function POSSettingsForm({ initialSettings, adminId }: POSSettingsFormPro
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
       {/* 1. Form controls */}
       <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg border border-[var(--color-ivory-200)] shadow-sm space-y-6">
-        <h2 className="text-base font-bold text-[var(--color-forest-800)] border-b pb-2">خيارات شاشة الكاشير والوردية</h2>
+        <h2 className="text-base font-bold text-[var(--color-charcoal-800)] border-b pb-2">خيارات شاشة الكاشير والوردية</h2>
         
         <div className="flex items-center gap-3">
           <input 
@@ -68,7 +68,7 @@ export function POSSettingsForm({ initialSettings, adminId }: POSSettingsFormPro
             id="requireShiftToSell" 
             checked={settings.requireShiftToSell} 
             onChange={() => handleCheckboxChange('requireShiftToSell')} 
-            className="w-5 h-5 accent-[var(--color-forest-800)]"
+            className="w-5 h-5 accent-[var(--color-charcoal-800)]"
           />
           <label htmlFor="requireShiftToSell" className="font-bold text-xs cursor-pointer text-zinc-700">إلزام فتح الوردية لإجراء أي عملية بيع</label>
         </div>
@@ -79,12 +79,12 @@ export function POSSettingsForm({ initialSettings, adminId }: POSSettingsFormPro
             id="allowManagerOverride" 
             checked={settings.allowManagerOverride} 
             onChange={() => handleCheckboxChange('allowManagerOverride')} 
-            className="w-5 h-5 accent-[var(--color-forest-800)]"
+            className="w-5 h-5 accent-[var(--color-charcoal-800)]"
           />
           <label htmlFor="allowManagerOverride" className="font-bold text-xs cursor-pointer text-zinc-700">السماح بتجاوز المدير عند اختلاف جرد الوردية</label>
         </div>
 
-        <h2 className="text-base font-bold text-[var(--color-forest-800)] border-b pb-2 pt-2">شاشة الخمول التلقائي والخصوصية</h2>
+        <h2 className="text-base font-bold text-[var(--color-charcoal-800)] border-b pb-2 pt-2">شاشة الخمول التلقائي والخصوصية</h2>
 
         <div className="flex items-center gap-3">
           <input 
@@ -92,7 +92,7 @@ export function POSSettingsForm({ initialSettings, adminId }: POSSettingsFormPro
             id="posIdleEnabled" 
             checked={settings.posIdleEnabled} 
             onChange={() => handleCheckboxChange('posIdleEnabled')} 
-            className="w-5 h-5 accent-[var(--color-forest-800)]"
+            className="w-5 h-5 accent-[var(--color-charcoal-800)]"
           />
           <label htmlFor="posIdleEnabled" className="font-bold text-xs cursor-pointer text-zinc-750">تفعيل شاشة الخمول عند عدم تفاعل الكاشير</label>
         </div>
@@ -109,7 +109,7 @@ export function POSSettingsForm({ initialSettings, adminId }: POSSettingsFormPro
                     onClick={() => handlePresetTimeout(mins)}
                     className={`px-3 py-1.5 rounded border text-xs font-bold transition-all ${
                       settings.posIdleTimeoutMinutes === mins 
-                        ? 'bg-[var(--color-forest-900)] text-white border-transparent' 
+                        ? 'bg-[var(--color-charcoal-900)] text-white border-transparent' 
                         : 'bg-white text-zinc-650 border-zinc-300 hover:bg-zinc-100'
                     }`}
                   >
@@ -136,7 +136,7 @@ export function POSSettingsForm({ initialSettings, adminId }: POSSettingsFormPro
                   id="posIdleShowClock" 
                   checked={settings.posIdleShowClock} 
                   onChange={() => handleCheckboxChange('posIdleShowClock')} 
-                  className="w-4 h-4 accent-[var(--color-forest-850)]"
+                  className="w-4 h-4 accent-[var(--color-charcoal-850)]"
                 />
                 <label htmlFor="posIdleShowClock" className="text-xs text-zinc-700 cursor-pointer">عرض الساعة</label>
               </div>
@@ -146,7 +146,7 @@ export function POSSettingsForm({ initialSettings, adminId }: POSSettingsFormPro
                   id="posIdleShowDate" 
                   checked={settings.posIdleShowDate} 
                   onChange={() => handleCheckboxChange('posIdleShowDate')} 
-                  className="w-4 h-4 accent-[var(--color-forest-850)]"
+                  className="w-4 h-4 accent-[var(--color-charcoal-850)]"
                 />
                 <label htmlFor="posIdleShowDate" className="text-xs text-zinc-700 cursor-pointer">عرض التاريخ</label>
               </div>
@@ -158,7 +158,7 @@ export function POSSettingsForm({ initialSettings, adminId }: POSSettingsFormPro
                 id="posIdleRequirePin" 
                 checked={settings.posIdleRequirePin} 
                 onChange={() => handleCheckboxChange('posIdleRequirePin')} 
-                className="w-4 h-4 accent-[var(--color-forest-850)]"
+                className="w-4 h-4 accent-[var(--color-charcoal-850)]"
               />
               <label htmlFor="posIdleRequirePin" className="text-xs text-zinc-700 cursor-pointer">إلزام إدخال رمز الـ PIN لإلغاء القفل</label>
             </div>
@@ -186,7 +186,7 @@ export function POSSettingsForm({ initialSettings, adminId }: POSSettingsFormPro
           </div>
         )}
 
-        <h2 className="text-base font-bold text-[var(--color-forest-800)] border-b pb-2 pt-2">جلسة عمل الكاشير (Session Lifetime)</h2>
+        <h2 className="text-base font-bold text-[var(--color-charcoal-800)] border-b pb-2 pt-2">جلسة عمل الكاشير (Session Lifetime)</h2>
         
         <div className="space-y-2">
           <label className="text-xs font-bold text-zinc-650">مدة الجلسة القصوى (بالساعات)</label>
@@ -204,7 +204,7 @@ export function POSSettingsForm({ initialSettings, adminId }: POSSettingsFormPro
         <button 
           type="submit" 
           disabled={isPending}
-          className="w-full bg-[var(--color-forest-800)] hover:bg-[var(--color-forest-900)] text-white font-bold p-3 rounded hover:shadow transition-colors text-xs"
+          className="w-full bg-[var(--color-charcoal-800)] hover:bg-[var(--color-charcoal-900)] text-white font-bold p-3 rounded hover:shadow transition-colors text-xs"
         >
           {isPending ? 'جاري الحفظ...' : 'حفظ إعدادات الكاشير'}
         </button>

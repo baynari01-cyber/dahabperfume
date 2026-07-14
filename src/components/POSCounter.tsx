@@ -149,7 +149,7 @@ export function POSCounter({ products, settings }: POSCounterProps) {
           onClick={() => setMobileTab('catalog')}
           className={`flex-1 text-center py-3 font-bold text-sm border-b-2 transition-colors ${
             mobileTab === 'catalog'
-              ? 'border-[var(--color-forest-900)] text-[var(--color-forest-900)]'
+              ? 'border-[var(--color-charcoal-900)] text-[var(--color-charcoal-900)]'
               : 'border-transparent text-zinc-500'
           }`}
         >
@@ -159,7 +159,7 @@ export function POSCounter({ products, settings }: POSCounterProps) {
           onClick={() => setMobileTab('cart')}
           className={`flex-1 text-center py-3 font-bold text-sm border-b-2 transition-colors relative ${
             mobileTab === 'cart'
-              ? 'border-[var(--color-forest-900)] text-[var(--color-forest-900)]'
+              ? 'border-[var(--color-charcoal-900)] text-[var(--color-charcoal-900)]'
               : 'border-transparent text-zinc-500'
           }`}
         >
@@ -329,7 +329,7 @@ export function POSCounter({ products, settings }: POSCounterProps) {
             
             <div className="flex justify-between text-base md:text-lg font-bold text-zinc-900 pt-1.5 border-t">
               <span>الإجمالي الكلي</span>
-              <span className="text-lg md:text-xl text-[var(--color-forest-900)]">
+              <span className="text-lg md:text-xl text-[var(--color-charcoal-900)]">
                 {(getGrandTotal() / 1000).toFixed(3)} د.أ
               </span>
             </div>
@@ -339,13 +339,13 @@ export function POSCounter({ products, settings }: POSCounterProps) {
           <div className="grid grid-cols-2 gap-3 text-xs md:text-sm font-bold">
             <button
               onClick={() => setPaymentMethod('CASH')}
-              className={`py-2 border rounded transition-colors ${paymentMethod === 'CASH' ? 'bg-[var(--color-forest-900)] text-white border-transparent' : 'bg-white text-zinc-700 border-zinc-300'}`}
+              className={`py-2 border rounded transition-colors ${paymentMethod === 'CASH' ? 'bg-[var(--color-charcoal-900)] text-white border-transparent' : 'bg-white text-zinc-700 border-zinc-300'}`}
             >
               نقدي
             </button>
             <button
               onClick={() => setPaymentMethod('CARD')}
-              className={`py-2 border rounded transition-colors ${paymentMethod === 'CARD' ? 'bg-[var(--color-forest-900)] text-white border-transparent' : 'bg-white text-zinc-700 border-zinc-300'}`}
+              className={`py-2 border rounded transition-colors ${paymentMethod === 'CARD' ? 'bg-[var(--color-charcoal-900)] text-white border-transparent' : 'bg-white text-zinc-700 border-zinc-300'}`}
             >
               بطاقة
             </button>
@@ -375,7 +375,7 @@ export function POSCounter({ products, settings }: POSCounterProps) {
           <button
             onClick={handleCheckout}
             disabled={isPending || cart.length === 0}
-            className="w-full bg-[var(--color-forest-900)] hover:bg-[var(--color-forest-800)] text-white font-bold py-3.5 rounded transition-colors disabled:opacity-50 text-base shadow-md mt-1"
+            className="w-full bg-[var(--color-charcoal-900)] hover:bg-[var(--color-charcoal-800)] text-white font-bold py-3.5 rounded transition-colors disabled:opacity-50 text-base shadow-md mt-1"
           >
             {isPending ? 'جاري المعالجة...' : 'دفع وإصدار الفاتورة'}
           </button>
@@ -388,7 +388,7 @@ export function POSCounter({ products, settings }: POSCounterProps) {
           <div className="bg-white rounded-t-2xl md:rounded-lg p-6 max-w-md w-full border-t-4 md:border-4 border-[var(--color-champagne-600)] shadow-2xl space-y-4">
             <div className="flex justify-between items-start">
               <div>
-                <h3 className="text-lg font-bold text-[var(--color-forest-900)]">
+                <h3 className="text-lg font-bold text-[var(--color-charcoal-900)]">
                   {selectedProduct.nameAr}
                 </h3>
                 <p className="text-[10px] text-zinc-500">{selectedProduct.sku}</p>
@@ -450,7 +450,7 @@ export function POSCounter({ products, settings }: POSCounterProps) {
             <div className="space-y-2">
               <button
                 onClick={() => window.print()}
-                className="w-full bg-[var(--color-forest-900)] text-white py-2.5 rounded font-bold hover:bg-[var(--color-forest-800)] text-sm shadow"
+                className="w-full bg-[var(--color-charcoal-900)] text-white py-2.5 rounded font-bold hover:bg-[var(--color-charcoal-800)] text-sm shadow"
               >
                 طباعة الفاتورة والوصل
               </button>

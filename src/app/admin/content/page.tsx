@@ -41,7 +41,7 @@ export default async function AdminContentPage() {
       <main className="flex-1 overflow-y-auto p-8 font-sans">
         <div className="flex justify-between items-center mb-8 border-b border-[var(--color-ivory-200)] pb-4">
           <div>
-            <h1 className="text-3xl font-bold font-heading text-[var(--color-forest-900)]">
+            <h1 className="text-3xl font-bold font-heading text-[var(--color-charcoal-900)]">
               إدارة المحتوى والموقع (CMS)
             </h1>
             <p className="text-zinc-650 mt-1">تحديث النصوص الرئيسية، شريط الإعلانات، وعناوين الصفحة الرئيسية</p>
@@ -49,7 +49,7 @@ export default async function AdminContentPage() {
           <div>
             <a 
               href="/admin/content/homepage" 
-              className="bg-[var(--color-forest-800)] hover:bg-[var(--color-forest-700)] text-white px-6 py-2 rounded font-bold transition-colors inline-flex items-center gap-2 ml-3"
+              className="bg-[var(--color-charcoal-800)] hover:bg-[var(--color-charcoal-700)] text-white px-6 py-2 rounded font-bold transition-colors inline-flex items-center gap-2 ml-3"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
               إدارة شريط الإعلانات (Hero Slider)
@@ -67,7 +67,7 @@ export default async function AdminContentPage() {
         <form action={handleSaveCMS} className="max-w-3xl bg-white p-8 rounded-lg border border-[var(--color-ivory-200)] shadow-sm space-y-8">
           {/* Announcement Bar */}
           <div>
-            <h2 className="text-lg font-bold text-[var(--color-forest-900)] border-b pb-2 mb-4">شريط الإعلانات العلوي</h2>
+            <h2 className="text-lg font-bold text-[var(--color-charcoal-900)] border-b pb-2 mb-4">شريط الإعلانات العلوي</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-zinc-700 mb-1">الإعلان باللغة العربية</label>
@@ -92,7 +92,7 @@ export default async function AdminContentPage() {
 
           {/* Hero Section */}
           <div>
-            <h2 className="text-lg font-bold text-[var(--color-forest-900)] border-b pb-2 mb-4">قسم الواجهة الرئيسي (Hero)</h2>
+            <h2 className="text-lg font-bold text-[var(--color-charcoal-900)] border-b pb-2 mb-4">قسم الواجهة الرئيسي (Hero)</h2>
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -140,7 +140,7 @@ export default async function AdminContentPage() {
           <div className="pt-4 border-t">
             <button
               type="submit"
-              className="bg-[var(--color-forest-900)] hover:bg-[var(--color-forest-800)] text-white px-6 py-2.5 rounded font-bold text-sm transition-colors"
+              className="bg-[var(--color-charcoal-900)] hover:bg-[var(--color-charcoal-800)] text-white px-6 py-2.5 rounded font-bold text-sm transition-colors"
             >
               حفظ التعديلات
             </button>

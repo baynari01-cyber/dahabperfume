@@ -26,7 +26,7 @@ export function CategoryNewForm() {
 
   return (
     <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg border border-[var(--color-ivory-200)] shadow-sm h-fit">
-      <h3 className="text-lg font-bold text-[var(--color-forest-900)] mb-4 border-b pb-2">
+      <h3 className="text-lg font-bold text-[var(--color-charcoal-900)] mb-4 border-b pb-2">
         إضافة مجموعة جديدة
       </h3>
       <div className="space-y-4">
@@ -37,7 +37,7 @@ export function CategoryNewForm() {
             name="image"
             required
             accept="image/*"
-            className="w-full border border-zinc-200 rounded px-3 py-2 text-sm bg-white outline-none focus:border-[var(--color-forest-800)]"
+            className="w-full border border-zinc-200 rounded px-3 py-2 text-sm bg-white outline-none focus:border-[var(--color-charcoal-800)]"
           />
         </div>
         <div>
@@ -47,13 +47,13 @@ export function CategoryNewForm() {
             name="name"
             required
             placeholder="مثال: عطور صيفية"
-            className="w-full border border-zinc-200 rounded px-3 py-2 text-sm bg-white outline-none focus:border-[var(--color-forest-800)]"
+            className="w-full border border-zinc-200 rounded px-3 py-2 text-sm bg-white outline-none focus:border-[var(--color-charcoal-800)]"
           />
         </div>
         <button 
           type="submit"
           disabled={isPending} 
-          className="w-full bg-[var(--color-forest-900)] text-white py-2.5 rounded font-bold text-sm hover:bg-[var(--color-forest-800)] disabled:opacity-50 transition-colors"
+          className="w-full bg-[var(--color-charcoal-900)] text-white py-2.5 rounded font-bold text-sm hover:bg-[var(--color-charcoal-800)] disabled:opacity-50 transition-colors"
         >
           {isPending ? 'جاري الإضافة...' : 'إضافة مجموعة'}
         </button>

@@ -25,7 +25,7 @@ export default async function AdminInventoryPage() {
       <main className="flex-1 overflow-y-auto p-4 md:p-8 font-sans w-full max-w-full">
         <div className="flex justify-between items-center mb-8 border-b border-[var(--color-ivory-200)] pb-4">
           <div>
-            <h1 className="text-3xl font-bold font-heading text-[var(--color-forest-900)]">
+            <h1 className="text-3xl font-bold font-heading text-[var(--color-charcoal-900)]">
               سجل الحركات ومخزون الزيوت العطرية
             </h1>
             <p className="text-zinc-650 mt-1">تتبع كميات اللترات المتبقية لكل عطر وحركات التعديل والبيع</p>
@@ -35,7 +35,7 @@ export default async function AdminInventoryPage() {
         {/* Essential Oils Summary Table */}
         <div className="mb-10 bg-white rounded-lg shadow-sm border border-[var(--color-ivory-200)] overflow-x-auto">
           <div className="p-4 bg-[var(--color-champagne-50)] border-b border-[var(--color-ivory-200)]">
-            <h2 className="text-lg font-bold text-[var(--color-forest-900)]">مخزون الزيوت العطرية الحالي (باللتر)</h2>
+            <h2 className="text-lg font-bold text-[var(--color-charcoal-900)]">مخزون الزيوت العطرية الحالي (باللتر)</h2>
           </div>
           <table className="w-full text-right border-collapse min-w-[600px]">
             <thead className="bg-zinc-50 border-b border-zinc-200">

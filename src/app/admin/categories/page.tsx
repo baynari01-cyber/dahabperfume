@@ -20,7 +20,7 @@ export default async function AdminCategoriesPage() {
       <main className="flex-1 overflow-y-auto p-4 md:p-8 font-sans w-full max-w-full">
         <div className="flex justify-between items-center mb-8 border-b border-[var(--color-ivory-200)] pb-4">
           <div>
-            <h1 className="text-3xl font-bold font-heading text-[var(--color-forest-900)]">
+            <h1 className="text-3xl font-bold font-heading text-[var(--color-charcoal-900)]">
               المجموعات (Collections)
             </h1>
             <p className="text-zinc-650 mt-1">إدارة المجموعات الأساسية لتقسيم العطور</p>
@@ -51,7 +51,7 @@ export default async function AdminCategoriesPage() {
                     </td>
                     <td className="px-6 py-4 font-bold text-zinc-900">{cat.name}</td>
                     <td className="px-6 py-4 font-mono text-sm">{cat.slug}</td>
-                    <td className="px-6 py-4 text-center font-bold text-[var(--color-forest-800)]">
+                    <td className="px-6 py-4 text-center font-bold text-[var(--color-charcoal-800)]">
                       {cat._count.products}
                     </td>
                   </tr>

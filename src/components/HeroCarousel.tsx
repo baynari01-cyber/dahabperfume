@@ -191,7 +191,7 @@ export function HeroCarousel({ slides, settings }: HeroCarouselProps) {
 
   return (
     <div 
-      className="relative w-full h-full min-h-[300px] lg:min-h-[400px] bg-[var(--color-forest-950)] rounded-md overflow-hidden border border-white/5 shadow-md select-none group/carousel focus:outline-none focus:ring-1 focus:ring-[var(--color-champagne-500)]"
+      className="relative w-full h-full min-h-[300px] lg:min-h-[400px] bg-[var(--color-charcoal-950)] rounded-md overflow-hidden border border-white/5 shadow-md select-none group/carousel focus:outline-none focus:ring-1 focus:ring-[var(--color-champagne-500)]"
       onMouseEnter={() => settings.pauseOnHover && setIsPaused(true)}
       onMouseLeave={() => settings.pauseOnHover && setIsPaused(false)}
       onKeyDown={handleKeyDown}

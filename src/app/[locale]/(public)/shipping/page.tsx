@@ -24,7 +24,7 @@ export default async function ShippingPage({ params }: { params: Promise<{ local
   return (
     <div className="container mx-auto px-6 py-16">
       <div className="max-w-3xl mx-auto bg-white border border-[var(--color-ivory-200)] rounded-lg p-10 shadow-sm">
-        <h1 className="text-4xl font-bold font-heading text-[var(--color-forest-900)] mb-8 border-b pb-4">
+        <h1 className="text-4xl font-bold font-heading text-[var(--color-charcoal-900)] mb-8 border-b pb-4">
           {isAr ? cms.titleAr : cms.titleEn}
         </h1>
         
@@ -33,7 +33,7 @@ export default async function ShippingPage({ params }: { params: Promise<{ local
         </p>
 
         <div className="space-y-6">
-          <h2 className="text-2xl font-bold text-[var(--color-forest-900)] mb-4">
+          <h2 className="text-2xl font-bold text-[var(--color-charcoal-900)] mb-4">
             {isAr ? 'مناطق التوصيل' : 'Delivery Zones'}
           </h2>
           

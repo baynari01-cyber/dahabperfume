@@ -237,7 +237,7 @@ export function ProductEditForm({ productId, initialData, categories }: ProductE
         <a href="/admin/products" className="px-6 py-2 border rounded font-bold text-zinc-600 hover:bg-zinc-50 transition-colors text-sm">
           إلغاء
         </a>
-        <button type="submit" disabled={pending} className="bg-[var(--color-forest-900)] text-white px-8 py-2 rounded font-bold hover:bg-[var(--color-forest-800)] transition-colors text-sm shadow-sm disabled:opacity-60 flex items-center gap-2">
+        <button type="submit" disabled={pending} className="bg-[var(--color-charcoal-900)] text-white px-8 py-2 rounded font-bold hover:bg-[var(--color-charcoal-800)] transition-colors text-sm shadow-sm disabled:opacity-60 flex items-center gap-2">
           {pending && <Loader2 className="w-4 h-4 animate-spin" />}
           {pending ? 'جاري الحفظ...' : 'حفظ التعديلات'}
         </button>

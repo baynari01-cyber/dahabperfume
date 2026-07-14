@@ -2,19 +2,12 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-<<<<<<< HEAD
-import { usePathname } from 'next/navigation';
-=======
 import { usePathname, useRouter } from 'next/navigation';
->>>>>>> f8d5952 (hehhee)
 import { useEffect, useState } from 'react';
 
 export function Header() {
   const pathname = usePathname() || '/ar';
-<<<<<<< HEAD
-=======
   const router = useRouter();
->>>>>>> f8d5952 (hehhee)
   const locale = pathname.startsWith('/en') ? 'en' : 'ar';
 
   const [cartCount, setCartCount] = useState(0);
@@ -38,10 +31,6 @@ export function Header() {
 
   const toggleLocale = () => {
     const newLocale = locale === 'ar' ? 'en' : 'ar';
-<<<<<<< HEAD
-    const newPath = pathname.replace(`/${locale}`, `/${newLocale}`);
-    window.location.href = newPath || `/${newLocale}`;
-=======
     // Remove current locale prefix safely
     let pathWithoutLocale = pathname;
     if (pathname === `/${locale}` || pathname.startsWith(`/${locale}/`)) {
@@ -54,7 +43,6 @@ export function Header() {
     // Push new path and close menu
     router.push(newPath);
     setIsMobileMenuOpen(false);
->>>>>>> f8d5952 (hehhee)
   };
 
   return (
@@ -62,7 +50,7 @@ export function Header() {
       <div className="container mx-auto px-6 py-4 flex items-center justify-between">
         {/* Mobile Hamburger Button */}
         <button 
-          className="md:hidden text-[var(--color-forest-900)] hover:text-[var(--color-champagne-600)] transition-colors"
+          className="md:hidden text-[var(--color-charcoal-900)] hover:text-[var(--color-champagne-600)] transition-colors"
           onClick={() => setIsMobileMenuOpen(true)}
           aria-label="Open mobile menu"
         >
@@ -70,7 +58,7 @@ export function Header() {
         </button>
 
         {/* Action Icons (Desktop mostly, but Cart/Lang can show on mobile) */}
-        <div className="flex items-center gap-3 sm:gap-4 text-[var(--color-forest-900)]">
+        <div className="flex items-center gap-3 sm:gap-4 text-[var(--color-charcoal-900)]">
           {/* Language Switcher */}
           <button onClick={toggleLocale} aria-label="Language Switch" className="hover:text-[var(--color-champagne-600)] transition-colors flex items-center gap-1 font-bold text-sm">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
@@ -94,7 +82,7 @@ export function Header() {
         </div>
 
         {/* Center: Navigation Links */}
-        <nav className="hidden md:flex items-center gap-8 font-bold text-[var(--color-forest-900)]">
+        <nav className="hidden md:flex items-center gap-8 font-bold text-[var(--color-charcoal-900)]">
           <Link href={`/${locale}`} className="text-[var(--color-champagne-600)]">الرئيسية</Link>
           <Link href={`/${locale}/shop`} className="hover:text-[var(--color-champagne-600)] transition-colors">المتجر</Link>
           <Link href={`/${locale}/collections`} className="hover:text-[var(--color-champagne-600)] transition-colors">المجموعات</Link>
@@ -104,8 +92,7 @@ export function Header() {
 
         {/* Right Side: Logo */}
         <Link href={`/${locale}`} className="flex items-center gap-2">
-          <Image src="/logo.png" alt="Dahab Perfumes Logo" width={40} height={40} className="object-contain w-10 h-10" />
-          <span className="text-[var(--color-champagne-600)] font-heading font-bold text-xl tracking-widest hidden sm:inline-block">DAHAB</span>
+          <Image src="/logo.png" alt="Dahab Perfumes Logo" width={120} height={40} className="object-contain h-10 w-auto" />
         </Link>
       </div>
 
@@ -121,8 +108,7 @@ export function Header() {
           <div className="relative w-4/5 max-w-sm bg-[var(--color-ivory-100)] h-full shadow-2xl flex flex-col transform transition-transform duration-300">
             <div className="p-6 flex items-center justify-between border-b border-[var(--color-ivory-200)]">
               <Link href={`/${locale}`} className="flex items-center gap-2" onClick={() => setIsMobileMenuOpen(false)}>
-                <Image src="/logo.png" alt="Dahab Perfumes Logo" width={32} height={32} className="object-contain" />
-                <span className="text-[var(--color-champagne-600)] font-heading font-bold text-lg tracking-widest">DAHAB</span>
+                <Image src="/logo.png" alt="Dahab Perfumes Logo" width={120} height={40} className="object-contain h-10 w-auto" />
               </Link>
               <button 
                 onClick={() => setIsMobileMenuOpen(false)}
@@ -132,7 +118,7 @@ export function Header() {
               </button>
             </div>
             
-            <nav className="flex-1 overflow-y-auto py-6 px-6 flex flex-col gap-6 text-lg font-bold text-[var(--color-forest-900)]">
+            <nav className="flex-1 overflow-y-auto py-6 px-6 flex flex-col gap-6 text-lg font-bold text-[var(--color-charcoal-900)]">
               <Link href={`/${locale}`} onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[var(--color-champagne-600)] transition-colors border-b border-zinc-100 pb-2">الرئيسية</Link>
               <Link href={`/${locale}/shop`} onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[var(--color-champagne-600)] transition-colors border-b border-zinc-100 pb-2">المتجر</Link>
               <Link href={`/${locale}/collections`} onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[var(--color-champagne-600)] transition-colors border-b border-zinc-100 pb-2">المجموعات العطرية</Link>
@@ -142,7 +128,7 @@ export function Header() {
             </nav>
             
             <div className="p-6 border-t border-[var(--color-ivory-200)] bg-white mt-auto">
-              <button onClick={toggleLocale} className="w-full py-3 bg-[var(--color-forest-900)] text-white font-bold rounded flex items-center justify-center gap-2 hover:bg-[var(--color-forest-800)]">
+              <button onClick={toggleLocale} className="w-full py-3 bg-[var(--color-charcoal-900)] text-white font-bold rounded flex items-center justify-center gap-2 hover:bg-[var(--color-charcoal-800)]">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
                 {locale === 'ar' ? 'Switch to English' : 'التبديل للعربية'}
               </button>

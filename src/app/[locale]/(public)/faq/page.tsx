@@ -32,14 +32,14 @@ export default async function FAQPage({ params }: { params: Promise<{ locale: st
   return (
     <div className="container mx-auto px-6 py-16">
       <div className="max-w-3xl mx-auto bg-white border border-[var(--color-ivory-200)] rounded-lg p-10 shadow-sm">
-        <h1 className="text-4xl font-bold font-heading text-[var(--color-forest-900)] mb-8 border-b pb-4">
+        <h1 className="text-4xl font-bold font-heading text-[var(--color-charcoal-900)] mb-8 border-b pb-4">
           {isAr ? 'الأسئلة الشائعة' : 'Frequently Asked Questions'}
         </h1>
         
         <div className="space-y-6">
           {faqs.map((faq: any, idx: number) => (
             <div key={idx} className="border-b border-zinc-150 pb-4">
-              <h3 className="font-bold text-lg text-[var(--color-forest-900)] mb-2">
+              <h3 className="font-bold text-lg text-[var(--color-charcoal-900)] mb-2">
                 {isAr ? faq.qAr : faq.qEn}
               </h3>
               <p className="text-zinc-600 leading-relaxed">

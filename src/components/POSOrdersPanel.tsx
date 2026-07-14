@@ -100,7 +100,7 @@ export function POSOrdersPanel({
 
   return (
     <div className={isInline ? "flex flex-col h-full w-full bg-white shadow-2xl rounded-xl overflow-hidden relative" : "fixed inset-y-0 left-0 w-full md:w-96 bg-white shadow-2xl z-50 flex flex-col animate-slide-in-right relative"} dir="rtl">
-      <div className="bg-[var(--color-forest-900)] text-white p-4 flex justify-between items-center shrink-0">
+      <div className="bg-[var(--color-charcoal-900)] text-white p-4 flex justify-between items-center shrink-0">
         <h2 className="font-bold text-lg">طلبات المتجر (Online)</h2>
         <div className="flex items-center gap-3">
           <button onClick={fetchOrders} className="hover:text-[var(--color-champagne-400)] transition-colors">
@@ -115,10 +115,10 @@ export function POSOrdersPanel({
       </div>
 
       <div className="flex bg-white border-b border-zinc-200 shrink-0 overflow-x-auto whitespace-nowrap scrollbar-hide">
-        <button onClick={() => setActiveTab('NEW')} className={`flex-1 min-w-[80px] py-3 text-sm font-bold border-b-2 transition-colors ${activeTab === 'NEW' ? 'border-[var(--color-forest-900)] text-[var(--color-forest-900)]' : 'border-transparent text-zinc-500 hover:text-zinc-700'}`}>جديدة ومؤكدة</button>
-        <button onClick={() => setActiveTab('PREP')} className={`flex-1 min-w-[80px] py-3 text-sm font-bold border-b-2 transition-colors ${activeTab === 'PREP' ? 'border-[var(--color-forest-900)] text-[var(--color-forest-900)]' : 'border-transparent text-zinc-500 hover:text-zinc-700'}`}>قيد التجهيز</button>
-        <button onClick={() => setActiveTab('SHIPPED')} className={`flex-1 min-w-[80px] py-3 text-sm font-bold border-b-2 transition-colors ${activeTab === 'SHIPPED' ? 'border-[var(--color-forest-900)] text-[var(--color-forest-900)]' : 'border-transparent text-zinc-500 hover:text-zinc-700'}`}>في الطريق</button>
-        <button onClick={() => setActiveTab('DONE')} className={`flex-1 min-w-[80px] py-3 text-sm font-bold border-b-2 transition-colors ${activeTab === 'DONE' ? 'border-[var(--color-forest-900)] text-[var(--color-forest-900)]' : 'border-transparent text-zinc-500 hover:text-zinc-700'}`}>مكتملة وملغاة</button>
+        <button onClick={() => setActiveTab('NEW')} className={`flex-1 min-w-[80px] py-3 text-sm font-bold border-b-2 transition-colors ${activeTab === 'NEW' ? 'border-[var(--color-charcoal-900)] text-[var(--color-charcoal-900)]' : 'border-transparent text-zinc-500 hover:text-zinc-700'}`}>جديدة ومؤكدة</button>
+        <button onClick={() => setActiveTab('PREP')} className={`flex-1 min-w-[80px] py-3 text-sm font-bold border-b-2 transition-colors ${activeTab === 'PREP' ? 'border-[var(--color-charcoal-900)] text-[var(--color-charcoal-900)]' : 'border-transparent text-zinc-500 hover:text-zinc-700'}`}>قيد التجهيز</button>
+        <button onClick={() => setActiveTab('SHIPPED')} className={`flex-1 min-w-[80px] py-3 text-sm font-bold border-b-2 transition-colors ${activeTab === 'SHIPPED' ? 'border-[var(--color-charcoal-900)] text-[var(--color-charcoal-900)]' : 'border-transparent text-zinc-500 hover:text-zinc-700'}`}>في الطريق</button>
+        <button onClick={() => setActiveTab('DONE')} className={`flex-1 min-w-[80px] py-3 text-sm font-bold border-b-2 transition-colors ${activeTab === 'DONE' ? 'border-[var(--color-charcoal-900)] text-[var(--color-charcoal-900)]' : 'border-transparent text-zinc-500 hover:text-zinc-700'}`}>مكتملة وملغاة</button>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-zinc-50">
@@ -134,7 +134,7 @@ export function POSOrdersPanel({
               className="bg-white p-4 rounded-lg shadow-sm border border-zinc-200 cursor-pointer hover:border-[var(--color-champagne-600)] transition-colors"
             >
               <div className="flex justify-between items-start mb-2">
-                <span className="font-bold text-[var(--color-forest-900)]">#{order.reference}</span>
+                <span className="font-bold text-[var(--color-charcoal-900)]">#{order.reference}</span>
                 <span className={`text-xs font-bold px-2 py-1 rounded ${
                   order.status === 'CONFIRMED' ? 'bg-blue-100 text-blue-800' :
                   order.status === 'SHIPPED' ? 'bg-purple-100 text-purple-800' :
@@ -161,7 +161,7 @@ export function POSOrdersPanel({
                 <span>&rarr;</span>
                 <span>رجوع</span>
               </button>
-              <h3 className="font-bold text-[var(--color-forest-900)]">تفاصيل الطلب #{selectedOrder.reference}</h3>
+              <h3 className="font-bold text-[var(--color-charcoal-900)]">تفاصيل الطلب #{selectedOrder.reference}</h3>
             </div>
           </div>
           
@@ -196,7 +196,7 @@ export function POSOrdersPanel({
                 <span>رسوم التوصيل:</span>
                 <span>{(selectedOrder.shippingCost / 1000).toFixed(3)} د.أ</span>
               </div>
-              <div className="flex justify-between font-bold text-lg text-[var(--color-forest-900)] pt-2 border-t">
+              <div className="flex justify-between font-bold text-lg text-[var(--color-charcoal-900)] pt-2 border-t">
                 <span>الإجمالي الكامل:</span>
                 <span>{(selectedOrder.totalAmount / 1000).toFixed(3)} د.أ</span>
               </div>

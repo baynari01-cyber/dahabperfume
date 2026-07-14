@@ -67,7 +67,7 @@ export default async function AdminProductEditPage({
             <span className="text-zinc-300">/</span>
             <span className="text-sm font-bold text-zinc-700">تعديل المنتج</span>
           </div>
-          <h1 className="text-3xl font-bold font-heading text-[var(--color-forest-900)]">
+          <h1 className="text-3xl font-bold font-heading text-[var(--color-charcoal-900)]">
             تعديل: {product.nameAr}
           </h1>
         </div>

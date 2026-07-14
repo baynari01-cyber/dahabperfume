@@ -68,7 +68,7 @@ export function ProductVariantSelector({
 
       {/* Size Selector */}
       <div className="mb-8 mt-6">
-        <h3 className="text-sm font-bold text-[var(--color-forest-900)] mb-3">
+        <h3 className="text-sm font-bold text-[var(--color-charcoal-900)] mb-3">
           {locale === 'ar' ? 'الحجم' : 'Size'}
         </h3>
         <div className="flex flex-wrap gap-3">
@@ -79,7 +79,7 @@ export function ProductVariantSelector({
               className={`px-6 py-2 border-2 rounded-md transition-colors text-sm font-bold ${
                 selectedVariant?.id === variant.id
                   ? 'bg-[var(--color-champagne-600)] border-[var(--color-champagne-600)] text-white'
-                  : 'border-[var(--color-champagne-600)] text-[var(--color-forest-900)] hover:bg-[var(--color-champagne-50)]'
+                  : 'border-[var(--color-champagne-600)] text-[var(--color-charcoal-900)] hover:bg-[var(--color-champagne-50)]'
               }`}
             >
               {variant.size}
@@ -95,17 +95,17 @@ export function ProductVariantSelector({
 
       {/* Quantity & Add to Cart */}
       <div className="flex items-center gap-4 mb-12">
-        <div className="flex items-center border border-[var(--color-forest-900)] rounded-md">
+        <div className="flex items-center border border-[var(--color-charcoal-900)] rounded-md">
           <button 
             onClick={() => setQuantity(Math.max(1, quantity - 1))}
-            className="px-4 py-3 hover:bg-[var(--color-ivory-200)] text-[var(--color-forest-900)] transition-colors"
+            className="px-4 py-3 hover:bg-[var(--color-ivory-200)] text-[var(--color-charcoal-900)] transition-colors"
           >
             -
           </button>
-          <span className="w-12 text-center font-bold text-[var(--color-forest-900)]">{quantity}</span>
+          <span className="w-12 text-center font-bold text-[var(--color-charcoal-900)]">{quantity}</span>
           <button 
             onClick={() => setQuantity(quantity + 1)}
-            className="px-4 py-3 hover:bg-[var(--color-ivory-200)] text-[var(--color-forest-900)] transition-colors"
+            className="px-4 py-3 hover:bg-[var(--color-ivory-200)] text-[var(--color-charcoal-900)] transition-colors"
           >
             +
           </button>
@@ -113,7 +113,7 @@ export function ProductVariantSelector({
         <button 
           disabled={!selectedVariant}
           onClick={handleAddToCart}
-          className="flex-1 bg-[var(--color-forest-900)] hover:bg-[var(--color-forest-800)] disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-md transition-colors"
+          className="flex-1 bg-[var(--color-charcoal-900)] hover:bg-[var(--color-charcoal-800)] disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-md transition-colors"
         >
           {added ? (locale === 'ar' ? 'تمت الإضافة بنجاح!' : 'Added Successfully!') : (locale === 'ar' ? 'أضف إلى السلة' : 'Add to Cart')}
         </button>

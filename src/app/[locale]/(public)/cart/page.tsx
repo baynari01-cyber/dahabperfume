@@ -49,7 +49,7 @@ export default function CartPage({ params }: { params: Promise<{ locale: string 
   return (
     <div className="container mx-auto px-6 py-16 bg-[var(--color-ivory-100)] min-h-screen">
       <div className="text-center mb-16">
-        <h1 className="text-4xl font-bold font-heading text-[var(--color-forest-900)] mb-4">
+        <h1 className="text-4xl font-bold font-heading text-[var(--color-charcoal-900)] mb-4">
           {isAr ? 'سلة التسوق' : 'Shopping Cart'}
         </h1>
         <div className="w-24 h-1 bg-[var(--color-champagne-600)] mx-auto" />
@@ -58,13 +58,13 @@ export default function CartPage({ params }: { params: Promise<{ locale: string 
       <div className="max-w-4xl mx-auto">
         {cart.length === 0 ? (
           <div className="text-center py-20 bg-white rounded-lg border border-[var(--color-ivory-200)] p-8">
-            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-4 text-[var(--color-forest-600)]"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-4 text-[var(--color-charcoal-600)]"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
             <p className="text-xl text-zinc-500 mb-4">
               {isAr ? 'سلة التسوق فارغة حالياً.' : 'Your cart is currently empty.'}
             </p>
             <Link 
               href={`/${locale}/shop`}
-              className="inline-block bg-[var(--color-forest-900)] text-white px-6 py-3 rounded font-bold"
+              className="inline-block bg-[var(--color-charcoal-900)] text-white px-6 py-3 rounded font-bold"
             >
               {isAr ? 'تصفح المتجر' : 'Browse Shop'}
             </Link>
@@ -89,7 +89,7 @@ export default function CartPage({ params }: { params: Promise<{ locale: string 
 
                   <div className="flex-1">
                     <div className="flex justify-between mb-2">
-                      <h3 className="font-bold text-lg text-[var(--color-forest-900)]">
+                      <h3 className="font-bold text-lg text-[var(--color-charcoal-900)]">
                         {item.name}
                       </h3>
                       <button 
@@ -136,7 +136,7 @@ export default function CartPage({ params }: { params: Promise<{ locale: string 
 
             {/* Cart Summary */}
             <div className="bg-white p-6 rounded-lg border border-[var(--color-ivory-200)] shadow-sm h-fit">
-              <h2 className="text-xl font-bold text-[var(--color-forest-900)] mb-6 border-b pb-4">
+              <h2 className="text-xl font-bold text-[var(--color-charcoal-900)] mb-6 border-b pb-4">
                 {isAr ? 'ملخص السلة' : 'Summary'}
               </h2>
               
@@ -153,7 +153,7 @@ export default function CartPage({ params }: { params: Promise<{ locale: string 
               
               <Link 
                 href={`/${locale}/checkout`}
-                className="block text-center w-full bg-[var(--color-forest-900)] hover:bg-[var(--color-forest-800)] text-white py-3 rounded font-bold transition-colors"
+                className="block text-center w-full bg-[var(--color-charcoal-900)] hover:bg-[var(--color-charcoal-800)] text-white py-3 rounded font-bold transition-colors"
               >
                 {isAr ? 'إتمام الشراء عبر الواتساب' : 'Proceed to Checkout'}
               </Link>

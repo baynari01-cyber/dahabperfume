@@ -72,7 +72,7 @@ export default async function POSReportPage({ searchParams }: { searchParams: Pr
   return (
     <div className="min-h-screen bg-[var(--color-ivory-100)] py-12 px-6" dir="rtl">
       <div className="max-w-4xl mx-auto bg-white border border-[var(--color-ivory-200)] rounded-xl p-8 shadow-md">
-        <h1 className="text-3xl font-bold font-heading text-[var(--color-forest-900)] mb-6 border-b border-zinc-100 pb-4">
+        <h1 className="text-3xl font-bold font-heading text-[var(--color-charcoal-900)] mb-6 border-b border-zinc-100 pb-4">
           تقرير مبيعات اليوم (الإجمالي الكامل)
         </h1>
         
@@ -143,9 +143,9 @@ export default async function POSReportPage({ searchParams }: { searchParams: Pr
           </div>
 
           <div className="bg-[var(--color-champagne-50)] border border-[var(--color-champagne-200)] rounded-lg p-6 shadow-sm">
-            <h3 className="text-[var(--color-forest-900)] font-bold mb-2 text-lg">الإجمالي الكامل (Grand Total)</h3>
+            <h3 className="text-[var(--color-charcoal-900)] font-bold mb-2 text-lg">الإجمالي الكامل (Grand Total)</h3>
             <p className="text-4xl font-extrabold text-[var(--color-champagne-600)] mb-1">{filsToDisplay(grandTotal, 'ar')}</p>
-            <p className="text-sm font-bold text-[var(--color-forest-700)]">{grandItemsCount} منتج مباع إجمالاً</p>
+            <p className="text-sm font-bold text-[var(--color-charcoal-700)]">{grandItemsCount} منتج مباع إجمالاً</p>
           </div>
         </div>
 
@@ -209,7 +209,7 @@ export default async function POSReportPage({ searchParams }: { searchParams: Pr
           <PrintButton />
           <Link 
             href="/pos/cashier"
-            className="inline-block bg-[var(--color-forest-800)] text-white px-8 py-3 font-bold rounded hover:bg-[var(--color-forest-900)] transition-colors"
+            className="inline-block bg-[var(--color-charcoal-800)] text-white px-8 py-3 font-bold rounded hover:bg-[var(--color-charcoal-900)] transition-colors"
           >
             العودة لشاشة الكاشير
           </Link>

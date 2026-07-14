@@ -79,7 +79,7 @@ export default async function AdminOrderDetailPage({
               <span className="text-zinc-300">/</span>
               <span className="text-sm font-bold text-zinc-700">تفاصيل الطلب</span>
             </div>
-            <h1 className="text-3xl font-bold font-heading text-[var(--color-forest-900)] mt-2">
+            <h1 className="text-3xl font-bold font-heading text-[var(--color-charcoal-900)] mt-2">
               طلب رقم: {order.reference}
             </h1>
           </div>
@@ -90,7 +90,7 @@ export default async function AdminOrderDetailPage({
           <div className="lg:col-span-2 space-y-6">
             {/* Customer Info */}
             <div className="bg-white p-6 rounded-lg border border-[var(--color-ivory-200)] shadow-sm">
-              <h2 className="text-lg font-bold text-[var(--color-forest-900)] mb-4 border-b pb-2">
+              <h2 className="text-lg font-bold text-[var(--color-charcoal-900)] mb-4 border-b pb-2">
                 بيانات المستلم والتوصيل
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-zinc-700">
@@ -103,7 +103,7 @@ export default async function AdminOrderDetailPage({
 
             {/* Items Table */}
             <div className="bg-white p-6 rounded-lg border border-[var(--color-ivory-200)] shadow-sm">
-              <h2 className="text-lg font-bold text-[var(--color-forest-900)] mb-4 border-b pb-2">
+              <h2 className="text-lg font-bold text-[var(--color-charcoal-900)] mb-4 border-b pb-2">
                 العطور والمنتجات المطلوبة
               </h2>
               <div className="divide-y divide-zinc-100">
@@ -139,7 +139,7 @@ export default async function AdminOrderDetailPage({
                   <span>رسوم التوصيل:</span>
                   <span>{filsToDisplay(order.shippingCost, 'ar')}</span>
                 </div>
-                <div className="flex justify-between text-lg font-bold text-[var(--color-forest-900)] pt-2 border-t mt-2">
+                <div className="flex justify-between text-lg font-bold text-[var(--color-charcoal-900)] pt-2 border-t mt-2">
                   <span>المجموع الإجمالي المطلوب:</span>
                   <span>{filsToDisplay(order.totalAmount, 'ar')}</span>
                 </div>
@@ -148,7 +148,7 @@ export default async function AdminOrderDetailPage({
             
             {/* History */}
             <div className="bg-white p-6 rounded-lg border border-[var(--color-ivory-200)] shadow-sm">
-              <h2 className="text-lg font-bold text-[var(--color-forest-900)] mb-4 border-b pb-2">
+              <h2 className="text-lg font-bold text-[var(--color-charcoal-900)] mb-4 border-b pb-2">
                 سجل حالات الطلب
               </h2>
               <div className="space-y-4">
@@ -167,7 +167,7 @@ export default async function AdminOrderDetailPage({
           {/* Actions & Status Management */}
           <div className="space-y-6">
             <div className="bg-white p-6 rounded-lg border border-[var(--color-ivory-200)] shadow-sm sticky top-6">
-              <h3 className="text-lg font-bold text-[var(--color-forest-900)] mb-4 border-b pb-2">
+              <h3 className="text-lg font-bold text-[var(--color-charcoal-900)] mb-4 border-b pb-2">
                 إدارة الطلب
               </h3>
 
@@ -175,7 +175,7 @@ export default async function AdminOrderDetailPage({
                 <div className="space-y-4 mb-6 pb-6 border-b border-zinc-100">
                   <p className="text-sm text-zinc-600">الطلب جديد بانتظار التأكيد. الضغط على تأكيد سيقوم بتسجيل المبيعات وخصم مخزون اللترات فوراً.</p>
                   <form action={handleConfirm}>
-                    <button type="submit" className="w-full bg-[var(--color-forest-900)] text-white font-bold py-3 rounded hover:bg-[var(--color-forest-800)] transition-colors">
+                    <button type="submit" className="w-full bg-[var(--color-charcoal-900)] text-white font-bold py-3 rounded hover:bg-[var(--color-charcoal-800)] transition-colors">
                       تأكيد الطلب وخصم المخزون
                     </button>
                   </form>

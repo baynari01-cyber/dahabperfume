@@ -53,7 +53,7 @@ export default async function AdminShippingPage() {
                     {zone.isEnabled ? 'فعال' : 'معطل'}
                   </span>
                 </td>
-                <td className="px-6 py-4 font-bold text-[var(--color-forest-900)]">
+                <td className="px-6 py-4 font-bold text-[var(--color-charcoal-900)]">
                   {filsToDisplay(zone.fee, 'ar')}
                 </td>
                 <td className="px-6 py-4">

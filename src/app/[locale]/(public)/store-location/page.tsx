@@ -17,7 +17,7 @@ export default async function StoreLocationPage({ params }: { params: Promise<{ 
   return (
     <div className="container mx-auto px-6 py-16">
       <div className="max-w-3xl mx-auto bg-white border border-[var(--color-ivory-200)] rounded-lg p-10 shadow-sm">
-        <h1 className="text-4xl font-bold font-heading text-[var(--color-forest-900)] mb-8 border-b pb-4">
+        <h1 className="text-4xl font-bold font-heading text-[var(--color-charcoal-900)] mb-8 border-b pb-4">
           {isAr ? 'موقع المعرض' : 'Our Store Location'}
         </h1>
         
@@ -33,7 +33,7 @@ export default async function StoreLocationPage({ params }: { params: Promise<{ 
           </p>
           
           {/* Simulated Premium Map Component */}
-          <div className="w-full h-80 bg-[var(--color-ivory-200)] rounded-lg border border-[var(--color-ivory-200)] flex items-center justify-center text-center p-6 text-[var(--color-forest-900)] overflow-hidden relative shadow-inner">
+          <div className="w-full h-80 bg-[var(--color-ivory-200)] rounded-lg border border-[var(--color-ivory-200)] flex items-center justify-center text-center p-6 text-[var(--color-charcoal-900)] overflow-hidden relative shadow-inner">
             <div className="absolute inset-0 bg-[radial-gradient(#C9A06A_1px,transparent_1px)] [background-size:16px_16px] opacity-25" />
             <div className="relative z-10">
               <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-4 text-[var(--color-champagne-600)]"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>

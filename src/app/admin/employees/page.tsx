@@ -146,7 +146,7 @@ export default async function AdminEmployeesPage({
         {/* Header */}
         <div className="flex justify-between items-center mb-6 border-b border-[var(--color-ivory-200)] pb-4">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold font-heading text-[var(--color-forest-900)]">
+            <h1 className="text-2xl md:text-3xl font-bold font-heading text-[var(--color-charcoal-900)]">
               {action === 'new' ? 'إضافة موظف جديد' : action === 'edit' ? 'تعديل بيانات الموظف' : 'إدارة الموظفين والصلاحيات'}
             </h1>
             <p className="text-zinc-650 text-xs md:text-sm mt-1">التحكم بحسابات الموظفين وصلاحياتهم المباشرة</p>
@@ -154,7 +154,7 @@ export default async function AdminEmployeesPage({
           {!action && (
             <Link
               href="/admin/employees?action=new"
-              className="bg-[var(--color-forest-800)] text-white text-xs md:text-sm px-4 py-2 rounded font-bold hover:bg-[var(--color-forest-900)] transition-colors"
+              className="bg-[var(--color-charcoal-800)] text-white text-xs md:text-sm px-4 py-2 rounded font-bold hover:bg-[var(--color-charcoal-900)] transition-colors"
             >
               + إضافة موظف
             </Link>
@@ -174,7 +174,7 @@ export default async function AdminEmployeesPage({
                   name="name"
                   required
                   defaultValue={editEmployee?.name || ''}
-                  className="w-full border border-zinc-200 rounded px-3 py-2 text-sm outline-none focus:border-[var(--color-forest-800)]"
+                  className="w-full border border-zinc-200 rounded px-3 py-2 text-sm outline-none focus:border-[var(--color-charcoal-800)]"
                 />
               </div>
 
@@ -185,7 +185,7 @@ export default async function AdminEmployeesPage({
                   name="email"
                   required
                   defaultValue={editEmployee?.email || ''}
-                  className="w-full border border-zinc-200 rounded px-3 py-2 text-sm outline-none focus:border-[var(--color-forest-800)]"
+                  className="w-full border border-zinc-200 rounded px-3 py-2 text-sm outline-none focus:border-[var(--color-charcoal-800)]"
                 />
               </div>
 
@@ -197,7 +197,7 @@ export default async function AdminEmployeesPage({
                   type="password"
                   name="password"
                   placeholder={action === 'new' ? 'أدخل كلمة مرور قوية' : 'اتركه فارغاً لعدم التغيير'}
-                  className="w-full border border-zinc-200 rounded px-3 py-2 text-sm outline-none focus:border-[var(--color-forest-800)]"
+                  className="w-full border border-zinc-200 rounded px-3 py-2 text-sm outline-none focus:border-[var(--color-charcoal-800)]"
                 />
               </div>
 
@@ -207,7 +207,7 @@ export default async function AdminEmployeesPage({
                   name="roleId"
                   required
                   defaultValue={editEmployee?.roleId || ''}
-                  className="w-full border border-zinc-200 rounded px-3 py-2 text-sm outline-none bg-white focus:border-[var(--color-forest-800)]"
+                  className="w-full border border-zinc-200 rounded px-3 py-2 text-sm outline-none bg-white focus:border-[var(--color-charcoal-800)]"
                 >
                   <option value="">اختر الدور الوظيفي...</option>
                   {roles.map((role) => (
@@ -224,7 +224,7 @@ export default async function AdminEmployeesPage({
                   name="isActive"
                   required
                   defaultValue={editEmployee ? String(editEmployee.isActive) : 'true'}
-                  className="w-full border border-zinc-200 rounded px-3 py-2 text-sm outline-none bg-white focus:border-[var(--color-forest-800)]"
+                  className="w-full border border-zinc-200 rounded px-3 py-2 text-sm outline-none bg-white focus:border-[var(--color-charcoal-800)]"
                 >
                   <option value="true">نشط</option>
                   <option value="false">معطل / موقف</option>
@@ -234,7 +234,7 @@ export default async function AdminEmployeesPage({
 
             {/* Checkbox Permission Grid */}
             <div className="border-t border-zinc-100 pt-4 mt-6">
-              <h3 className="text-sm font-bold text-[var(--color-forest-900)] mb-3">الصلاحيات المخصصة (Checkbox Permissions Override)</h3>
+              <h3 className="text-sm font-bold text-[var(--color-charcoal-900)] mb-3">الصلاحيات المخصصة (Checkbox Permissions Override)</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {allPermissions.map((perm) => {
                   const isChecked = editEmployeePermIds.includes(perm.id);
@@ -247,7 +247,7 @@ export default async function AdminEmployeesPage({
                         type="checkbox"
                         name={`perm_${perm.id}`}
                         defaultChecked={isChecked}
-                        className="h-4.5 w-4.5 rounded border-zinc-300 text-[var(--color-forest-800)] focus:ring-[var(--color-forest-800)]"
+                        className="h-4.5 w-4.5 rounded border-zinc-300 text-[var(--color-charcoal-800)] focus:ring-[var(--color-charcoal-800)]"
                       />
                       <div>
                         <p className="text-sm font-bold text-zinc-800">
@@ -276,7 +276,7 @@ export default async function AdminEmployeesPage({
               </Link>
               <button
                 type="submit"
-                className="bg-[var(--color-forest-800)] text-white text-xs md:text-sm px-5 py-2 rounded font-bold hover:bg-[var(--color-forest-900)] transition-colors"
+                className="bg-[var(--color-charcoal-800)] text-white text-xs md:text-sm px-5 py-2 rounded font-bold hover:bg-[var(--color-charcoal-900)] transition-colors"
               >
                 حفظ التغييرات
               </button>
@@ -301,7 +301,7 @@ export default async function AdminEmployeesPage({
                 </div>
 
                 <div className="flex flex-wrap gap-2 text-xs pt-1">
-                  <span className="bg-[var(--color-ivory-200)] px-2 py-0.5 rounded font-bold text-[var(--color-forest-900)]">
+                  <span className="bg-[var(--color-ivory-200)] px-2 py-0.5 rounded font-bold text-[var(--color-charcoal-900)]">
                     الدور: {emp.role.name === 'Admin' ? 'مدير نظام (Admin)' : emp.role.name}
                   </span>
                   
@@ -324,7 +324,7 @@ export default async function AdminEmployeesPage({
                   </form>
                   <Link
                     href={`/admin/employees?action=edit&id=${emp.id}`}
-                    className="text-xs text-[var(--color-forest-800)] bg-[var(--color-ivory-200)] hover:bg-[var(--color-champagne-200)] px-4 py-1.5 rounded font-bold transition-colors"
+                    className="text-xs text-[var(--color-charcoal-800)] bg-[var(--color-ivory-200)] hover:bg-[var(--color-champagne-200)] px-4 py-1.5 rounded font-bold transition-colors"
                   >
                     تعديل
                   </Link>

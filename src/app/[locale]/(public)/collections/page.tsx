@@ -17,7 +17,7 @@ export default async function CollectionsPage({ params }: { params: Promise<{ lo
   return (
     <div className="bg-[var(--color-ivory-100)] min-h-screen pb-20">
       {/* Header Banner */}
-      <div className="bg-[var(--color-forest-900)] text-white py-16 text-center border-b-4 border-[var(--color-champagne-600)] relative overflow-hidden">
+      <div className="bg-[var(--color-charcoal-900)] text-white py-16 text-center border-b-4 border-[var(--color-champagne-600)] relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('/pattern.png')] opacity-10 bg-repeat" />
         <div className="relative z-10">
           <h1 className="text-4xl md:text-5xl font-bold font-heading mb-4">
@@ -53,7 +53,7 @@ export default async function CollectionsPage({ params }: { params: Promise<{ lo
                   </div>
                 )}
                 {/* Gradient Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-[var(--color-forest-900)] via-[var(--color-forest-900)]/20 to-transparent transition-opacity duration-300 opacity-90 group-hover:opacity-100" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[var(--color-charcoal-900)] via-[var(--color-charcoal-900)]/20 to-transparent transition-opacity duration-300 opacity-90 group-hover:opacity-100" />
               </div>
               
               <div className="absolute bottom-0 left-0 w-full p-8 text-white transform transition-transform duration-500 translate-y-4 group-hover:translate-y-0">
@@ -69,7 +69,7 @@ export default async function CollectionsPage({ params }: { params: Promise<{ lo
                   <p className="text-[var(--color-champagne-400)] font-bold">
                     {collection._count.products} {isAr ? 'عطور' : 'Perfumes'}
                   </p>
-                  <span className="bg-[var(--color-champagne-600)] text-[var(--color-forest-900)] p-2 rounded-full transform group-hover:rotate-45 transition-transform duration-300">
+                  <span className="bg-[var(--color-champagne-600)] text-[var(--color-charcoal-900)] p-2 rounded-full transform group-hover:rotate-45 transition-transform duration-300">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
                   </span>
                 </div>

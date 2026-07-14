@@ -47,7 +47,7 @@ const SlideEditor = ({
   return (
     <form onSubmit={onSave} className="bg-zinc-50/50 p-6 rounded-xl border border-zinc-200 shadow-sm space-y-8">
       <div className="flex items-center justify-between border-b pb-4">
-        <h3 className="text-sm font-bold text-[var(--color-forest-900)]">
+        <h3 className="text-sm font-bold text-[var(--color-charcoal-900)]">
           {isEdit ? 'تعديل الإعلان الحالي' : 'إضافة إعلان جديد'}
         </h3>
         {isEdit && (
@@ -59,7 +59,7 @@ const SlideEditor = ({
       
       {/* 1. Media Section */}
       <div className="bg-white p-5 rounded-lg border shadow-sm space-y-4">
-        <h4 className="font-bold text-sm text-[var(--color-forest-800)] border-b pb-2">1. صورة أو فيديو الإعلان</h4>
+        <h4 className="font-bold text-sm text-[var(--color-charcoal-800)] border-b pb-2">1. صورة أو فيديو الإعلان</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="space-y-3 text-center">
             <label className="text-xs font-bold text-zinc-700 block">لشاشات الكمبيوتر (عرضي)</label>
@@ -82,7 +82,7 @@ const SlideEditor = ({
 
       {/* 2. Text Content */}
       <div className="bg-white p-5 rounded-lg border shadow-sm space-y-4">
-        <h4 className="font-bold text-sm text-[var(--color-forest-800)] border-b pb-2">2. النص المكتوب على الإعلان</h4>
+        <h4 className="font-bold text-sm text-[var(--color-charcoal-800)] border-b pb-2">2. النص المكتوب على الإعلان</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-1">
             <label className="text-xs text-zinc-700 font-bold">العنوان العريض</label>
@@ -134,7 +134,7 @@ const SlideEditor = ({
 
       {/* 3. Actions / Destination */}
       <div className="bg-white p-5 rounded-lg border shadow-sm space-y-4">
-        <h4 className="font-bold text-sm text-[var(--color-forest-800)] border-b pb-2">3. أين يذهب الزبون عند الضغط؟</h4>
+        <h4 className="font-bold text-sm text-[var(--color-charcoal-800)] border-b pb-2">3. أين يذهب الزبون عند الضغط؟</h4>
         <div className="space-y-3">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1">
@@ -220,7 +220,7 @@ const SlideEditor = ({
       </div>
 
       <div className="pt-4 flex gap-3">
-        <button type="submit" disabled={isPending} className="bg-[var(--color-forest-900)] hover:bg-[var(--color-forest-800)] text-white font-bold px-8 py-3 rounded text-sm transition-colors shadow-md">
+        <button type="submit" disabled={isPending} className="bg-[var(--color-charcoal-900)] hover:bg-[var(--color-charcoal-800)] text-white font-bold px-8 py-3 rounded text-sm transition-colors shadow-md">
           {isPending ? 'جاري الحفظ...' : (isEdit ? 'حفظ التعديلات' : 'إضافة الإعلان الجديد ونشره')}
         </button>
         {isEdit && (
@@ -454,7 +454,7 @@ export function CMSHomepageForm({
       {/* 1. HERO CAROUSEL GLOBAL CONFIGURATION */}
       <div className="bg-white p-6 rounded-lg border border-[var(--color-ivory-200)] shadow-sm space-y-6">
         <div className="border-b pb-3">
-          <h2 className="text-base font-bold text-[var(--color-forest-800)]">إعدادات شريط الإعلانات التلقائي (Carousel Settings)</h2>
+          <h2 className="text-base font-bold text-[var(--color-charcoal-800)]">إعدادات شريط الإعلانات التلقائي (Carousel Settings)</h2>
           <p className="text-[10px] text-zinc-400 mt-1">تحديد فترات التناوب، وتفعيل التوقف المؤقت عند تمرير مؤشر الفأرة.</p>
         </div>
 
@@ -465,7 +465,7 @@ export function CMSHomepageForm({
               id="enabled" 
               checked={carousel.enabled} 
               onChange={(e) => handleCarouselChange('enabled', e.target.checked)} 
-              className="w-5 h-5 accent-[var(--color-forest-800)]"
+              className="w-5 h-5 accent-[var(--color-charcoal-800)]"
             />
             <label htmlFor="enabled" className="text-xs font-bold text-zinc-700 cursor-pointer">تفعيل شريط الإعلانات في الصفحة الرئيسية</label>
           </div>
@@ -476,7 +476,7 @@ export function CMSHomepageForm({
               id="autoplayEnabled" 
               checked={carousel.autoplayEnabled} 
               onChange={(e) => handleCarouselChange('autoplayEnabled', e.target.checked)} 
-              className="w-5 h-5 accent-[var(--color-forest-800)]"
+              className="w-5 h-5 accent-[var(--color-charcoal-800)]"
             />
             <label htmlFor="autoplayEnabled" className="text-xs font-bold text-zinc-700 cursor-pointer">تشغيل تلقائي (Autoplay)</label>
           </div>
@@ -487,7 +487,7 @@ export function CMSHomepageForm({
               id="pauseOnHover" 
               checked={carousel.pauseOnHover} 
               onChange={(e) => handleCarouselChange('pauseOnHover', e.target.checked)} 
-              className="w-5 h-5 accent-[var(--color-forest-800)]"
+              className="w-5 h-5 accent-[var(--color-charcoal-800)]"
             />
             <label htmlFor="pauseOnHover" className="text-xs font-bold text-zinc-700 cursor-pointer">توقف مؤقت عند مرور الفأرة (Pause on Hover)</label>
           </div>
@@ -504,7 +504,7 @@ export function CMSHomepageForm({
                   onClick={() => handleCarouselChange('autoplayIntervalMs', ms)}
                   className={`px-3 py-1.5 rounded border text-xs font-bold transition-all ${
                     carousel.autoplayIntervalMs === ms 
-                      ? 'bg-[var(--color-forest-900)] text-white border-transparent' 
+                      ? 'bg-[var(--color-charcoal-900)] text-white border-transparent' 
                       : 'bg-white text-zinc-650 border-zinc-300 hover:bg-zinc-100'
                   }`}
                 >
@@ -530,7 +530,7 @@ export function CMSHomepageForm({
             type="button"
             onClick={handleSaveCarousel}
             disabled={isPending}
-            className="bg-[var(--color-forest-800)] hover:bg-[var(--color-forest-900)] text-white font-bold px-6 py-2.5 rounded text-xs transition-colors"
+            className="bg-[var(--color-charcoal-800)] hover:bg-[var(--color-charcoal-900)] text-white font-bold px-6 py-2.5 rounded text-xs transition-colors"
           >
             {isPending ? 'جاري الحفظ...' : 'حفظ إعدادات شريط العرض'}
           </button>
@@ -540,7 +540,7 @@ export function CMSHomepageForm({
       {/* 2. HERO SLIDES MANAGER */}
       <div className="bg-white p-6 rounded-lg border border-[var(--color-ivory-200)] shadow-sm space-y-6">
         <div className="border-b pb-3">
-          <h2 className="text-base font-bold text-[var(--color-forest-800)]">إدارة شرائح إعلانات الهيرو (Hero Slides Manager)</h2>
+          <h2 className="text-base font-bold text-[var(--color-charcoal-800)]">إدارة شرائح إعلانات الهيرو (Hero Slides Manager)</h2>
           <p className="text-[10px] text-zinc-400 mt-1">تعديل المحتوى، وتنسيق وترتيب صور الهيرو.</p>
         </div>
 
@@ -598,372 +598,6 @@ export function CMSHomepageForm({
 
         {/* Slide Edit/Add Forms */}
         {editingSlide ? (
-<<<<<<< HEAD
-          <form onSubmit={handleUpdateSlide} className="bg-zinc-50 p-6 rounded border space-y-4">
-            <h3 className="text-xs font-bold text-zinc-700 border-b pb-2">تعديل شريحة الإعلان</h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="text-[10px] text-zinc-500 font-bold">العنوان (بالأرقام العربية)</label>
-                <input 
-                  type="text" 
-                  value={editingSlide.titleAr} 
-                  onChange={(e) => setEditingSlide({ ...editingSlide, titleAr: e.target.value })}
-                  required
-                  className="w-full border rounded p-2 text-xs bg-white"
-                />
-              </div>
-              <div className="space-y-1">
-                <label className="text-[10px] text-zinc-500 font-bold">العنوان بالإنجليزية (English Title)</label>
-                <input 
-                  type="text" 
-                  value={editingSlide.titleEn} 
-                  onChange={(e) => setEditingSlide({ ...editingSlide, titleEn: e.target.value })}
-                  required
-                  className="w-full border rounded p-2 text-xs bg-white text-left"
-                  dir="ltr"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="text-[10px] text-zinc-500 font-bold">وصف قصير بالأرقام العربية</label>
-                <input 
-                  type="text" 
-                  value={editingSlide.descriptionAr} 
-                  onChange={(e) => setEditingSlide({ ...editingSlide, descriptionAr: e.target.value })}
-                  required
-                  className="w-full border rounded p-2 text-xs bg-white"
-                />
-              </div>
-              <div className="space-y-1">
-                <label className="text-[10px] text-zinc-500 font-bold">وصف بالإنجليزية (English Description)</label>
-                <input 
-                  type="text" 
-                  value={editingSlide.descriptionEn} 
-                  onChange={(e) => setEditingSlide({ ...editingSlide, descriptionEn: e.target.value })}
-                  required
-                  className="w-full border rounded p-2 text-xs bg-white text-left"
-                  dir="ltr"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="text-[10px] text-zinc-500 font-bold">صورة/فيديو سطح المكتب (Desktop Media)</label>
-                <div className="flex gap-2 items-center">
-                  <input 
-                    type="text" 
-                    value={editingSlide.imageDesktopPath} 
-                    onChange={(e) => setEditingSlide({ ...editingSlide, imageDesktopPath: e.target.value })}
-                    required
-                    className="flex-1 border rounded p-2 text-xs bg-white"
-                  />
-                  <label className="bg-zinc-200 hover:bg-zinc-300 px-3 py-2 rounded text-xs cursor-pointer font-bold shrink-0">
-                    رفع ملف
-                    <input type="file" className="hidden" accept="image/*,video/*" onChange={(e) => handleFileUpload(e, false, true)} />
-                  </label>
-                </div>
-              </div>
-              <div className="space-y-1">
-                <label className="text-[10px] text-zinc-500 font-bold">صورة/فيديو الهاتف (Mobile Media)</label>
-                <div className="flex gap-2 items-center">
-                  <input 
-                    type="text" 
-                    value={editingSlide.imageMobilePath} 
-                    onChange={(e) => setEditingSlide({ ...editingSlide, imageMobilePath: e.target.value })}
-                    required
-                    className="flex-1 border rounded p-2 text-xs bg-white"
-                  />
-                  <label className="bg-zinc-200 hover:bg-zinc-300 px-3 py-2 rounded text-xs cursor-pointer font-bold shrink-0">
-                    رفع ملف
-                    <input type="file" className="hidden" accept="image/*,video/*" onChange={(e) => handleFileUpload(e, true, true)} />
-                  </label>
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="text-[10px] text-zinc-500 font-bold">نوع الرابط (Destination Type)</label>
-                <select
-                  value={editingSlide.destinationType}
-                  onChange={(e) => setEditingSlide({ ...editingSlide, destinationType: e.target.value })}
-                  className="w-full border rounded p-2 text-xs bg-white"
-                >
-                  <option value="NONE">بدون رابط (NONE)</option>
-                  <option value="PRODUCT">منتج محدد (PRODUCT)</option>
-                  <option value="COLLECTION">مجموعة محددة (COLLECTION)</option>
-                  <option value="CATEGORY">تصنيف محدد (CATEGORY)</option>
-                  <option value="INTERNAL_ROUTE">رابط داخلي مخصص</option>
-                  <option value="EXTERNAL_URL">رابط خارجي مخصص</option>
-                </select>
-              </div>
-
-              {editingSlide.destinationType === 'PRODUCT' && (
-                <div className="space-y-1">
-                  <label className="text-[10px] text-zinc-500 font-bold">اختر المنتج</label>
-                  <select
-                    value={editingSlide.productId || ''}
-                    onChange={(e) => setEditingSlide({ ...editingSlide, productId: e.target.value })}
-                    className="w-full border rounded p-2 text-xs bg-white"
-                  >
-                    <option value="">-- اختر --</option>
-                    {products.map(p => (
-                      <option key={p.id} value={p.id}>{p.nameAr}</option>
-                    ))}
-                  </select>
-                </div>
-              )}
-
-
-
-              {editingSlide.destinationType === 'CATEGORY' && (
-                <div className="space-y-1">
-                  <label className="text-[10px] text-zinc-500 font-bold">اختر التصنيف</label>
-                  <select
-                    value={editingSlide.categoryId || ''}
-                    onChange={(e) => setEditingSlide({ ...editingSlide, categoryId: e.target.value })}
-                    className="w-full border rounded p-2 text-xs bg-white"
-                  >
-                    <option value="">-- اختر --</option>
-                    {categories.map(cat => (
-                      <option key={cat.id} value={cat.id}>{cat.name}</option>
-                    ))}
-                  </select>
-                </div>
-              )}
-
-              {editingSlide.destinationType === 'INTERNAL_ROUTE' && (
-                <div className="space-y-1">
-                  <label className="text-[10px] text-zinc-500 font-bold">رابط داخلي (مثال: /about)</label>
-                  <input
-                    type="text"
-                    value={editingSlide.internalPath || ''}
-                    onChange={(e) => setEditingSlide({ ...editingSlide, internalPath: e.target.value })}
-                    className="w-full border rounded p-2 text-xs bg-white"
-                  />
-                </div>
-              )}
-
-              {editingSlide.destinationType === 'EXTERNAL_URL' && (
-                <div className="space-y-1">
-                  <label className="text-[10px] text-zinc-500 font-bold">رابط خارجي (https://...)</label>
-                  <input
-                    type="text"
-                    value={editingSlide.externalUrl || ''}
-                    onChange={(e) => setEditingSlide({ ...editingSlide, externalUrl: e.target.value })}
-                    className="w-full border rounded p-2 text-xs bg-white"
-                  />
-                </div>
-              )}
-            </div>
-
-            <div className="flex gap-2 pt-2">
-              <button type="submit" disabled={isPending} className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded text-xs">
-                حفظ التعديلات
-              </button>
-              <button type="button" onClick={() => setEditingSlide(null)} className="bg-neutral-200 hover:bg-neutral-300 text-zinc-700 px-4 py-2 rounded text-xs">
-                إلغاء التعديل
-              </button>
-            </div>
-          </form>
-        ) : (
-          // Add Slide Form
-          <form onSubmit={handleCreateSlide} className="bg-zinc-50 p-6 rounded border space-y-4">
-            <h3 className="text-xs font-bold text-[var(--color-forest-800)] border-b pb-2">+ إضافة شريحة إعلانية جديدة</h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="text-[10px] text-zinc-500 font-bold">العنوان (بالأرقام العربية)</label>
-                <input 
-                  type="text" 
-                  value={newSlide.titleAr} 
-                  onChange={(e) => setNewSlide({ ...newSlide, titleAr: e.target.value })}
-                  required
-                  placeholder="مثال: مجموعات صيف 2026"
-                  className="w-full border rounded p-2 text-xs bg-white"
-                />
-              </div>
-              <div className="space-y-1">
-                <label className="text-[10px] text-zinc-500 font-bold">العنوان بالإنجليزية (English Title)</label>
-                <input 
-                  type="text" 
-                  value={newSlide.titleEn} 
-                  onChange={(e) => setNewSlide({ ...newSlide, titleEn: e.target.value })}
-                  required
-                  placeholder="Summer Collections 2026"
-                  className="w-full border rounded p-2 text-xs bg-white text-left"
-                  dir="ltr"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="text-[10px] text-zinc-500 font-bold">وصف قصير بالأرقام العربية</label>
-                <input 
-                  type="text" 
-                  value={newSlide.descriptionAr} 
-                  onChange={(e) => setNewSlide({ ...newSlide, descriptionAr: e.target.value })}
-                  required
-                  className="w-full border rounded p-2 text-xs bg-white"
-                />
-              </div>
-              <div className="space-y-1">
-                <label className="text-[10px] text-zinc-500 font-bold">وصف بالإنجليزية (English Description)</label>
-                <input 
-                  type="text" 
-                  value={newSlide.descriptionEn} 
-                  onChange={(e) => setNewSlide({ ...newSlide, descriptionEn: e.target.value })}
-                  required
-                  className="w-full border rounded p-2 text-xs bg-white text-left"
-                  dir="ltr"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="text-[10px] text-zinc-500 font-bold">صورة/فيديو سطح المكتب (Desktop Media)</label>
-                <div className="flex gap-2 items-center">
-                  <input 
-                    type="text" 
-                    value={newSlide.imageDesktopPath} 
-                    onChange={(e) => setNewSlide({ ...newSlide, imageDesktopPath: e.target.value })}
-                    required
-                    className="flex-1 border rounded p-2 text-xs bg-white"
-                  />
-                  <label className="bg-zinc-200 hover:bg-zinc-300 px-3 py-2 rounded text-xs cursor-pointer font-bold shrink-0">
-                    رفع ملف
-                    <input type="file" className="hidden" accept="image/*,video/*" onChange={(e) => handleFileUpload(e, false, false)} />
-                  </label>
-                </div>
-              </div>
-              <div className="space-y-1">
-                <label className="text-[10px] text-zinc-500 font-bold">صورة/فيديو الهاتف (Mobile Media)</label>
-                <div className="flex gap-2 items-center">
-                  <input 
-                    type="text" 
-                    value={newSlide.imageMobilePath} 
-                    onChange={(e) => setNewSlide({ ...newSlide, imageMobilePath: e.target.value })}
-                    required
-                    className="flex-1 border rounded p-2 text-xs bg-white"
-                  />
-                  <label className="bg-zinc-200 hover:bg-zinc-300 px-3 py-2 rounded text-xs cursor-pointer font-bold shrink-0">
-                    رفع ملف
-                    <input type="file" className="hidden" accept="image/*,video/*" onChange={(e) => handleFileUpload(e, true, false)} />
-                  </label>
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="text-[10px] text-zinc-500 font-bold">نوع الرابط (Destination Type)</label>
-                <select
-                  value={newSlide.destinationType}
-                  onChange={(e) => setNewSlide({ ...newSlide, destinationType: e.target.value })}
-                  className="w-full border rounded p-2 text-xs bg-white"
-                >
-                  <option value="NONE">بدون رابط (NONE)</option>
-                  <option value="PRODUCT">منتج محدد (PRODUCT)</option>
-                  <option value="CATEGORY">تصنيف/مجموعة محددة (CATEGORY)</option>
-                  <option value="INTERNAL_ROUTE">رابط داخلي مخصص</option>
-                  <option value="EXTERNAL_URL">رابط خارجي مخصص</option>
-                </select>
-              </div>
-
-              {newSlide.destinationType === 'PRODUCT' && (
-                <div className="space-y-1">
-                  <label className="text-[10px] text-zinc-500 font-bold">اختر المنتج</label>
-                  <select
-                    value={newSlide.productId}
-                    onChange={(e) => setNewSlide({ ...newSlide, productId: e.target.value })}
-                    className="w-full border rounded p-2 text-xs bg-white"
-                  >
-                    <option value="">-- اختر --</option>
-                    {products.map(p => (
-                      <option key={p.id} value={p.id}>{p.nameAr}</option>
-                    ))}
-                  </select>
-                </div>
-              )}
-
-
-
-              {newSlide.destinationType === 'CATEGORY' && (
-                <div className="space-y-1">
-                  <label className="text-[10px] text-zinc-500 font-bold">اختر التصنيف</label>
-                  <select
-                    value={newSlide.categoryId}
-                    onChange={(e) => setNewSlide({ ...newSlide, categoryId: e.target.value })}
-                    className="w-full border rounded p-2 text-xs bg-white"
-                  >
-                    <option value="">-- اختر --</option>
-                    {categories.map(cat => (
-                      <option key={cat.id} value={cat.id}>{cat.name}</option>
-                    ))}
-                  </select>
-                </div>
-              )}
-
-              {newSlide.destinationType === 'INTERNAL_ROUTE' && (
-                <div className="space-y-1">
-                  <label className="text-[10px] text-zinc-500 font-bold">رابط داخلي (مثال: /about)</label>
-                  <input
-                    type="text"
-                    value={newSlide.internalPath}
-                    onChange={(e) => setNewSlide({ ...newSlide, internalPath: e.target.value })}
-                    className="w-full border rounded p-2 text-xs bg-white"
-                  />
-                </div>
-              )}
-
-              {newSlide.destinationType === 'EXTERNAL_URL' && (
-                <div className="space-y-1">
-                  <label className="text-[10px] text-zinc-500 font-bold">رابط خارجي (https://...)</label>
-                  <input
-                    type="text"
-                    value={newSlide.externalUrl}
-                    onChange={(e) => setNewSlide({ ...newSlide, externalUrl: e.target.value })}
-                    className="w-full border rounded p-2 text-xs bg-white"
-                  />
-                </div>
-              )}
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="text-[10px] text-zinc-500 font-bold">النص التوضيحي للصورة بالأرقام العربية (Alt Text Ar)</label>
-                <input 
-                  type="text" 
-                  value={newSlide.altAr} 
-                  onChange={(e) => setNewSlide({ ...newSlide, altAr: e.target.value })}
-                  required
-                  className="w-full border rounded p-2 text-xs bg-white"
-                />
-              </div>
-              <div className="space-y-1">
-                <label className="text-[10px] text-zinc-500 font-bold">النص التوضيحي للصورة بالإنجليزية (Alt Text En)</label>
-                <input 
-                  type="text" 
-                  value={newSlide.altEn} 
-                  onChange={(e) => setNewSlide({ ...newSlide, altEn: e.target.value })}
-                  required
-                  className="w-full border rounded p-2 text-xs bg-white text-left"
-                  dir="ltr"
-                />
-              </div>
-            </div>
-
-            <button type="submit" disabled={isPending} className="bg-[var(--color-forest-800)] hover:bg-[var(--color-forest-900)] text-white font-bold px-6 py-2 rounded text-xs transition-colors">
-              {isPending ? 'جاري الإضافة...' : 'إضافة الشريحة ونشرها'}
-            </button>
-          </form>
-=======
           <SlideEditor 
             slide={editingSlide}
             setSlide={setEditingSlide}
@@ -987,14 +621,13 @@ export function CMSHomepageForm({
             products={products}
             categories={categories}
           />
->>>>>>> f8d5952 (hehhee)
         )}
 </div>
 
       {/* 3. STORE LOCATION CONFIGURATION */}
       <div className="bg-white p-6 rounded-lg border border-[var(--color-ivory-200)] shadow-sm space-y-6">
         <div className="border-b pb-3">
-          <h2 className="text-base font-bold text-[var(--color-forest-800)]">خيارات الخريطة وموقع المتجر (Store Location Settings)</h2>
+          <h2 className="text-base font-bold text-[var(--color-charcoal-800)]">خيارات الخريطة وموقع المتجر (Store Location Settings)</h2>
           <p className="text-[10px] text-zinc-400 mt-1">تحديث إحداثيات الخريطة وتوجيهات الاتصال الجغرافي.</p>
         </div>
 
@@ -1004,7 +637,7 @@ export function CMSHomepageForm({
             id="locationSectionEnabled" 
             checked={location.locationSectionEnabled} 
             onChange={(e) => handleLocationChange('locationSectionEnabled', e.target.checked)} 
-            className="w-5 h-5 accent-[var(--color-forest-800)]"
+            className="w-5 h-5 accent-[var(--color-charcoal-800)]"
           />
           <label htmlFor="locationSectionEnabled" className="text-xs font-bold text-zinc-700 cursor-pointer">تفعيل قسم موقع المعرض في الصفحة الرئيسية</label>
         </div>
@@ -1143,7 +776,7 @@ export function CMSHomepageForm({
             type="button"
             onClick={handleSaveLocation}
             disabled={isPending}
-            className="bg-[var(--color-forest-800)] hover:bg-[var(--color-forest-900)] text-white font-bold px-6 py-2.5 rounded text-xs transition-colors"
+            className="bg-[var(--color-charcoal-800)] hover:bg-[var(--color-charcoal-900)] text-white font-bold px-6 py-2.5 rounded text-xs transition-colors"
           >
             {isPending ? 'جاري الحفظ...' : 'حفظ إعدادات الموقع والخريطة'}
           </button>

@@ -79,7 +79,7 @@ export function SalesFilters({ filterEmployee, filterSource, filterPayMethod, fi
 
       <div className="flex justify-between items-center border-t border-zinc-100 pt-4 mt-2">
         <div className="flex gap-2">
-          <button onClick={applyFilters} className="bg-[var(--color-forest-900)] text-white px-4 py-2 rounded text-xs font-bold">
+          <button onClick={applyFilters} className="bg-[var(--color-charcoal-900)] text-white px-4 py-2 rounded text-xs font-bold">
             تطبيق الفلاتر
           </button>
           <Link href="/admin/sales" className="text-zinc-500 hover:text-red-600 px-4 py-2 text-xs font-bold">

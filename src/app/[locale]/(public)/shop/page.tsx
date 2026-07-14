@@ -49,7 +49,7 @@ export default async function ShopPage({ params, searchParams }: { params: Promi
   return (
     <div className="bg-[var(--color-ivory-100)] min-h-screen pb-20">
       {/* Header Banner */}
-      <div className="bg-[var(--color-forest-900)] text-white py-16 text-center border-b-4 border-[var(--color-champagne-600)]">
+      <div className="bg-[var(--color-charcoal-900)] text-white py-16 text-center border-b-4 border-[var(--color-champagne-600)]">
         <h1 className="text-4xl md:text-5xl font-bold font-heading mb-4">المتجر</h1>
         <p className="text-zinc-300 text-lg">اكتشف تشكيلتنا الحصرية من العطور الفاخرة</p>
       </div>
@@ -99,21 +99,21 @@ export default async function ShopPage({ params, searchParams }: { params: Promi
                         stockStatus: product.stockStatus
                       }} />
                     </div>
-                    <div className="absolute inset-0 flex items-center justify-center text-[var(--color-forest-600)]">
+                    <div className="absolute inset-0 flex items-center justify-center text-[var(--color-charcoal-600)]">
                       {mainImage ? (
                         <div className="w-full h-full bg-cover bg-center group-hover:scale-105 transition-transform duration-500" style={{ backgroundImage: `url(${mainImage.url.startsWith('local://') ? '/product-placeholder.png' : mainImage.url})` }} />
                       ) : 'صورة العطر'}
                     </div>
                   </div>
                   <div className="text-center flex-1 flex flex-col">
-                    <h3 className="text-lg font-bold text-[var(--color-forest-900)] mb-1 group-hover:text-[var(--color-champagne-600)] transition-colors">{product.nameAr}</h3>
+                    <h3 className="text-lg font-bold text-[var(--color-charcoal-900)] mb-1 group-hover:text-[var(--color-champagne-600)] transition-colors">{product.nameAr}</h3>
                     <p className="text-xs text-zinc-500 mb-2">{product.category.name}</p>
                     <div className="mt-auto text-sm text-[var(--color-champagne-600)] font-bold">
                       {locale === 'ar' ? 'اختر الحجم لعرض السعر' : 'Select size for price'}
                     </div>
                   </div>
                   <div className="mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <button className="w-full py-2 bg-[var(--color-forest-900)] hover:bg-[var(--color-forest-800)] text-white rounded-sm text-sm font-bold shadow-md">
+                    <button className="w-full py-2 bg-[var(--color-charcoal-900)] hover:bg-[var(--color-charcoal-800)] text-white rounded-sm text-sm font-bold shadow-md">
                       عرض التفاصيل
                     </button>
                   </div>

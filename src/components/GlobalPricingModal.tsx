@@ -52,7 +52,7 @@ export function GlobalPricingModal({
     <>
       <button 
         onClick={() => setIsOpen(true)}
-        className="bg-white border border-[var(--color-champagne-600)] text-[var(--color-forest-900)] hover:bg-zinc-50 px-4 py-2.5 rounded font-bold transition-colors text-sm ml-2 shadow-sm"
+        className="bg-white border border-[var(--color-champagne-600)] text-[var(--color-charcoal-900)] hover:bg-zinc-50 px-4 py-2.5 rounded font-bold transition-colors text-sm ml-2 shadow-sm"
       >
         تعديل الأسعار الموحدة
       </button>
@@ -60,7 +60,7 @@ export function GlobalPricingModal({
       {isOpen && (
         <div className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden relative">
-            <div className="bg-[var(--color-forest-900)] text-white p-4 flex justify-between items-center">
+            <div className="bg-[var(--color-charcoal-900)] text-white p-4 flex justify-between items-center">
               <h2 className="font-bold text-lg">الأسعار الموحدة للأحجام</h2>
               <button onClick={() => setIsOpen(false)} className="text-zinc-300 hover:text-white">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
@@ -80,7 +80,7 @@ export function GlobalPricingModal({
 
               {Object.keys(prices).map((size) => (
                 <div key={size} className="flex justify-between items-center bg-zinc-50 p-3 rounded border border-zinc-200">
-                  <span className="font-bold font-mono text-[var(--color-forest-900)]">{size}</span>
+                  <span className="font-bold font-mono text-[var(--color-charcoal-900)]">{size}</span>
                   <div className="flex items-center gap-2">
                     <input 
                       type="number" 
@@ -105,7 +105,7 @@ export function GlobalPricingModal({
               </button>
               <button 
                 onClick={handleSave}
-                className="px-4 py-2 bg-[var(--color-forest-900)] hover:bg-[var(--color-forest-800)] text-white rounded font-bold text-sm shadow-sm transition-colors disabled:opacity-50 flex items-center gap-2"
+                className="px-4 py-2 bg-[var(--color-charcoal-900)] hover:bg-[var(--color-charcoal-800)] text-white rounded font-bold text-sm shadow-sm transition-colors disabled:opacity-50 flex items-center gap-2"
                 disabled={loading}
               >
                 {loading && <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>}
