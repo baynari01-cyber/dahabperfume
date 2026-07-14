@@ -5,6 +5,10 @@ import { getHeroSlides, getHeroCarouselSettings, getStoreLocationSettings } from
 import { HeroCarousel } from '@/components/HeroCarousel';
 import { StoreLocationSection } from '@/components/StoreLocationSection';
 import { WishlistHeart } from '@/components/WishlistHeart';
+<<<<<<< HEAD
+=======
+import { MobileCategoriesFeed } from '@/components/MobileCategoriesFeed';
+>>>>>>> f8d5952 (hehhee)
 import { filsToDisplay } from '@/lib/money';
 import { Sparkles } from 'lucide-react';
 
@@ -46,8 +50,27 @@ export default async function StoreFrontPage({ params }: { params: Promise<Param
   // 3. Fetch Store location settings
   const locationSettings = await getStoreLocationSettings();
 
+<<<<<<< HEAD
   // 4. Fetch Collections (Categories)
   const collections = await prisma.category.findMany();
+=======
+  // 4. Fetch Collections (Categories) with products for mobile feed
+  const collections = await prisma.category.findMany({
+    include: {
+      products: {
+        where: { isVisible: true },
+        take: 6, // Fetch top 6 products per category for mobile feed
+        include: {
+          variants: true,
+          images: {
+            where: { isMain: true },
+            take: 1
+          }
+        }
+      }
+    }
+  });
+>>>>>>> f8d5952 (hehhee)
 
   // Default mock collections if none configured in CMS
   const defaultSlides: any[] = [
@@ -228,14 +251,24 @@ export default async function StoreFrontPage({ params }: { params: Promise<Param
       {/* Featured Products */}
       <section className="py-20 bg-[var(--color-ivory-100)]">
         <div className="container mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-[var(--color-forest-900)] mb-4">
-              {isAr ? 'الأكثر مبيعاً' : 'Best Sellers'}
-            </h2>
-            <div className="w-24 h-1 bg-[var(--color-champagne-600)] mx-auto" />
-          </div>
+          
+          {/* Mobile Specific: Categories Feed */}
+          <MobileCategoriesFeed categories={collections} locale={locale} isAr={isAr} />
 
+<<<<<<< HEAD
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+=======
+          {/* Desktop Specific: Featured Products Grid */}
+          <div className="hidden md:block">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl md:text-4xl font-bold text-[var(--color-forest-900)] mb-4">
+                {isAr ? 'الأكثر مبيعاً' : 'Best Sellers'}
+              </h2>
+              <div className="w-24 h-1 bg-[var(--color-champagne-600)] mx-auto" />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+>>>>>>> f8d5952 (hehhee)
             {featuredProducts.map((product) => {
               const mainImage = product.images.find(img => img.isMain) || product.images[0];
               const lowestPrice = product.variants.length > 0 
@@ -281,6 +314,10 @@ export default async function StoreFrontPage({ params }: { params: Promise<Param
                 </Link>
               );
             })}
+<<<<<<< HEAD
+=======
+            </div>
+>>>>>>> f8d5952 (hehhee)
           </div>
         </div>
       </section>

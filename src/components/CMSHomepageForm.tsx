@@ -11,6 +11,227 @@ import {
 } from '@/actions/homepage-cms';
 import { uploadMedia } from '@/actions/upload';
 
+
+const isVideo = (path: string) => /\.(mp4|webm|ogg)$/i.test(path || '');
+
+const MediaPreview = ({ url, isMobile }: { url: string; isMobile: boolean }) => {
+  if (!url || url === '/slide-placeholder.jpg' || url === '/slide-placeholder-mobile.jpg') {
+    return (
+      <div className={`bg-zinc-50 border-2 border-dashed flex items-center justify-center text-zinc-400 text-xs rounded-lg ${isMobile ? 'w-32 h-48 mx-auto' : 'w-full h-40'}`}>
+        لم يتم رفع ملف بعد
+      </div>
+    );
+  }
+  return (
+    <div className={`relative bg-black rounded-lg overflow-hidden shadow-inner ${isMobile ? 'w-32 h-48 mx-auto' : 'w-full h-40'}`}>
+      {isVideo(url) ? (
+        <video src={url} autoPlay loop muted className="w-full h-full object-cover" />
+      ) : (
+        <img src={url} alt="Preview" className="w-full h-full object-cover" />
+      )}
+    </div>
+  );
+};
+
+const SlideEditor = ({ 
+  slide, 
+  setSlide, 
+  onSave, 
+  onCancel, 
+  isPending, 
+  isEdit,
+  handleFileUpload,
+  products,
+  categories
+}: any) => {
+  return (
+    <form onSubmit={onSave} className="bg-zinc-50/50 p-6 rounded-xl border border-zinc-200 shadow-sm space-y-8">
+      <div className="flex items-center justify-between border-b pb-4">
+        <h3 className="text-sm font-bold text-[var(--color-forest-900)]">
+          {isEdit ? 'تعديل الإعلان الحالي' : 'إضافة إعلان جديد'}
+        </h3>
+        {isEdit && (
+          <button type="button" onClick={onCancel} className="text-xs text-red-600 hover:underline font-bold">
+            إغلاق التعديل ✕
+          </button>
+        )}
+      </div>
+      
+      {/* 1. Media Section */}
+      <div className="bg-white p-5 rounded-lg border shadow-sm space-y-4">
+        <h4 className="font-bold text-sm text-[var(--color-forest-800)] border-b pb-2">1. صورة أو فيديو الإعلان</h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="space-y-3 text-center">
+            <label className="text-xs font-bold text-zinc-700 block">لشاشات الكمبيوتر (عرضي)</label>
+            <MediaPreview url={slide.imageDesktopPath} isMobile={false} />
+            <label className="bg-[var(--color-champagne-600)] hover:bg-[var(--color-champagne-500)] text-white px-4 py-2 rounded text-xs cursor-pointer inline-block shadow-sm transition-colors font-bold">
+              اختيار صورة أو فيديو
+              <input type="file" className="hidden" accept="image/*,video/*" onChange={(e) => handleFileUpload(e, false, isEdit)} />
+            </label>
+          </div>
+          <div className="space-y-3 text-center">
+            <label className="text-xs font-bold text-zinc-700 block">لشاشات الجوال (طولي)</label>
+            <MediaPreview url={slide.imageMobilePath} isMobile={true} />
+            <label className="bg-[var(--color-champagne-600)] hover:bg-[var(--color-champagne-500)] text-white px-4 py-2 rounded text-xs cursor-pointer inline-block shadow-sm transition-colors font-bold">
+              اختيار صورة أو فيديو
+              <input type="file" className="hidden" accept="image/*,video/*" onChange={(e) => handleFileUpload(e, true, isEdit)} />
+            </label>
+          </div>
+        </div>
+      </div>
+
+      {/* 2. Text Content */}
+      <div className="bg-white p-5 rounded-lg border shadow-sm space-y-4">
+        <h4 className="font-bold text-sm text-[var(--color-forest-800)] border-b pb-2">2. النص المكتوب على الإعلان</h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-1">
+            <label className="text-xs text-zinc-700 font-bold">العنوان العريض</label>
+            <input 
+              type="text" 
+              value={slide.titleAr} 
+              onChange={(e) => setSlide({ ...slide, titleAr: e.target.value })}
+              required
+              placeholder="مثال: تشكيلة الصيف الجديدة"
+              className="w-full border rounded p-2 text-xs bg-white focus:ring-2 focus:ring-[var(--color-champagne-600)] outline-none"
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs text-zinc-700 font-bold">العنوان (إنجليزي)</label>
+            <input 
+              type="text" 
+              value={slide.titleEn} 
+              onChange={(e) => setSlide({ ...slide, titleEn: e.target.value })}
+              required
+              dir="ltr"
+              placeholder="New Summer Collection"
+              className="w-full border rounded p-2 text-xs bg-white text-left focus:ring-2 focus:ring-[var(--color-champagne-600)] outline-none"
+            />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-1">
+            <label className="text-xs text-zinc-700 font-bold">وصف قصير (اختياري)</label>
+            <input 
+              type="text" 
+              value={slide.descriptionAr} 
+              onChange={(e) => setSlide({ ...slide, descriptionAr: e.target.value })}
+              placeholder="وصف مشوق أسفل العنوان..."
+              className="w-full border rounded p-2 text-xs bg-white focus:ring-2 focus:ring-[var(--color-champagne-600)] outline-none"
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs text-zinc-700 font-bold">وصف قصير (إنجليزي)</label>
+            <input 
+              type="text" 
+              value={slide.descriptionEn} 
+              onChange={(e) => setSlide({ ...slide, descriptionEn: e.target.value })}
+              dir="ltr"
+              className="w-full border rounded p-2 text-xs bg-white text-left focus:ring-2 focus:ring-[var(--color-champagne-600)] outline-none"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* 3. Actions / Destination */}
+      <div className="bg-white p-5 rounded-lg border shadow-sm space-y-4">
+        <h4 className="font-bold text-sm text-[var(--color-forest-800)] border-b pb-2">3. أين يذهب الزبون عند الضغط؟</h4>
+        <div className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label className="text-xs text-zinc-700 font-bold">نوع التوجيه</label>
+              <select
+                value={slide.destinationType}
+                onChange={(e) => setSlide({ ...slide, destinationType: e.target.value, productId: '', categoryId: '', externalUrl: '', internalPath: '' })}
+                className="w-full border rounded p-2 text-xs bg-white focus:ring-2 focus:ring-[var(--color-champagne-600)] outline-none"
+              >
+                <option value="NONE">بدون رابط (إعلان للعرض فقط)</option>
+                <option value="PRODUCT">يذهب إلى منتج معين</option>
+                <option value="CATEGORY">يذهب إلى مجموعة/تصنيف</option>
+                <option value="EXTERNAL_URL">رابط خارجي (انستغرام، واتساب...)</option>
+                <option value="INTERNAL_ROUTE">صفحة أخرى في المتجر</option>
+              </select>
+            </div>
+            
+            {slide.destinationType === 'PRODUCT' && (
+              <div className="space-y-1">
+                <label className="text-xs text-zinc-700 font-bold">اختر المنتج</label>
+                <select
+                  value={slide.productId || ''}
+                  onChange={(e) => setSlide({ ...slide, productId: e.target.value })}
+                  className="w-full border rounded p-2 text-xs bg-white"
+                  required
+                >
+                  <option value="">-- اختر المنتج من القائمة --</option>
+                  {products.map((p: any) => (
+                    <option key={p.id} value={p.id}>{p.nameAr}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {slide.destinationType === 'CATEGORY' && (
+              <div className="space-y-1">
+                <label className="text-xs text-zinc-700 font-bold">اختر المجموعة</label>
+                <select
+                  value={slide.categoryId || ''}
+                  onChange={(e) => setSlide({ ...slide, categoryId: e.target.value })}
+                  className="w-full border rounded p-2 text-xs bg-white"
+                  required
+                >
+                  <option value="">-- اختر المجموعة من القائمة --</option>
+                  {categories.map((cat: any) => (
+                    <option key={cat.id} value={cat.id}>{cat.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {slide.destinationType === 'EXTERNAL_URL' && (
+              <div className="space-y-1">
+                <label className="text-xs text-zinc-700 font-bold">أدخل الرابط الخارجي كاملًا</label>
+                <input
+                  type="url"
+                  value={slide.externalUrl || ''}
+                  onChange={(e) => setSlide({ ...slide, externalUrl: e.target.value })}
+                  placeholder="https://..."
+                  className="w-full border rounded p-2 text-xs bg-white text-left"
+                  dir="ltr"
+                  required
+                />
+              </div>
+            )}
+
+            {slide.destinationType === 'INTERNAL_ROUTE' && (
+              <div className="space-y-1">
+                <label className="text-xs text-zinc-700 font-bold">رابط الصفحة</label>
+                <input
+                  type="text"
+                  value={slide.internalPath || ''}
+                  onChange={(e) => setSlide({ ...slide, internalPath: e.target.value })}
+                  placeholder="/about"
+                  className="w-full border rounded p-2 text-xs bg-white text-left"
+                  dir="ltr"
+                  required
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="pt-4 flex gap-3">
+        <button type="submit" disabled={isPending} className="bg-[var(--color-forest-900)] hover:bg-[var(--color-forest-800)] text-white font-bold px-8 py-3 rounded text-sm transition-colors shadow-md">
+          {isPending ? 'جاري الحفظ...' : (isEdit ? 'حفظ التعديلات' : 'إضافة الإعلان الجديد ونشره')}
+        </button>
+        {isEdit && (
+          <button type="button" onClick={onCancel} className="bg-zinc-200 hover:bg-zinc-300 text-zinc-800 font-bold px-8 py-3 rounded text-sm transition-colors">
+            إلغاء
+          </button>
+        )}
+      </div>
+    </form>
+  );
+};
 interface CMSHomepageFormProps {
   carouselSettings: any;
   slides: any[];
@@ -377,6 +598,7 @@ export function CMSHomepageForm({
 
         {/* Slide Edit/Add Forms */}
         {editingSlide ? (
+<<<<<<< HEAD
           <form onSubmit={handleUpdateSlide} className="bg-zinc-50 p-6 rounded border space-y-4">
             <h3 className="text-xs font-bold text-zinc-700 border-b pb-2">تعديل شريحة الإعلان</h3>
             
@@ -741,8 +963,33 @@ export function CMSHomepageForm({
               {isPending ? 'جاري الإضافة...' : 'إضافة الشريحة ونشرها'}
             </button>
           </form>
+=======
+          <SlideEditor 
+            slide={editingSlide}
+            setSlide={setEditingSlide}
+            onSave={handleUpdateSlide}
+            onCancel={() => setEditingSlide(null)}
+            isPending={isPending}
+            isEdit={true}
+            handleFileUpload={handleFileUpload}
+            products={products}
+            categories={categories}
+          />
+        ) : (
+          <SlideEditor 
+            slide={newSlide}
+            setSlide={setNewSlide}
+            onSave={handleCreateSlide}
+            onCancel={() => {}}
+            isPending={isPending}
+            isEdit={false}
+            handleFileUpload={handleFileUpload}
+            products={products}
+            categories={categories}
+          />
+>>>>>>> f8d5952 (hehhee)
         )}
-      </div>
+</div>
 
       {/* 3. STORE LOCATION CONFIGURATION */}
       <div className="bg-white p-6 rounded-lg border border-[var(--color-ivory-200)] shadow-sm space-y-6">

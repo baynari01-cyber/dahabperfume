@@ -163,7 +163,7 @@ export function StoreLocationSection({ settings }: StoreLocationSectionProps) {
           </div>
 
           {/* Map Column */}
-          <div className="relative rounded-lg overflow-hidden border border-[var(--color-ivory-200)] bg-zinc-100 shadow-sm aspect-video lg:aspect-auto min-h-[300px]">
+          <div className="relative rounded-lg overflow-hidden border border-[var(--color-ivory-200)] bg-zinc-100 shadow-sm aspect-auto md:aspect-video lg:aspect-auto min-h-[400px]">
             {loadMap ? (
               <>
                 {/* Lazy loaded Iframe with guaranteed native red pin */}

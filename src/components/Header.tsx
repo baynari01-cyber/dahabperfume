@@ -2,11 +2,19 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
+<<<<<<< HEAD
 import { usePathname } from 'next/navigation';
+=======
+import { usePathname, useRouter } from 'next/navigation';
+>>>>>>> f8d5952 (hehhee)
 import { useEffect, useState } from 'react';
 
 export function Header() {
   const pathname = usePathname() || '/ar';
+<<<<<<< HEAD
+=======
+  const router = useRouter();
+>>>>>>> f8d5952 (hehhee)
   const locale = pathname.startsWith('/en') ? 'en' : 'ar';
 
   const [cartCount, setCartCount] = useState(0);
@@ -30,8 +38,23 @@ export function Header() {
 
   const toggleLocale = () => {
     const newLocale = locale === 'ar' ? 'en' : 'ar';
+<<<<<<< HEAD
     const newPath = pathname.replace(`/${locale}`, `/${newLocale}`);
     window.location.href = newPath || `/${newLocale}`;
+=======
+    // Remove current locale prefix safely
+    let pathWithoutLocale = pathname;
+    if (pathname === `/${locale}` || pathname.startsWith(`/${locale}/`)) {
+      pathWithoutLocale = pathname.slice(locale.length + 1);
+    }
+    
+    // Construct new path
+    const newPath = `/${newLocale}${pathWithoutLocale}`;
+    
+    // Push new path and close menu
+    router.push(newPath);
+    setIsMobileMenuOpen(false);
+>>>>>>> f8d5952 (hehhee)
   };
 
   return (
