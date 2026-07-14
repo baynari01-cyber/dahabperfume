@@ -184,6 +184,7 @@ model Category {
   slug        String              @unique
   name        String
   description String?
+  imagePath   String?
   products    Product[]
   slides      HomepageHeroSlide[]
 }

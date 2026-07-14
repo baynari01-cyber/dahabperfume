@@ -5,7 +5,7 @@ export function Footer() {
   return (
     <footer className="bg-[var(--color-forest-900)] text-white pt-16 pb-8 border-t-4 border-[var(--color-champagne-600)]">
       <div className="container mx-auto px-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
           
           {/* Logo & About */}
           <div className="col-span-1 md:col-span-1">
@@ -55,25 +55,6 @@ export function Footer() {
               <li><Link href="/ar/faq" className="hover:text-[var(--color-champagne-600)] transition-colors">الأسئلة الشائعة</Link></li>
               <li><Link href="/ar/contact" className="hover:text-[var(--color-champagne-600)] transition-colors">تواصل معنا</Link></li>
             </ul>
-          </div>
-
-          {/* Newsletter */}
-          <div>
-            <h4 className="text-xl font-bold font-heading mb-6 text-[var(--color-champagne-400)]">كن أول من يعرف</h4>
-            <p className="text-zinc-300 mb-4">اشترك لتصلك أخبارنا وعروضنا الحصرية</p>
-            <form className="flex flex-col sm:flex-row gap-2">
-              <input 
-                type="email" 
-                placeholder="أدخل بريدك الإلكتروني" 
-                className="w-full bg-zinc-800 border border-zinc-700 rounded-sm px-4 py-2 text-white placeholder-zinc-500 focus:outline-none focus:border-[var(--color-champagne-600)]"
-              />
-              <button 
-                type="submit" 
-                className="bg-[var(--color-champagne-600)] hover:bg-[var(--color-champagne-500)] text-white px-6 py-2 rounded-sm font-bold transition-colors whitespace-nowrap"
-              >
-                اشترك
-              </button>
-            </form>
           </div>
 
         </div>

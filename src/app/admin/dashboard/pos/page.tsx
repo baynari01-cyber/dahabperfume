@@ -17,6 +17,10 @@ export default async function AdminPOSPage() {
     include: {
       variants: {
         where: { isActive: true }
+      },
+      images: {
+        where: { isMain: true },
+        take: 1
       }
     }
   });
@@ -29,7 +33,8 @@ export default async function AdminPOSPage() {
     shortDescription: p.shortDescription,
     stockStatus: p.stockStatus,
     variants: p.variants,
-    stockLiters: p.stockLiters
+    stockLiters: p.stockLiters,
+    imageUrl: p.images?.[0]?.url
   }));
 
   const settingsRecords = await prisma.siteSettings.findMany();

@@ -1,12 +1,41 @@
 import { prisma } from '@/lib/db';
 import Link from 'next/link';
 import { filsToDisplay } from '@/lib/money';
+import { ShopFilters } from '@/components/ShopFilters';
+import { WishlistHeart } from '@/components/WishlistHeart';
 
-export default async function ShopPage({ params }: { params: Promise<{ locale: string }> }) {
+export const revalidate = 60;
+
+export default async function ShopPage({ params, searchParams }: { params: Promise<{ locale: string }>, searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
   const { locale } = await params;
+  const sp = await searchParams;
   
+  const minPriceStr = typeof sp.minPrice === 'string' ? sp.minPrice : '0';
+  const maxPriceStr = typeof sp.maxPrice === 'string' ? sp.maxPrice : '500';
+  const categoryStr = typeof sp.category === 'string' ? sp.category : '';
+  
+  const minPriceFils = parseInt(minPriceStr) * 1000;
+  const maxPriceFils = parseInt(maxPriceStr) * 1000;
+
+  // Build prisma where clause
+  const where: any = { isVisible: true };
+  
+  if (categoryStr) {
+    where.categoryId = categoryStr;
+  }
+  
+  // Filter by price using variants
+  where.variants = {
+    some: {
+      price: {
+        gte: minPriceFils || 0,
+        lte: maxPriceFils || 500000
+      }
+    }
+  };
+
   const products = await prisma.product.findMany({
-    where: { isVisible: true },
+    where,
     include: {
       variants: { orderBy: { size: 'asc' } },
       images: { orderBy: { order: 'asc' } },
@@ -15,8 +44,7 @@ export default async function ShopPage({ params }: { params: Promise<{ locale: s
     orderBy: { createdAt: 'desc' }
   });
 
-  // Extract unique categories for filtering (in a real app, this would be dynamic via search params)
-  const categories = Array.from(new Set(products.map(p => p.category.name)));
+  const categories = await prisma.category.findMany();
 
   return (
     <div className="bg-[var(--color-ivory-100)] min-h-screen pb-20">
@@ -30,34 +58,12 @@ export default async function ShopPage({ params }: { params: Promise<{ locale: s
         
         {/* Sidebar Filters */}
         <aside className="w-full md:w-64 flex-shrink-0">
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-[var(--color-ivory-200)] sticky top-24">
-            <h3 className="font-bold text-lg text-[var(--color-forest-900)] mb-4 border-b pb-2">تصفية البحث</h3>
-            
-            <div className="mb-6">
-              <h4 className="font-bold text-sm text-zinc-700 mb-3">الفئة</h4>
-              <div className="space-y-2">
-                {categories.map(cat => (
-                  <label key={cat} className="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" className="rounded text-[var(--color-champagne-600)] focus:ring-[var(--color-champagne-600)]" />
-                    <span className="text-sm text-zinc-600">{cat}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            <div className="mb-6">
-              <h4 className="font-bold text-sm text-zinc-700 mb-3">السعر</h4>
-              <input type="range" min="0" max="200" className="w-full accent-[var(--color-champagne-600)]" />
-              <div className="flex justify-between text-xs text-zinc-500 mt-2">
-                <span>0 د.أ</span>
-                <span>200+ د.أ</span>
-              </div>
-            </div>
-            
-            <button className="w-full bg-[var(--color-forest-900)] hover:bg-[var(--color-forest-800)] text-white py-2 rounded-md font-bold text-sm transition-colors">
-              تطبيق الفلاتر
-            </button>
-          </div>
+          <ShopFilters 
+            categories={categories} 
+            initialMinPrice={parseInt(minPriceStr)} 
+            initialMaxPrice={parseInt(maxPriceStr)} 
+            initialCategory={categoryStr} 
+          />
         </aside>
 
         {/* Product Grid */}
@@ -82,6 +88,17 @@ export default async function ShopPage({ params }: { params: Promise<{ locale: s
               return (
                 <Link key={product.id} href={`/${locale}/products/${product.slug}`} className="group bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 p-4 border border-[var(--color-ivory-200)] flex flex-col h-full hover:border-[var(--color-champagne-600)]">
                   <div className="relative aspect-square w-full bg-[var(--color-ivory-200)] rounded-md mb-4 overflow-hidden">
+                    <div className="absolute top-2 right-2 z-20">
+                      <WishlistHeart product={{
+                        id: product.id,
+                        nameAr: product.nameAr,
+                        nameEn: product.nameEn,
+                        slug: product.slug,
+                        imageUrl: mainImage?.url || '',
+                        price: lowestPrice,
+                        stockStatus: product.stockStatus
+                      }} />
+                    </div>
                     <div className="absolute inset-0 flex items-center justify-center text-[var(--color-forest-600)]">
                       {mainImage ? (
                         <div className="w-full h-full bg-cover bg-center group-hover:scale-105 transition-transform duration-500" style={{ backgroundImage: `url(${mainImage.url.startsWith('local://') ? '/product-placeholder.png' : mainImage.url})` }} />
@@ -91,8 +108,8 @@ export default async function ShopPage({ params }: { params: Promise<{ locale: s
                   <div className="text-center flex-1 flex flex-col">
                     <h3 className="text-lg font-bold text-[var(--color-forest-900)] mb-1 group-hover:text-[var(--color-champagne-600)] transition-colors">{product.nameAr}</h3>
                     <p className="text-xs text-zinc-500 mb-2">{product.category.name}</p>
-                    <div className="mt-auto text-[var(--color-champagne-600)] font-bold text-lg">
-                      {lowestPrice > 0 ? filsToDisplay(lowestPrice, locale === 'ar' ? 'ar' : 'en') : 'نفذت الكمية'}
+                    <div className="mt-auto text-sm text-[var(--color-champagne-600)] font-bold">
+                      {locale === 'ar' ? 'اختر الحجم لعرض السعر' : 'Select size for price'}
                     </div>
                   </div>
                   <div className="mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">

@@ -1,5 +1,6 @@
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
+import { FloatingCart } from '@/components/FloatingCart';
 import React from 'react';
 
 export default async function PublicLayout({
@@ -20,6 +21,7 @@ export default async function PublicLayout({
         {children}
       </main>
       <Footer />
+      <FloatingCart locale={locale} />
     </div>
   );
 }

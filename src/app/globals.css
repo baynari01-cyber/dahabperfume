@@ -27,3 +27,26 @@
     @apply font-heading font-bold text-[var(--color-forest-900)];
   }
 }
+
+@media print {
+  /* Hide Admin Sidebar */
+  nav, header, footer, aside, .sidebar {
+    display: none !important;
+  }
+  
+  /* Hide Filters and Buttons */
+  button, select, input, a, .bg-white.p-4.rounded-lg.shadow-sm.mb-6 {
+    display: none !important;
+  }
+  
+  /* Ensure table takes full width */
+  main {
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+  }
+  
+  body {
+    background-color: white !important;
+  }
+}

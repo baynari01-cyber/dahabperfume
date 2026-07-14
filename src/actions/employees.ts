@@ -80,6 +80,7 @@ export async function updateEmployee(data: {
   email: string;
   roleId: string;
   isActive: boolean;
+  password?: string;
   selectedPermissionIds: string[];
   adminId: string;
 }) {
@@ -105,15 +106,21 @@ export async function updateEmployee(data: {
       }
     }
 
+    const dataToUpdate: any = {
+      name: data.name,
+      email: data.email,
+      roleId: data.roleId,
+      isActive: data.isActive
+    };
+
+    if (data.password) {
+      dataToUpdate.passwordHash = await argon2.hash(data.password);
+    }
+
     // Update Employee
     await prisma.employee.update({
       where: { id: data.id },
-      data: {
-        name: data.name,
-        email: data.email,
-        roleId: data.roleId,
-        isActive: data.isActive
-      }
+      data: dataToUpdate
     });
 
     // Re-sync custom permissions

@@ -4,6 +4,7 @@ import { prisma } from '@/lib/db';
 import { getHeroSlides, getHeroCarouselSettings, getStoreLocationSettings } from '@/actions/homepage-cms';
 import { HeroCarousel } from '@/components/HeroCarousel';
 import { StoreLocationSection } from '@/components/StoreLocationSection';
+import { WishlistHeart } from '@/components/WishlistHeart';
 import { filsToDisplay } from '@/lib/money';
 import { Sparkles } from 'lucide-react';
 
@@ -11,7 +12,7 @@ interface Params {
   locale?: string;
 }
 
-export default async function HomePage({ params }: { params: Promise<Params> }) {
+export default async function StoreFrontPage({ params }: { params: Promise<Params> }) {
   const { locale = 'ar' } = await params;
   const isAr = locale === 'ar';
 
@@ -25,7 +26,8 @@ export default async function HomePage({ params }: { params: Promise<Params> }) 
       images: {
         where: { isMain: true },
         take: 1
-      }
+      },
+      category: true
     }
   });
 
@@ -43,6 +45,9 @@ export default async function HomePage({ params }: { params: Promise<Params> }) 
 
   // 3. Fetch Store location settings
   const locationSettings = await getStoreLocationSettings();
+
+  // 4. Fetch Collections (Categories)
+  const collections = await prisma.category.findMany();
 
   // Default mock collections if none configured in CMS
   const defaultSlides: any[] = [
@@ -188,18 +193,34 @@ export default async function HomePage({ params }: { params: Promise<Params> }) 
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center max-w-5xl mx-auto">
-            <div className="p-8 bg-zinc-50 rounded-lg border border-zinc-100 hover:shadow-md transition-shadow">
-              <h3 className="text-xl font-bold text-[var(--color-forest-900)] mb-4">{isAr ? 'رجالي' : 'Men'}</h3>
-              <p className="text-zinc-600">{isAr ? 'عطور رجالية بحضور فخم وثبات يدوم طويلاً.' : 'Men\'s fragrances with a luxurious presence and long-lasting hold.'}</p>
-            </div>
-            <div className="p-8 bg-zinc-50 rounded-lg border border-zinc-100 hover:shadow-md transition-shadow">
-              <h3 className="text-xl font-bold text-[var(--color-forest-900)] mb-4">{isAr ? 'نسائي' : 'Women'}</h3>
-              <p className="text-zinc-600">{isAr ? 'تركيبات ناعمة وجذابة تناسب كافة المناسبات.' : 'Soft and attractive compositions suitable for all occasions.'}</p>
-            </div>
-            <div className="p-8 bg-zinc-50 rounded-lg border border-zinc-100 hover:shadow-md transition-shadow">
-              <h3 className="text-xl font-bold text-[var(--color-forest-900)] mb-4">{isAr ? 'عود' : 'Oud'}</h3>
-              <p className="text-zinc-600">{isAr ? 'عود، عنبر، مسك وتوابل دافئة بحضور واضح.' : 'Oud, amber, musk and warm spices with a clear presence.'}</p>
-            </div>
+            {collections.length > 0 ? collections.map(collection => (
+              <Link href={`/shop?category=${collection.id}`} key={collection.id} className="block group">
+                <div className="p-8 bg-zinc-50 rounded-lg border border-zinc-100 hover:shadow-md transition-shadow relative overflow-hidden group-hover:border-[var(--color-champagne-600)] h-full flex flex-col items-center">
+                  {collection.imagePath && (
+                    <div className="w-24 h-24 mb-4 rounded-full overflow-hidden border-2 border-[var(--color-ivory-200)] group-hover:border-[var(--color-champagne-600)] transition-colors shadow-sm">
+                      <img src={collection.imagePath.startsWith('local://') ? '/product-placeholder.png' : collection.imagePath} alt={collection.name} className="w-full h-full object-cover" />
+                    </div>
+                  )}
+                  <h3 className="text-xl font-bold text-[var(--color-forest-900)] mb-2">{collection.name}</h3>
+                  {collection.description && <p className="text-zinc-600 line-clamp-2 text-sm">{collection.description}</p>}
+                </div>
+              </Link>
+            )) : (
+              <>
+                <div className="p-8 bg-zinc-50 rounded-lg border border-zinc-100 hover:shadow-md transition-shadow">
+                  <h3 className="text-xl font-bold text-[var(--color-forest-900)] mb-4">{isAr ? 'رجالي' : 'Men'}</h3>
+                  <p className="text-zinc-600">{isAr ? 'عطور رجالية بحضور فخم وثبات يدوم طويلاً.' : 'Men\'s fragrances with a luxurious presence and long-lasting hold.'}</p>
+                </div>
+                <div className="p-8 bg-zinc-50 rounded-lg border border-zinc-100 hover:shadow-md transition-shadow">
+                  <h3 className="text-xl font-bold text-[var(--color-forest-900)] mb-4">{isAr ? 'نسائي' : 'Women'}</h3>
+                  <p className="text-zinc-600">{isAr ? 'تركيبات ناعمة وجذابة تناسب كافة المناسبات.' : 'Soft and attractive compositions suitable for all occasions.'}</p>
+                </div>
+                <div className="p-8 bg-zinc-50 rounded-lg border border-zinc-100 hover:shadow-md transition-shadow">
+                  <h3 className="text-xl font-bold text-[var(--color-forest-900)] mb-4">{isAr ? 'عود' : 'Oud'}</h3>
+                  <p className="text-zinc-600">{isAr ? 'عود، عنبر، مسك وتوابل دافئة بحضور واضح.' : 'Oud, amber, musk and warm spices with a clear presence.'}</p>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </section>
@@ -215,32 +236,51 @@ export default async function HomePage({ params }: { params: Promise<Params> }) 
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {featuredProducts.map((product) => (
-              <div key={product.id} className="group cursor-pointer bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow p-4 border border-[var(--color-ivory-200)]">
-                <div className="relative aspect-square w-full bg-[var(--color-ivory-200)] rounded-md mb-4 overflow-hidden">
-                  <div className="absolute inset-0 flex items-center justify-center text-[var(--color-forest-600)]">
-                    {product.images[0] ? (
-                      <div className="w-full h-full bg-cover bg-center" style={{ backgroundImage: `url(${product.images[0].url.startsWith('local://') ? '/product-placeholder.png' : product.images[0].url})` }} />
-                    ) : (
-                      isAr ? 'صورة العطر' : 'Perfume Image'
-                    )}
+            {featuredProducts.map((product) => {
+              const mainImage = product.images.find(img => img.isMain) || product.images[0];
+              const lowestPrice = product.variants.length > 0 
+                ? Math.min(...product.variants.map(v => v.price))
+                : 0;
+
+              return (
+                <Link key={product.id} href={`/${locale}/products/${product.slug}`} className="group bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 p-4 border border-[var(--color-ivory-200)] flex flex-col h-full hover:border-[var(--color-champagne-600)]">
+                  <div className="relative aspect-square w-full bg-[var(--color-ivory-200)] rounded-md mb-4 overflow-hidden">
+                    <div className="absolute top-2 right-2 z-20">
+                      <WishlistHeart product={{
+                        id: product.id,
+                        nameAr: product.nameAr,
+                        nameEn: product.nameEn,
+                        slug: product.slug,
+                        imageUrl: mainImage?.url || '',
+                        price: lowestPrice,
+                        stockStatus: product.stockStatus
+                      }} />
+                    </div>
+                    <div className="absolute inset-0 flex items-center justify-center text-[var(--color-forest-600)]">
+                      {mainImage ? (
+                        <div className="w-full h-full bg-cover bg-center group-hover:scale-105 transition-transform duration-500" style={{ backgroundImage: `url(${mainImage.url.startsWith('local://') ? '/product-placeholder.png' : mainImage.url})` }} />
+                      ) : (
+                        isAr ? 'صورة العطر' : 'Perfume Image'
+                      )}
+                    </div>
                   </div>
-                </div>
-                <div className="text-center">
-                  <h3 className="text-xl font-bold text-[var(--color-forest-900)] mb-2">
-                    {isAr ? product.nameAr : product.nameEn}
-                  </h3>
-                  <div className="text-[var(--color-champagne-600)] font-bold text-lg">
-                    {product.variants[0] ? filsToDisplay(product.variants[0].price, isAr ? 'ar' : 'en') : (isAr ? 'نفذت الكمية' : 'Out of Stock')}
+                  <div className="text-center flex-1 flex flex-col">
+                    <h3 className="text-lg font-bold text-[var(--color-forest-900)] mb-1 group-hover:text-[var(--color-champagne-600)] transition-colors">
+                      {isAr ? product.nameAr : product.nameEn}
+                    </h3>
+                    {product.category && <p className="text-xs text-zinc-500 mb-2">{product.category.name}</p>}
+                    <div className="mt-auto text-sm text-[var(--color-champagne-600)] font-bold">
+                      {isAr ? 'اختر الحجم لعرض السعر' : 'Select size for price'}
+                    </div>
                   </div>
-                </div>
-                <div className="mt-4">
-                  <button className="w-full py-2 bg-[var(--color-forest-900)] hover:bg-[var(--color-forest-800)] text-white rounded-sm transition-colors text-sm font-bold">
-                    {isAr ? 'أضف إلى السلة' : 'Add to Cart'}
-                  </button>
-                </div>
-              </div>
-            ))}
+                  <div className="mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <button className="w-full py-2 bg-[var(--color-forest-900)] hover:bg-[var(--color-forest-800)] text-white rounded-sm text-sm font-bold shadow-md">
+                      {isAr ? 'عرض التفاصيل' : 'View Details'}
+                    </button>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         </div>
       </section>

@@ -165,18 +165,20 @@ export function StoreLocationSection({ settings }: StoreLocationSectionProps) {
           {/* Map Column */}
           <div className="relative rounded-lg overflow-hidden border border-[var(--color-ivory-200)] bg-zinc-100 shadow-sm aspect-video lg:aspect-auto min-h-[300px]">
             {loadMap ? (
-              // Lazy loaded Iframe
-              <iframe
-                title={isAr ? 'خريطة موقع معرض دهب للعطور' : 'Dahab Perfumes Store Map'}
-                src={settings.mapEmbedUrl}
-                width="100%"
-                height="100%"
-                style={{ border: 0 }}
-                allowFullScreen
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                className="w-full h-full"
-              />
+              <>
+                {/* Lazy loaded Iframe with guaranteed native red pin */}
+                <iframe
+                  title={isAr ? 'خريطة موقع معرض دهب للعطور' : 'Dahab Perfumes Store Map'}
+                  src={`https://maps.google.com/maps?q=${settings.latitude},${settings.longitude}&hl=${locale}&z=${settings.mapZoom || 15}&output=embed`}
+                  width="100%"
+                  height="100%"
+                  style={{ border: 0 }}
+                  allowFullScreen
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  className="w-full h-full"
+                />
+              </>
             ) : (
               // Privacy and Performance placeholder
               <div className="absolute inset-0 w-full h-full flex flex-col items-center justify-center p-6 text-center bg-[var(--color-forest-950)] text-white select-none">

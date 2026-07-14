@@ -4,6 +4,7 @@ import { requirePermission } from '@/lib/dal';
 import { prisma } from '@/lib/db';
 import { AdminSidebar } from '@/components/AdminSidebar';
 import { ProductNewForm } from '@/components/ProductNewForm';
+import { getGlobalSizePrices } from '@/actions/settings';
 
 export default async function AdminProductsNewPage() {
   const session = await requirePermission('manage:products');
@@ -13,6 +14,7 @@ export default async function AdminProductsNewPage() {
   });
 
   const categories = await prisma.category.findMany({ orderBy: { name: 'asc' } });
+  const globalPrices = await getGlobalSizePrices();
 
   return (
     <div className="flex h-screen bg-[var(--color-ivory-100)]" dir="rtl">
@@ -30,7 +32,10 @@ export default async function AdminProductsNewPage() {
           </h1>
         </div>
 
-        <ProductNewForm categories={categories.map(c => ({ id: c.id, name: c.name }))} />
+        <ProductNewForm 
+          categories={categories.map(c => ({ id: c.id, name: c.name }))} 
+          globalPrices={globalPrices}
+        />
       </main>
     </div>
   );

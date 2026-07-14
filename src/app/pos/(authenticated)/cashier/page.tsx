@@ -1,5 +1,5 @@
 import React from 'react';
-import { requireAuth, requirePermission } from '@/lib/dal';
+import { requireAuth, requirePermission, getEmployeePermissions } from '@/lib/dal';
 import { prisma } from '@/lib/db';
 import { POSCashierWorkspace } from '@/components/POSCashierWorkspace';
 
@@ -7,6 +7,9 @@ export default async function POSCashierPage() {
   // 1. Authorize permission
   const session = await requirePermission('pos:access');
   const employeeId = session.employeeId;
+  const activePermissions = await getEmployeePermissions(employeeId);
+  const hasOrdersViewPermission = activePermissions.includes('pos.orders.view') || activePermissions.includes('manage:orders');
+  const hasOrdersManagePermission = activePermissions.includes('pos.orders.manage') || activePermissions.includes('manage:orders');
 
   // 2. Fetch active cashier info
   const employee = await prisma.employee.findUnique({
@@ -24,6 +27,10 @@ export default async function POSCashierPage() {
     include: {
       variants: {
         where: { isActive: true }
+      },
+      images: {
+        where: { isMain: true },
+        take: 1
       }
     }
   });
@@ -37,7 +44,8 @@ export default async function POSCashierPage() {
     shortDescription: p.shortDescription,
     stockStatus: p.stockStatus,
     variants: p.variants,
-    stockLiters: p.stockLiters
+    stockLiters: p.stockLiters,
+    imageUrl: p.images[0]?.url || null
   }));
 
   // 4. Fetch site settings
@@ -59,8 +67,8 @@ export default async function POSCashierPage() {
     posIdleShowClock: true,
     posIdleShowDate: true,
     posIdleRequirePin: false,
-    posIdleMessageAr: 'شاشة خمول مؤقتة - يرجى الضغط للمتابعة',
-    posIdleMessageEn: 'Idle screen - Please press to continue',
+    posIdleMessageAr: 'انقر للمتابعة',
+    posIdleMessageEn: 'Click to continue',
     posSessionLifetimeHours: 15
   };
   if (posSettingsRecord) {
@@ -102,6 +110,8 @@ export default async function POSCashierPage() {
         }}
         cashierName={employee.name}
         sessionExpiresAt={sessionExpiresAt}
+        hasOrdersViewPermission={hasOrdersViewPermission}
+        hasOrdersManagePermission={hasOrdersManagePermission}
       />
     </div>
   );

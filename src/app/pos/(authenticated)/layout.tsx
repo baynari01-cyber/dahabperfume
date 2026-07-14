@@ -13,8 +13,8 @@ export default async function POSLayout({
 
   // Determine which links are visible based on admin checkbox permissions
   const showCounter = permissions.includes('pos:access');
-  const showInvoices = permissions.includes('pos:access') || permissions.includes('manage:orders');
   const showReport = permissions.includes('pos:access') || permissions.includes('manage:settings');
+  const showOrders = permissions.includes('pos:access') || permissions.includes('manage:orders');
   const showAdmin = permissions.includes('manage:products') || permissions.includes('manage:orders') || permissions.includes('manage:settings');
 
   return (
@@ -58,15 +58,15 @@ export default async function POSLayout({
           </Link>
         )}
 
-        {showInvoices && (
+        {showOrders && (
           <Link
-            href="/pos/invoices"
+            href="/pos/orders"
             className="flex flex-col items-center justify-center text-zinc-650 hover:text-[var(--color-forest-900)] transition-colors w-full py-1 text-center"
           >
             <svg className="h-5 w-5 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
             </svg>
-            <span className="text-[10px] font-bold">سجل الفواتير</span>
+            <span className="text-[10px] font-bold">طلبات المتجر</span>
           </Link>
         )}
 

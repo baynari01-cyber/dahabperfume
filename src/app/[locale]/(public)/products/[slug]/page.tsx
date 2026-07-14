@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { filsToDisplay } from '@/lib/money';
 import Image from 'next/image';
 import Link from 'next/link';
+import { ProductVariantSelector } from '@/components/ProductVariantSelector';
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string; locale: string }> }) {
   const { slug } = await params;
@@ -79,52 +80,11 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             {product.category.name} {product.family ? `| ${product.family.name}` : ''}
           </p>
 
-          <div className="text-2xl font-bold text-[var(--color-champagne-600)] mb-2">
-            {lowestPrice > 0 ? filsToDisplay(lowestPrice, locale === 'ar' ? 'ar' : 'en') : 'السعر غير متوفر'}
-          </div>
-
-          <div className="mb-8">
-            {product.stockStatus === 'UNVERIFIED' ? (
-              <span className="inline-block bg-[var(--color-champagne-100)] text-[var(--color-champagne-800)] px-3 py-1 rounded text-xs font-bold">
-                {locale === 'ar' ? 'بانتظار تأكيد التوفر في المخزن عند الطلب' : 'Availability confirmed upon request'}
-              </span>
-            ) : (
-              <span className="inline-block bg-emerald-100 text-emerald-800 px-3 py-1 rounded text-xs font-bold">
-                {locale === 'ar' ? 'متوفر في المخزن' : 'In Stock'}
-              </span>
-            )}
-          </div>
-
           <p className="text-zinc-700 leading-relaxed mb-8">
             {product.shortDescription || 'عطر فاخر ينبض بالجاذبية ويمثل بصمة عطرية فريدة تدوم طويلاً.'}
           </p>
 
-          {/* Size Selector */}
-          <div className="mb-8">
-            <h3 className="text-sm font-bold text-[var(--color-forest-900)] mb-3">الحجم</h3>
-            <div className="flex flex-wrap gap-3">
-              {product.variants.map((variant) => (
-                <button
-                  key={variant.id}
-                  className="px-6 py-2 border-2 border-[var(--color-champagne-600)] rounded-md hover:bg-[var(--color-champagne-600)] hover:text-white transition-colors text-sm font-bold text-[var(--color-forest-900)]"
-                >
-                  {variant.size}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Quantity & Add to Cart */}
-          <div className="flex items-center gap-4 mb-12">
-            <div className="flex items-center border border-[var(--color-forest-900)] rounded-md">
-              <button className="px-4 py-3 hover:bg-[var(--color-ivory-200)] text-[var(--color-forest-900)] transition-colors">-</button>
-              <span className="w-12 text-center font-bold text-[var(--color-forest-900)]">1</span>
-              <button className="px-4 py-3 hover:bg-[var(--color-ivory-200)] text-[var(--color-forest-900)] transition-colors">+</button>
-            </div>
-            <button className="flex-1 bg-[var(--color-forest-900)] hover:bg-[var(--color-forest-800)] text-white font-bold py-3 rounded-md transition-colors">
-              أضف إلى السلة
-            </button>
-          </div>
+          <ProductVariantSelector variants={product.variants} locale={locale} product={product} mainImage={mainImage?.url} />
 
           {/* Accords (Olfactory Notes) */}
           {product.accords.length > 0 && (

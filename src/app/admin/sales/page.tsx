@@ -3,12 +3,13 @@ import { requireAuth } from '@/lib/dal';
 import { filsToDisplay } from '@/lib/money';
 import { prisma } from '@/lib/db';
 import { AdminSidebar } from '@/components/AdminSidebar';
+import { SalesFilters } from '@/components/SalesFilters';
 import Link from 'next/link';
 
 export default async function AdminSalesPage({
   searchParams
 }: {
-  searchParams: Promise<{ employeeId?: string; source?: string; payMethod?: string }>;
+  searchParams: Promise<{ employeeId?: string; source?: string; payMethod?: string; startDate?: string; endDate?: string }>;
 }) {
   const session = await requireAuth();
 
@@ -16,6 +17,8 @@ export default async function AdminSalesPage({
   const filterEmployee = resolvedParams.employeeId;
   const filterSource = resolvedParams.source;
   const filterPayMethod = resolvedParams.payMethod;
+  const filterStartDate = resolvedParams.startDate;
+  const filterEndDate = resolvedParams.endDate;
 
   const whereClause: any = {};
   if (filterEmployee) whereClause.employeeId = filterEmployee;
@@ -24,6 +27,15 @@ export default async function AdminSalesPage({
     whereClause.payments = {
       some: { method: filterPayMethod }
     };
+  }
+  if (filterStartDate || filterEndDate) {
+    whereClause.createdAt = {};
+    if (filterStartDate) {
+      whereClause.createdAt.gte = new Date(`${filterStartDate}T00:00:00Z`);
+    }
+    if (filterEndDate) {
+      whereClause.createdAt.lte = new Date(`${filterEndDate}T23:59:59Z`);
+    }
   }
 
   const sales = await prisma.sale.findMany({
@@ -38,11 +50,14 @@ export default async function AdminSalesPage({
 
   const employees = await prisma.employee.findMany();
 
+  const totalSalesCount = sales.length;
+  const totalSalesSum = sales.reduce((sum, sale) => sum + sale.total, 0);
+
   return (
     <div className="flex h-screen bg-[var(--color-ivory-100)]" dir="rtl">
       <AdminSidebar employeeName={session.employee.name} />
 
-      <main className="flex-1 overflow-y-auto p-8 font-sans">
+      <main className="flex-1 overflow-y-auto p-4 md:p-8 font-sans w-full max-w-full">
         <div className="flex justify-between items-center mb-8 border-b border-[var(--color-ivory-200)] pb-4">
           <div>
             <h1 className="text-3xl font-bold font-heading text-[var(--color-forest-900)]">
@@ -53,52 +68,39 @@ export default async function AdminSalesPage({
         </div>
 
         {/* Filters */}
-        <div className="bg-white p-4 rounded-lg shadow-sm border border-[var(--color-ivory-200)] mb-6 flex gap-4 text-sm">
-          <div>
-            <label className="block text-xs font-bold text-zinc-600 mb-1">الموظف (الكاشير)</label>
-            <form action="/admin/sales" method="GET">
-              {filterSource && <input type="hidden" name="source" value={filterSource} />}
-              {filterPayMethod && <input type="hidden" name="payMethod" value={filterPayMethod} />}
-              <select name="employeeId" className="border rounded p-2 text-xs" onChange={(e) => e.target.form?.submit()} defaultValue={filterEmployee || ''}>
-                <option value="">الجميع</option>
-                {employees.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
-              </select>
-            </form>
-          </div>
+        <SalesFilters 
+          filterEmployee={filterEmployee || ''} 
+          filterSource={filterSource || ''} 
+          filterPayMethod={filterPayMethod || ''} 
+          filterStartDate={filterStartDate || ''}
+          filterEndDate={filterEndDate || ''}
+          employees={employees} 
+        />
 
-          <div>
-            <label className="block text-xs font-bold text-zinc-600 mb-1">نوع الطلب (المصدر)</label>
-            <form action="/admin/sales" method="GET">
-              {filterEmployee && <input type="hidden" name="employeeId" value={filterEmployee} />}
-              {filterPayMethod && <input type="hidden" name="payMethod" value={filterPayMethod} />}
-              <select name="source" className="border rounded p-2 text-xs" onChange={(e) => e.target.form?.submit()} defaultValue={filterSource || ''}>
-                <option value="">الجميع</option>
-                <option value="POS">نقطة بيع (كاش)</option>
-                <option value="STOREFRONT">طلب متجر (توصيل)</option>
-              </select>
-            </form>
+        {/* Summary Statistics */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div className="bg-white rounded-lg shadow-sm border border-[var(--color-ivory-200)] p-6 flex items-center justify-between">
+            <div>
+              <p className="text-zinc-500 text-sm font-bold mb-1">عدد العمليات المطابقة</p>
+              <p className="text-3xl font-bold text-zinc-900">{totalSalesCount}</p>
+            </div>
+            <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center font-bold text-xl">
+              #
+            </div>
           </div>
-          
-          <div>
-            <label className="block text-xs font-bold text-zinc-600 mb-1">طريقة الدفع</label>
-            <form action="/admin/sales" method="GET">
-              {filterEmployee && <input type="hidden" name="employeeId" value={filterEmployee} />}
-              {filterSource && <input type="hidden" name="source" value={filterSource} />}
-              <select name="payMethod" className="border rounded p-2 text-xs" onChange={(e) => e.target.form?.submit()} defaultValue={filterPayMethod || ''}>
-                <option value="">الجميع</option>
-                <option value="CASH">نقدي</option>
-                <option value="CARD">بطاقة</option>
-              </select>
-            </form>
-          </div>
-
-          <div className="self-end pb-1">
-             <Link href="/admin/sales" className="text-zinc-500 hover:text-red-600 underline text-xs">إلغاء الفلاتر</Link>
+          <div className="bg-[var(--color-champagne-50)] rounded-lg shadow-sm border border-[var(--color-champagne-200)] p-6 flex items-center justify-between">
+            <div>
+              <p className="text-[var(--color-forest-900)] text-sm font-bold mb-1">إجمالي المبيعات للعمليات المطابقة</p>
+              <p className="text-3xl font-extrabold text-[var(--color-champagne-600)]">{filsToDisplay(totalSalesSum, 'ar')}</p>
+            </div>
+            <div className="w-12 h-12 bg-[var(--color-forest-900)] text-white rounded-full flex items-center justify-center font-bold text-xl">
+              د.أ
+            </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-[var(--color-ivory-200)] overflow-hidden">
-          <table className="w-full text-right border-collapse">
+        <div className="bg-white rounded-lg shadow-sm border border-[var(--color-ivory-200)] overflow-x-auto">
+          <table className="w-full text-right border-collapse min-w-[800px]">
             <thead className="bg-zinc-50 border-b border-zinc-200">
               <tr className="text-sm font-bold text-zinc-700">
                 <th className="px-6 py-4">رقم العملية</th>
@@ -106,7 +108,6 @@ export default async function AdminSalesPage({
                 <th className="px-6 py-4">المصدر</th>
                 <th className="px-6 py-4">اسم العميل</th>
                 <th className="px-6 py-4">المجموع الفرعي</th>
-                <th className="px-6 py-4">الضريبة</th>
                 <th className="px-6 py-4">المجموع الإجمالي</th>
                 <th className="px-6 py-4">طريقة الدفع</th>
                 <th className="px-6 py-4">التاريخ والوقت</th>
@@ -126,7 +127,6 @@ export default async function AdminSalesPage({
                     </td>
                     <td className="px-6 py-4">{sale.customerName || '-'}</td>
                     <td className="px-6 py-4">{filsToDisplay(sale.subtotal, 'ar')}</td>
-                    <td className="px-6 py-4">{filsToDisplay(sale.tax, 'ar')}</td>
                     <td className="px-6 py-4 font-bold text-emerald-600">
                       {filsToDisplay(sale.total, 'ar')}
                     </td>

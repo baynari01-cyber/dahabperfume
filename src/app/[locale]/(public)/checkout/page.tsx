@@ -48,6 +48,20 @@ export default function CheckoutPage({ params }: { params: Promise<{ locale: str
     }
   }, [state]);
 
+  const removeItem = (index: number) => {
+    const updated = [...cartItems];
+    updated.splice(index, 1);
+    setCartItems(updated);
+    localStorage.setItem('dahab_cart', JSON.stringify(updated));
+    window.dispatchEvent(new Event('cart_updated'));
+  };
+
+  const clearCart = () => {
+    setCartItems([]);
+    localStorage.removeItem('dahab_cart');
+    window.dispatchEvent(new Event('cart_updated'));
+  };
+
   const getSubtotal = () => {
     return cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
   };
@@ -117,6 +131,48 @@ export default function CheckoutPage({ params }: { params: Promise<{ locale: str
                 />
               </div>
 
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="addressStreet" className="block text-sm font-medium text-zinc-700 mb-1">
+                    {isAr ? 'الشارع' : 'Street'}
+                  </label>
+                  <input
+                    type="text"
+                    id="addressStreet"
+                    name="addressStreet"
+                    required
+                    placeholder={isAr ? 'اسم الشارع' : 'Street name'}
+                    className="w-full border border-zinc-300 rounded px-4 py-2 focus:ring-2 focus:ring-[var(--color-champagne-600)] outline-none"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="addressBuilding" className="block text-sm font-medium text-zinc-700 mb-1">
+                    {isAr ? 'البناية / المنزل' : 'Building / House'}
+                  </label>
+                  <input
+                    type="text"
+                    id="addressBuilding"
+                    name="addressBuilding"
+                    required
+                    placeholder={isAr ? 'رقم البناية أو الاسم' : 'Building number or name'}
+                    className="w-full border border-zinc-300 rounded px-4 py-2 focus:ring-2 focus:ring-[var(--color-champagne-600)] outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="addressApartment" className="block text-sm font-medium text-zinc-700 mb-1">
+                  {isAr ? 'رقم الشقة / الطابق (اختياري)' : 'Apartment / Floor (Optional)'}
+                </label>
+                <input
+                  type="text"
+                  id="addressApartment"
+                  name="addressApartment"
+                  placeholder={isAr ? 'الشقة، الطابق، تفاصيل إضافية...' : 'Apartment, floor, extra details...'}
+                  className="w-full border border-zinc-300 rounded px-4 py-2 focus:ring-2 focus:ring-[var(--color-champagne-600)] outline-none"
+                />
+              </div>
+
               <div>
                 <label htmlFor="shippingZoneId" className="block text-sm font-medium text-zinc-700 mb-1">
                   {isAr ? 'منطقة التوصيل' : 'Shipping Zone'}
@@ -169,9 +225,19 @@ export default function CheckoutPage({ params }: { params: Promise<{ locale: str
         {/* Order Summary */}
         <div>
           <div className="bg-white p-8 rounded-lg border border-[var(--color-ivory-200)] shadow-sm">
-            <h2 className="text-xl font-bold text-zinc-900 mb-6">
-              {isAr ? 'ملخص الطلب' : 'Order Summary'}
-            </h2>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold text-zinc-900">
+                {isAr ? 'ملخص الطلب' : 'Order Summary'}
+              </h2>
+              {cartItems.length > 0 && (
+                <button 
+                  onClick={clearCart}
+                  className="text-sm text-red-500 hover:text-red-700 underline font-bold"
+                >
+                  {isAr ? 'إفراغ السلة' : 'Empty Cart'}
+                </button>
+              )}
+            </div>
             
             {cartItems.length === 0 ? (
               <div className="text-center py-8 text-zinc-500">
@@ -193,9 +259,18 @@ export default function CheckoutPage({ params }: { params: Promise<{ locale: str
                         )}
                       </p>
                     </div>
-                    <span className="font-bold text-zinc-700">
-                      {filsToDisplay(item.price * item.quantity, isAr ? 'ar' : 'en')}
-                    </span>
+                    <div className="flex flex-col items-end gap-2">
+                      <span className="font-bold text-zinc-700">
+                        {filsToDisplay(item.price * item.quantity, isAr ? 'ar' : 'en')}
+                      </span>
+                      <button 
+                        onClick={() => removeItem(idx)}
+                        className="text-xs text-red-400 hover:text-red-600 font-bold"
+                        title={isAr ? 'حذف العنصر' : 'Remove item'}
+                      >
+                        {isAr ? 'حذف' : 'Remove'}
+                      </button>
+                    </div>
                   </div>
                 ))}
                 

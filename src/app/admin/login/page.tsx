@@ -1,11 +1,12 @@
 'use client';
 
-import { useActionState, useEffect } from 'react';
+import { useActionState, useEffect, useState } from 'react';
 import { login } from '@/actions/auth';
 import Image from 'next/image';
 
 export default function AdminLoginPage() {
   const [state, formAction, isPending] = useActionState(login, null);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (state?.requiresMfa && state?.mfaToken) {
@@ -21,7 +22,9 @@ export default function AdminLoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-zinc-50 dark:bg-zinc-900 px-4">
       <div className="max-w-md w-full space-y-8 bg-white dark:bg-zinc-800 p-8 rounded-xl shadow-lg border border-zinc-100 dark:border-zinc-700">
         <div className="flex flex-col items-center">
-          <img src="/logo.png" alt="Dahab Perfumes Logo" width="64" height="64" className="mb-4" style={{ width: "auto", height: "auto" }} />
+          <div className="bg-zinc-100 dark:bg-zinc-700 p-2 rounded-md mb-4 flex items-center justify-center w-20 h-20 shadow-inner">
+            <img src="/logo.png" alt="Dahab Perfumes Logo" width="48" height="48" className="object-contain" style={{ width: "auto", height: "auto" }} />
+          </div>
           <h2 className="text-center text-3xl font-extrabold text-zinc-900 dark:text-white">
             Dahab Perfumes Admin
           </h2>
@@ -50,15 +53,28 @@ export default function AdminLoginPage() {
               <label htmlFor="password" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
                 Password
               </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                className="appearance-none relative block w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600 placeholder-zinc-500 text-zinc-900 dark:text-white rounded-md focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 focus:z-10 sm:text-sm dark:bg-zinc-700"
-                placeholder="••••••••"
-              />
+              <div className="relative">
+                <input
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="current-password"
+                  required
+                  className="appearance-none relative block w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600 placeholder-zinc-500 text-zinc-900 dark:text-white rounded-md focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 focus:z-10 sm:text-sm dark:bg-zinc-700 pr-10"
+                  placeholder="••••••••"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 focus:outline-none"
+                >
+                  {showPassword ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
 

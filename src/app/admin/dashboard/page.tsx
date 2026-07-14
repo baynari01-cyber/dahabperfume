@@ -8,11 +8,12 @@ import Link from 'next/link';
 export default async function AdminDashboardPage({
   searchParams,
 }: {
-  searchParams: { filter?: string };
+  searchParams: Promise<{ filter?: string }>;
 }) {
   const session = await requireAuth();
 
-  const filter = searchParams.filter || 'all';
+  const resolvedParams = await searchParams;
+  const filter = resolvedParams.filter || 'all';
   let dateFilter = {};
   const now = new Date();
   if (filter === 'today') {
@@ -47,8 +48,8 @@ export default async function AdminDashboardPage({
       <AdminSidebar employeeName={session.employee.name} />
 
       {/* Main Content Area on the left */}
-      <main className="flex-1 overflow-y-auto p-8 font-sans">
-        <div className="flex justify-between items-center mb-8 border-b border-[var(--color-ivory-200)] pb-4">
+      <main className="flex-1 overflow-y-auto p-4 md:p-8 font-sans w-full max-w-full">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 border-b border-[var(--color-ivory-200)] pb-4">
           <div>
             <h1 className="text-3xl font-bold font-heading text-[var(--color-forest-900)]">
               لوحة التحكم الرئيسية
@@ -57,7 +58,7 @@ export default async function AdminDashboardPage({
               مرحباً بك مجدداً، {session.employee.name}
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2 mt-4 md:mt-0">
             <Link href="/admin/dashboard?filter=today" className={`px-4 py-2 rounded text-sm ${filter === 'today' ? 'bg-[var(--color-forest-900)] text-white' : 'bg-white border text-zinc-600'}`}>اليوم</Link>
             <Link href="/admin/dashboard?filter=week" className={`px-4 py-2 rounded text-sm ${filter === 'week' ? 'bg-[var(--color-forest-900)] text-white' : 'bg-white border text-zinc-600'}`}>هذا الأسبوع</Link>
             <Link href="/admin/dashboard?filter=month" className={`px-4 py-2 rounded text-sm ${filter === 'month' ? 'bg-[var(--color-forest-900)] text-white' : 'bg-white border text-zinc-600'}`}>هذا الشهر</Link>

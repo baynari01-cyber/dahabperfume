@@ -9,6 +9,7 @@ import {
   reorderHeroSlides, 
   updateStoreLocationSettings 
 } from '@/actions/homepage-cms';
+import { uploadMedia } from '@/actions/upload';
 
 interface CMSHomepageFormProps {
   carouselSettings: any;
@@ -62,6 +63,31 @@ export function CMSHomepageForm({
     overlayStrength: 0.4,
     textPosition: 'CENTER'
   });
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, isMobile: boolean, isEditing: boolean) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    startTransition(async () => {
+      try {
+        const res = await uploadMedia(formData);
+        if (res.success && res.url) {
+          if (isEditing) {
+            setEditingSlide((prev: any) => ({ ...prev, [isMobile ? 'imageMobilePath' : 'imageDesktopPath']: res.url }));
+          } else {
+            setNewSlide((prev: any) => ({ ...prev, [isMobile ? 'imageMobilePath' : 'imageDesktopPath']: res.url }));
+          }
+        } else {
+          alert(res.error || 'فشل في رفع الملف');
+        }
+      } catch (err: any) {
+        alert(err.message || 'حدث خطأ أثناء الرفع');
+      }
+    });
+  };
 
   const handleCarouselChange = (key: string, value: any) => {
     setCarousel((prev: any) => ({ ...prev, [key]: value }));
@@ -404,24 +430,36 @@ export function CMSHomepageForm({
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1">
-                <label className="text-[10px] text-zinc-500 font-bold">رابط صورة سطح المكتب (Desktop Image URL)</label>
-                <input 
-                  type="text" 
-                  value={editingSlide.imageDesktopPath} 
-                  onChange={(e) => setEditingSlide({ ...editingSlide, imageDesktopPath: e.target.value })}
-                  required
-                  className="w-full border rounded p-2 text-xs bg-white"
-                />
+                <label className="text-[10px] text-zinc-500 font-bold">صورة/فيديو سطح المكتب (Desktop Media)</label>
+                <div className="flex gap-2 items-center">
+                  <input 
+                    type="text" 
+                    value={editingSlide.imageDesktopPath} 
+                    onChange={(e) => setEditingSlide({ ...editingSlide, imageDesktopPath: e.target.value })}
+                    required
+                    className="flex-1 border rounded p-2 text-xs bg-white"
+                  />
+                  <label className="bg-zinc-200 hover:bg-zinc-300 px-3 py-2 rounded text-xs cursor-pointer font-bold shrink-0">
+                    رفع ملف
+                    <input type="file" className="hidden" accept="image/*,video/*" onChange={(e) => handleFileUpload(e, false, true)} />
+                  </label>
+                </div>
               </div>
               <div className="space-y-1">
-                <label className="text-[10px] text-zinc-500 font-bold">رابط صورة الهاتف (Mobile Image URL)</label>
-                <input 
-                  type="text" 
-                  value={editingSlide.imageMobilePath} 
-                  onChange={(e) => setEditingSlide({ ...editingSlide, imageMobilePath: e.target.value })}
-                  required
-                  className="w-full border rounded p-2 text-xs bg-white"
-                />
+                <label className="text-[10px] text-zinc-500 font-bold">صورة/فيديو الهاتف (Mobile Media)</label>
+                <div className="flex gap-2 items-center">
+                  <input 
+                    type="text" 
+                    value={editingSlide.imageMobilePath} 
+                    onChange={(e) => setEditingSlide({ ...editingSlide, imageMobilePath: e.target.value })}
+                    required
+                    className="flex-1 border rounded p-2 text-xs bg-white"
+                  />
+                  <label className="bg-zinc-200 hover:bg-zinc-300 px-3 py-2 rounded text-xs cursor-pointer font-bold shrink-0">
+                    رفع ملف
+                    <input type="file" className="hidden" accept="image/*,video/*" onChange={(e) => handleFileUpload(e, true, true)} />
+                  </label>
+                </div>
               </div>
             </div>
 
@@ -567,24 +605,36 @@ export function CMSHomepageForm({
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1">
-                <label className="text-[10px] text-zinc-500 font-bold">رابط صورة سطح المكتب (Desktop Image URL)</label>
-                <input 
-                  type="text" 
-                  value={newSlide.imageDesktopPath} 
-                  onChange={(e) => setNewSlide({ ...newSlide, imageDesktopPath: e.target.value })}
-                  required
-                  className="w-full border rounded p-2 text-xs bg-white"
-                />
+                <label className="text-[10px] text-zinc-500 font-bold">صورة/فيديو سطح المكتب (Desktop Media)</label>
+                <div className="flex gap-2 items-center">
+                  <input 
+                    type="text" 
+                    value={newSlide.imageDesktopPath} 
+                    onChange={(e) => setNewSlide({ ...newSlide, imageDesktopPath: e.target.value })}
+                    required
+                    className="flex-1 border rounded p-2 text-xs bg-white"
+                  />
+                  <label className="bg-zinc-200 hover:bg-zinc-300 px-3 py-2 rounded text-xs cursor-pointer font-bold shrink-0">
+                    رفع ملف
+                    <input type="file" className="hidden" accept="image/*,video/*" onChange={(e) => handleFileUpload(e, false, false)} />
+                  </label>
+                </div>
               </div>
               <div className="space-y-1">
-                <label className="text-[10px] text-zinc-500 font-bold">رابط صورة الهاتف (Mobile Image URL)</label>
-                <input 
-                  type="text" 
-                  value={newSlide.imageMobilePath} 
-                  onChange={(e) => setNewSlide({ ...newSlide, imageMobilePath: e.target.value })}
-                  required
-                  className="w-full border rounded p-2 text-xs bg-white"
-                />
+                <label className="text-[10px] text-zinc-500 font-bold">صورة/فيديو الهاتف (Mobile Media)</label>
+                <div className="flex gap-2 items-center">
+                  <input 
+                    type="text" 
+                    value={newSlide.imageMobilePath} 
+                    onChange={(e) => setNewSlide({ ...newSlide, imageMobilePath: e.target.value })}
+                    required
+                    className="flex-1 border rounded p-2 text-xs bg-white"
+                  />
+                  <label className="bg-zinc-200 hover:bg-zinc-300 px-3 py-2 rounded text-xs cursor-pointer font-bold shrink-0">
+                    رفع ملف
+                    <input type="file" className="hidden" accept="image/*,video/*" onChange={(e) => handleFileUpload(e, true, false)} />
+                  </label>
+                </div>
               </div>
             </div>
 

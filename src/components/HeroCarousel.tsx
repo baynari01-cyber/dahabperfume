@@ -103,6 +103,8 @@ export function HeroCarousel({ slides, settings }: HeroCarouselProps) {
     }
   };
 
+  const isVideo = (path: string) => /\.(mp4|webm|ogg)$/i.test(path || '');
+
   // 3. Autoplay rotation logic
   const startAutoplay = () => {
     if (autoPlayTimerRef.current) clearInterval(autoPlayTimerRef.current);
@@ -204,6 +206,8 @@ export function HeroCarousel({ slides, settings }: HeroCarouselProps) {
           const isActive = index === currentIndex;
           const slideUrl = resolveSlideUrl(slide);
           const hasAction = slide.destinationType !== 'NONE';
+          const desktopIsVideo = isVideo(slide.imageDesktopPath);
+          const mobileIsVideo = isVideo(slide.imageMobilePath);
 
           // GPU-friendly transitions: absolute positioning, fading opacity, scaling background
           return (
@@ -216,22 +220,56 @@ export function HeroCarousel({ slides, settings }: HeroCarouselProps) {
               }`}
               style={{ transitionProperty: prefersReducedMotion ? 'opacity' : 'opacity, transform' }}
             >
-              {/* Responsive Image Delivery (Next.js Image) */}
-              <picture className="absolute inset-0 w-full h-full object-cover">
-                <source media="(max-width: 640px)" srcSet={slide.imageMobilePath} />
-                <Image
+              {/* Media Delivery (Video or Image) */}
+              {desktopIsVideo && (
+                <video 
                   src={slide.imageDesktopPath}
-                  alt={isAr ? slide.altAr : slide.altEn}
-                  fill
-                  priority={index === 0} // Load LCP image eagerly
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                  className="object-cover transition-transform duration-[8000ms] ease-out scale-102 group-hover/carousel:scale-105"
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  className={`absolute inset-0 w-full h-full object-cover transition-transform duration-[8000ms] ease-out scale-102 group-hover/carousel:scale-105 ${mobileIsVideo ? 'hidden sm:block' : ''}`}
                   style={{
                     transitionProperty: prefersReducedMotion ? 'none' : 'transform',
                     contentVisibility: isActive ? 'auto' : 'hidden'
                   }}
                 />
-              </picture>
+              )}
+
+              {mobileIsVideo && (
+                <video 
+                  src={slide.imageMobilePath}
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  className={`absolute inset-0 w-full h-full object-cover transition-transform duration-[8000ms] ease-out scale-102 group-hover/carousel:scale-105 ${desktopIsVideo ? 'block sm:hidden' : ''}`}
+                  style={{
+                    transitionProperty: prefersReducedMotion ? 'none' : 'transform',
+                    contentVisibility: isActive ? 'auto' : 'hidden'
+                  }}
+                />
+              )}
+
+              {(!desktopIsVideo || !mobileIsVideo) && (
+                <picture className={`absolute inset-0 w-full h-full object-cover ${
+                  desktopIsVideo ? 'block sm:hidden' : mobileIsVideo ? 'hidden sm:block' : ''
+                }`}>
+                  {!mobileIsVideo && <source media="(max-width: 640px)" srcSet={slide.imageMobilePath} />}
+                  <Image
+                    src={!desktopIsVideo ? slide.imageDesktopPath : slide.imageMobilePath}
+                    alt={isAr ? slide.altAr : slide.altEn}
+                    fill
+                    priority={index === 0} // Load LCP image eagerly
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                    className="object-cover transition-transform duration-[8000ms] ease-out scale-102 group-hover/carousel:scale-105"
+                    style={{
+                      transitionProperty: prefersReducedMotion ? 'none' : 'transform',
+                      contentVisibility: isActive ? 'auto' : 'hidden'
+                    }}
+                  />
+                </picture>
+              )}
 
               {/* Dynamic Gradient Overlay */}
               <div 

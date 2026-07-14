@@ -30,6 +30,7 @@ export async function createProduct(formData: FormData) {
     const shortDescription = (formData.get('shortDescription') as string) || null;
     const longDescription = (formData.get('longDescription') as string) || null;
     const isVisible = formData.get('isVisible') === 'true';
+    const isFeatured = formData.get('isFeatured') === 'true';
     const categoryId = formData.get('categoryId') as string;
     const stockLiters = parseFloat(formData.get('stockLiters') as string) || 0;
     const slug = sku.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Date.now();
@@ -61,6 +62,7 @@ export async function createProduct(formData: FormData) {
         shortDescription,
         longDescription,
         isVisible,
+        isFeatured,
         categoryId,
         stockLiters,
         variants: {
@@ -69,6 +71,7 @@ export async function createProduct(formData: FormData) {
             sku: v.sku,
             price: Number(v.price),
             isActive: v.isActive ?? true,
+            usesGlobalPricing: v.usesGlobalPricing ?? true,
           }))
         },
         ...(imageUrl ? {
@@ -96,6 +99,7 @@ export async function updateProduct(productId: string, formData: FormData) {
     const shortDescription = (formData.get('shortDescription') as string) || null;
     const longDescription = (formData.get('longDescription') as string) || null;
     const isVisible = formData.get('isVisible') === 'true';
+    const isFeatured = formData.get('isFeatured') === 'true';
     const categoryId = formData.get('categoryId') as string;
     const stockLiters = parseFloat(formData.get('stockLiters') as string) || 0;
 
@@ -124,6 +128,7 @@ export async function updateProduct(productId: string, formData: FormData) {
         shortDescription,
         longDescription,
         isVisible,
+        isFeatured,
         categoryId,
         stockLiters,
       }
@@ -139,6 +144,7 @@ export async function updateProduct(productId: string, formData: FormData) {
           sku: v.sku,
           price: Number(v.price),
           isActive: v.isActive ?? true,
+          usesGlobalPricing: v.usesGlobalPricing ?? true,
         }))
       });
     }
@@ -155,5 +161,23 @@ export async function updateProduct(productId: string, formData: FormData) {
   } catch (error: any) {
     console.error('Error updating product:', error);
     return { success: false, error: error.message };
+  }
+}
+
+export async function getProductsByIds(ids: string[]) {
+  if (!ids || ids.length === 0) return [];
+  try {
+    const products = await prisma.product.findMany({
+      where: { id: { in: ids }, isVisible: true },
+      include: {
+        variants: { orderBy: { size: 'asc' } },
+        images: { orderBy: { order: 'asc' } },
+        category: true,
+      }
+    });
+    return products;
+  } catch (error) {
+    console.error('Error fetching products by ids:', error);
+    return [];
   }
 }

@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
 
-export default async function POSCounterPage() {
+export default function POSRootRedirect() {
   redirect('/pos/cashier');
 }

@@ -397,3 +397,19 @@ export async function logout() {
   await deleteSessionCookie();
   redirect('/admin/login');
 }
+
+export async function verifyUnlockPassword(password: string) {
+  const session = await getCurrentSession();
+  if (!session) return { success: false, error: 'الجلسة منتهية' };
+
+  const employee = await prisma.employee.findUnique({
+    where: { id: session.employeeId }
+  });
+
+  if (!employee) return { success: false, error: 'الموظف غير موجود' };
+
+  const isValid = await verifyPassword(password, employee.passwordHash);
+  if (!isValid) return { success: false, error: 'كلمة المرور غير صحيحة' };
+
+  return { success: true };
+}

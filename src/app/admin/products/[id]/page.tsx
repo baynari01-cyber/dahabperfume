@@ -34,12 +34,13 @@ export default async function AdminProductEditPage({
 
   const initialData = {
     nameAr: product.nameAr,
-    nameEn: product.nameEn,
+    nameEn: product.nameEn || '',
     sku: product.sku,
     shortDescription: product.shortDescription,
     longDescription: product.longDescription,
     isVisible: product.isVisible,
-    categoryId: product.categoryId,
+    isFeatured: product.isFeatured,
+    categoryId: product.categoryId || '',
     stockLiters: product.stockLiters,
     variants: product.variants.map(v => ({
       id: v.id,

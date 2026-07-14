@@ -17,7 +17,7 @@ export default async function AdminAuditLogsPage() {
     <div className="flex h-screen bg-[var(--color-ivory-100)]" dir="rtl">
       <AdminSidebar employeeName={session.employee.name} />
 
-      <main className="flex-1 overflow-y-auto p-8 font-sans">
+      <main className="flex-1 overflow-y-auto p-4 md:p-8 font-sans w-full max-w-full">
         <div className="flex justify-between items-center mb-8 border-b border-[var(--color-ivory-200)] pb-4">
           <div>
             <h1 className="text-3xl font-bold font-heading text-[var(--color-forest-900)]">
@@ -27,8 +27,8 @@ export default async function AdminAuditLogsPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-[var(--color-ivory-200)] overflow-hidden">
-          <table className="w-full text-right border-collapse">
+        <div className="bg-white rounded-lg shadow-sm border border-[var(--color-ivory-200)] overflow-x-auto">
+          <table className="w-full text-right border-collapse min-w-[800px]">
             <thead className="bg-zinc-50 border-b border-zinc-200">
               <tr className="text-sm font-bold text-zinc-700">
                 <th className="px-6 py-4">الموظف</th>

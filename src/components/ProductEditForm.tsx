@@ -33,6 +33,7 @@ interface ProductEditFormProps {
     shortDescription: string | null;
     longDescription: string | null;
     isVisible: boolean;
+    isFeatured: boolean;
     categoryId: string;
     stockLiters: number;
     variants: Variant[];
@@ -82,8 +83,7 @@ export function ProductEditForm({ productId, initialData, categories }: ProductE
 
       const res = await updateProduct(productId, formData);
       if (res.success) {
-        router.push('/admin/products');
-        router.refresh();
+        window.location.href = '/admin/products';
       } else {
         setError(res.error || 'حدث خطأ');
         setPending(false);
@@ -222,9 +222,15 @@ export function ProductEditForm({ productId, initialData, categories }: ProductE
         </div>
       </div>
 
-      <div className="flex items-center gap-2 border-t pt-4">
-        <input type="checkbox" name="isVisible" value="true" defaultChecked={initialData.isVisible} id="isVisible" className="w-4 h-4 rounded" />
-        <label htmlFor="isVisible" className="text-sm font-bold text-zinc-700 cursor-pointer">عرض العطر في المتجر الإلكتروني ونظام البيع</label>
+      <div className="flex flex-col gap-3 border-t pt-4">
+        <div className="flex items-center gap-2">
+          <input type="checkbox" name="isVisible" value="true" defaultChecked={initialData.isVisible} id="isVisible" className="w-4 h-4 rounded" />
+          <label htmlFor="isVisible" className="text-sm font-bold text-zinc-700 cursor-pointer">عرض العطر في المتجر الإلكتروني ونظام البيع</label>
+        </div>
+        <div className="flex items-center gap-2">
+          <input type="checkbox" name="isFeatured" value="true" defaultChecked={initialData.isFeatured} id="isFeatured" className="w-4 h-4 rounded" />
+          <label htmlFor="isFeatured" className="text-sm font-bold text-zinc-700 cursor-pointer">تمييز كأكثر مبيعاً (Best Seller)</label>
+        </div>
       </div>
 
       <div className="pt-4 flex justify-end gap-3">

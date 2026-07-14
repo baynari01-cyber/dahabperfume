@@ -1,11 +1,21 @@
 import React from 'react';
 import { prisma } from '@/lib/db';
 import { filsToDisplay } from '@/lib/money';
+import { getCMSContent } from '@/lib/cms';
 
 export default async function ShippingPage({ params }: { params: Promise<{ locale: string }> }) {
   const resolvedParams = await params;
   const locale = resolvedParams.locale;
   const isAr = locale === 'ar';
+
+  const defaultIntro = {
+    titleAr: 'سياسة الشحن والتوصيل',
+    titleEn: 'Shipping & Delivery Policy',
+    introAr: 'نحن نوفر خدمة توصيل سريعة وموثوقة لجميع المحافظات الأردنية. فيما يلي تفاصيل رسوم ومواعيد الشحن حسب المنطقة:',
+    introEn: 'We offer fast and reliable delivery across all Jordan governorates. Here are the details of shipping fees and estimated times:'
+  };
+
+  const cms = await getCMSContent('shipping_policy', defaultIntro);
 
   const zones = await prisma.shippingZone.findMany({
     where: { isEnabled: true }
@@ -15,13 +25,11 @@ export default async function ShippingPage({ params }: { params: Promise<{ local
     <div className="container mx-auto px-6 py-16">
       <div className="max-w-3xl mx-auto bg-white border border-[var(--color-ivory-200)] rounded-lg p-10 shadow-sm">
         <h1 className="text-4xl font-bold font-heading text-[var(--color-forest-900)] mb-8 border-b pb-4">
-          {isAr ? 'سياسة الشحن والتوصيل' : 'Shipping & Delivery Policy'}
+          {isAr ? cms.titleAr : cms.titleEn}
         </h1>
         
-        <p className="text-zinc-700 leading-relaxed mb-8">
-          {isAr 
-            ? 'نحن نوفر خدمة توصيل سريعة وموثوقة لجميع المحافظات الأردنية. فيما يلي تفاصيل رسوم ومواعيد الشحن حسب المنطقة:'
-            : 'We offer fast and reliable delivery across all Jordan governorates. Here are the details of shipping fees and estimated times:'}
+        <p className="text-zinc-700 leading-relaxed mb-8 whitespace-pre-line">
+          {isAr ? cms.introAr : cms.introEn}
         </p>
 
         <div className="space-y-6">

@@ -7,6 +7,9 @@ import crypto from 'crypto';
 const checkoutSchema = z.object({
   customerName: z.string().min(2),
   customerPhone: z.string().min(8),
+  addressStreet: z.string().min(2),
+  addressBuilding: z.string().min(1),
+  addressApartment: z.string().optional(),
   shippingZoneId: z.string().optional(),
   idempotencyKey: z.string().optional(),
   items: z.string() // JSON string of [{ productId, variantId, quantity }]
@@ -19,7 +22,7 @@ export async function processCheckout(prevState: any, formData: FormData) {
     return { error: 'يرجى التحقق من المدخلات' };
   }
 
-  const { customerName, customerPhone, shippingZoneId, idempotencyKey, items: itemsJson } = parsed.data;
+  const { customerName, customerPhone, addressStreet, addressBuilding, addressApartment, shippingZoneId, idempotencyKey, items: itemsJson } = parsed.data;
   
   let parsedItems;
   try {
@@ -57,8 +60,14 @@ export async function processCheckout(prevState: any, formData: FormData) {
       // Rebuild the exact original message from the persisted snapshots
       let msg = `مرحباً دهب للعطور،\nأود تأكيد طلبي الجديد رقم: ${existing.reference}\n\n`;
       msg += `الاسم: ${existing.customerName}\n`;
-      msg += `رقم الهاتف: ${existing.customerPhone}\n\n`;
-      msg += `تفاصيل الطلب:\n`;
+      msg += `رقم الهاتف: ${existing.customerPhone}\n`;
+      if (existing.notes && existing.notes.includes('العنوان:')) {
+        const addressLines = existing.notes.split('\n').filter(l => l.startsWith('العنوان:'));
+        if (addressLines.length > 0) {
+          msg += `${addressLines[0]}\n`;
+        }
+      }
+      msg += `\nتفاصيل الطلب:\n`;
       
       for (const it of (existing.items || [])) {
         msg += `- ${it.name} (${it.size}) x${it.quantity} = ${(it.total / 100).toFixed(2)} د.أ\n`;
@@ -136,6 +145,7 @@ export async function processCheckout(prevState: any, formData: FormData) {
   }
 
   const grandTotal = totalAmount + shippingCost;
+  const detailedAddress = `العنوان: الشارع (${addressStreet})، البناية (${addressBuilding})${addressApartment ? `، الشقة/الطابق (${addressApartment})` : ''}`;
 
   // 2. Create AWAITING_WHATSAPP order inside a transaction
   const reference = `ORD-${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
@@ -149,6 +159,7 @@ export async function processCheckout(prevState: any, formData: FormData) {
         status: 'AWAITING_WHATSAPP',
         totalAmount: grandTotal,
         shippingCost,
+        notes: detailedAddress,
         idempotencyKey: idempotencyKey || undefined,
         items: {
           create: orderItemsData
@@ -156,7 +167,7 @@ export async function processCheckout(prevState: any, formData: FormData) {
         statusHistory: {
           create: {
             status: 'AWAITING_WHATSAPP',
-            notes: `Order initiated via Web Checkout. Zone: ${zoneName}`
+            notes: `Order initiated via Web Checkout. Zone: ${zoneName}. ${detailedAddress}`
           }
         }
       }
@@ -186,7 +197,8 @@ export async function processCheckout(prevState: any, formData: FormData) {
   let message = `مرحباً دهب للعطور،\nأود تأكيد طلبي الجديد رقم: ${reference}\n\n`;
   message += `الاسم: ${customerName}\n`;
   message += `رقم الهاتف: ${customerPhone}\n`;
-  message += `منطقة التوصيل: ${zoneName}\n\n`;
+  message += `منطقة التوصيل: ${zoneName}\n`;
+  message += `${detailedAddress}\n\n`;
   message += `تفاصيل الطلب:\n`;
   
   for (const item of orderItemsData) {

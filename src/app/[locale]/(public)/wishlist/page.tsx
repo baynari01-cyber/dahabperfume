@@ -22,8 +22,8 @@ export default function WishlistPage({ params }: { params: Promise<{ locale: str
     setMounted(true);
   }, []);
 
-  const removeFromWishlist = (sku: string) => {
-    const updated = wishlist.filter(item => item.sku !== sku);
+  const removeFromWishlist = (id: string) => {
+    const updated = wishlist.filter(item => item.id !== id);
     setWishlist(updated);
     localStorage.setItem('dahab_wishlist', JSON.stringify(updated));
   };
@@ -34,7 +34,7 @@ export default function WishlistPage({ params }: { params: Promise<{ locale: str
     <div className="container mx-auto px-6 py-16 bg-[var(--color-ivory-100)] min-h-screen">
       <div className="text-center mb-16">
         <h1 className="text-4xl font-bold font-heading text-[var(--color-forest-900)] mb-4">
-          {isAr ? 'قائمة الأمنيات' : 'My Wishlist'}
+          {isAr ? 'قائمة المفضلة' : 'My Wishlist'}
         </h1>
         <div className="w-24 h-1 bg-[var(--color-champagne-600)] mx-auto" />
       </div>
@@ -44,7 +44,7 @@ export default function WishlistPage({ params }: { params: Promise<{ locale: str
           <div className="text-center py-20 bg-white rounded-lg border border-[var(--color-ivory-200)] p-8">
             <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-4 text-[var(--color-forest-600)]"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
             <p className="text-xl text-zinc-500 mb-4">
-              {isAr ? 'قائمة الأمنيات فارغة.' : 'Your wishlist is currently empty.'}
+              {isAr ? 'قائمة المفضلة فارغة.' : 'Your wishlist is currently empty.'}
             </p>
             <Link 
               href={`/${locale}/shop`}
@@ -55,27 +55,24 @@ export default function WishlistPage({ params }: { params: Promise<{ locale: str
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {wishlist.map((item) => (
+            {wishlist.map((item, index) => (
               <div 
-                key={item.sku} 
+                key={item.id || index} 
                 className="bg-white p-6 rounded-lg border border-[var(--color-ivory-200)] shadow-sm flex items-center gap-6"
               >
                 <div className="w-24 h-24 bg-[var(--color-ivory-200)] rounded-md flex-shrink-0 flex items-center justify-center text-[var(--color-forest-600)] text-xs overflow-hidden">
-                  {item.image ? (
+                  {item.imageUrl ? (
                     <div 
                       className="w-full h-full bg-cover bg-center" 
-                      style={{ backgroundImage: `url(${item.image.startsWith('local://') ? '/product-placeholder.png' : item.image})` }} 
+                      style={{ backgroundImage: `url(${item.imageUrl.startsWith('local://') ? '/product-placeholder.png' : item.imageUrl})` }} 
                     />
                   ) : 'صورة العطر'}
                 </div>
                 
                 <div className="flex-1">
                   <h3 className="font-bold text-lg text-[var(--color-forest-900)] mb-1">
-                    {item.name}
+                    {item.nameAr || item.name}
                   </h3>
-                  <p className="text-sm text-zinc-500 mb-2">
-                    {item.size}
-                  </p>
                   <div className="text-[var(--color-champagne-600)] font-bold text-lg mb-4">
                     {filsToDisplay(item.price, isAr ? 'ar' : 'en')}
                   </div>
@@ -88,7 +85,7 @@ export default function WishlistPage({ params }: { params: Promise<{ locale: str
                       {isAr ? 'عرض المنتج' : 'View Product'}
                     </Link>
                     <button 
-                      onClick={() => removeFromWishlist(item.sku)}
+                      onClick={() => removeFromWishlist(item.id)}
                       className="text-xs border border-red-200 text-red-600 px-4 py-2 rounded font-bold hover:bg-red-50"
                     >
                       {isAr ? 'إزالة' : 'Remove'}

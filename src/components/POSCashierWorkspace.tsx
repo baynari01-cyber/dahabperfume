@@ -3,7 +3,9 @@
 import React, { useState, useEffect, useRef, useTransition } from 'react';
 import { X } from 'lucide-react';
 import { processPOSCheckout } from '@/actions/pos';
+import { verifyUnlockPassword } from '@/actions/auth';
 import { MainAccordsBars } from './MainAccordsBars';
+import { POSOrdersPanel } from './POSOrdersPanel';
 
 interface ProductNote {
   noteType: string;
@@ -37,6 +39,7 @@ interface ProductItem {
   stockStatus: string;
   stockLiters: number;
   variants: ProductVariant[];
+  imageUrl: string | null;
 }
 
 interface POSCashierWorkspaceProps {
@@ -56,13 +59,17 @@ interface POSCashierWorkspaceProps {
   };
   cashierName: string;
   sessionExpiresAt: string;
+  hasOrdersViewPermission?: boolean;
+  hasOrdersManagePermission?: boolean;
 }
 
 export function POSCashierWorkspace({
   products,
   settings,
   cashierName,
-  sessionExpiresAt
+  sessionExpiresAt,
+  hasOrdersViewPermission = false,
+  hasOrdersManagePermission = false
 }: POSCashierWorkspaceProps) {
   const [cart, setCart] = useState<any[]>([]);
   const [search, setSearch] = useState('');
@@ -124,7 +131,7 @@ export function POSCashierWorkspace({
 
   const handleLogoutAction = () => {
     broadcastChannelRef.current?.postMessage('LOGOUT');
-    window.location.href = '/pos/login';
+    window.location.href = '/login';
   };
 
   // Activity tracking for idle state trigger
@@ -214,15 +221,23 @@ export function POSCashierWorkspace({
   };
 
   const handleUnlockAction = () => {
-    // PIN checking logic (fallback to standard check or pass if pin-less returns allowed)
     if (posIdleRequirePin) {
-      if (pinInput === '1234') { // Mock secure PIN verification fallback
-        setIsLocked(false);
-        setPinInput('');
-        broadcastChannelRef.current?.postMessage('UNLOCK');
-      } else {
-        alert('رمز PIN غير صحيح');
+      if (!pinInput) {
+        alert('يرجى إدخال كلمة المرور');
+        return;
       }
+      
+      startTransition(async () => {
+        const res = await verifyUnlockPassword(pinInput);
+        if (res.success) {
+          setIsLocked(false);
+          setPinInput('');
+          broadcastChannelRef.current?.postMessage('UNLOCK');
+        } else {
+          alert(res.error || 'كلمة المرور غير صحيحة');
+          setPinInput('');
+        }
+      });
     } else {
       setIsLocked(false);
       broadcastChannelRef.current?.postMessage('UNLOCK');
@@ -422,21 +437,31 @@ export function POSCashierWorkspace({
                 <button 
                   key={product.id} 
                   onClick={() => handleSelectProduct(product)}
-                  className="bg-white p-3 rounded-lg border border-[var(--color-ivory-200)] shadow-sm hover:border-[var(--color-champagne-600)] hover:shadow transition-all text-right flex flex-col justify-between h-32 active:scale-95 duration-100 animate-fade-in"
+                  className="bg-white rounded-lg border border-[var(--color-ivory-200)] shadow-sm hover:border-[var(--color-champagne-600)] hover:shadow transition-all text-right flex flex-col justify-between active:scale-95 duration-100 animate-fade-in overflow-hidden h-48"
                 >
-                  <div>
-                    <span className="font-bold text-zinc-900 text-xs md:text-sm line-clamp-2 leading-tight">
-                      {product.nameAr}
-                    </span>
+                  <div className="w-full h-28 bg-zinc-50 relative flex items-center justify-center border-b border-zinc-100 overflow-hidden">
+                    {product.imageUrl ? (
+                       <img src={product.imageUrl} alt={product.nameAr} className="max-w-full h-full object-cover" />
+                    ) : (
+                       <div className="w-8 h-8 rounded-full bg-zinc-200 flex items-center justify-center">
+                         <span className="text-zinc-400 font-bold text-xs">صورة</span>
+                       </div>
+                    )}
                   </div>
                   
-                  <div className="mt-2 w-full pt-1.5 border-t border-zinc-50 flex justify-between items-end">
-                    <span className="text-[var(--color-champagne-600)] font-bold text-xs md:text-sm">
-                      {(lowestPrice / 1000).toFixed(3)} د.أ
+                  <div className="p-3 flex flex-col justify-between flex-1 w-full">
+                    <span className="font-bold text-zinc-900 text-xs md:text-sm line-clamp-1 leading-tight">
+                      {product.nameAr}
                     </span>
-                    <span className="text-[10px] text-zinc-400">
-                      {product.variants.length} أحجام
-                    </span>
+                    
+                    <div className="mt-1 w-full pt-1.5 border-t border-zinc-50 flex justify-between items-end">
+                      <span className="text-[var(--color-champagne-600)] font-bold text-xs">
+                        {(lowestPrice / 1000).toFixed(3)} د.أ
+                      </span>
+                      <span className="text-[10px] text-zinc-400">
+                        {product.variants.length} أحجام
+                      </span>
+                    </div>
                   </div>
                 </button>
               );
@@ -640,24 +665,25 @@ export function POSCashierWorkspace({
           <div className="max-w-sm w-full space-y-6">
             <div className="space-y-2">
               <h2 className="text-2xl font-bold font-heading text-[var(--color-champagne-400)]">شاشة POS مقفلة</h2>
-              <p className="text-xs text-neutral-400">يرجى إدخال رمز PIN للمتابعة</p>
+              <p className="text-xs text-neutral-400">يرجى إدخال كلمة المرور للمتابعة</p>
             </div>
 
             <div className="space-y-4">
               <input
                 type="password"
-                maxLength={4}
                 value={pinInput}
                 onChange={(e) => setPinInput(e.target.value)}
-                placeholder="••••"
+                onKeyDown={(e) => e.key === 'Enter' && handleUnlockAction()}
+                placeholder="كلمة المرور"
                 className="w-full text-center tracking-widest text-2xl bg-neutral-900 border border-neutral-700 rounded py-3 outline-none text-white focus:border-[var(--color-champagne-600)]"
               />
               <div className="grid grid-cols-2 gap-3">
                 <button
                   onClick={handleUnlockAction}
-                  className="bg-[var(--color-forest-900)] hover:bg-[var(--color-forest-800)] text-white py-3 rounded font-bold text-sm transition-colors"
+                  disabled={isPending}
+                  className="bg-[var(--color-forest-900)] hover:bg-[var(--color-forest-800)] text-white py-3 rounded font-bold text-sm transition-colors disabled:opacity-50"
                 >
-                  فتح الشاشة
+                  {isPending ? 'جاري التحقق...' : 'فتح الشاشة'}
                 </button>
                 <button
                   onClick={handleLogoutAction}
@@ -697,15 +723,13 @@ export function POSCashierWorkspace({
             </div>
 
             <div className="space-y-2">
-              <div className="text-sm font-semibold text-neutral-200">
-                {posIdleMessageAr}
+              <div className="text-xl font-bold text-neutral-200">
+                انقر للمتابعة
               </div>
-              <div className="text-xs text-neutral-450" dir="ltr">
-                {posIdleMessageEn}
+              <div className="text-sm text-neutral-450" dir="ltr">
+                Click to continue
               </div>
             </div>
-
-            <p className="text-neutral-500 animate-pulse text-xs mt-4">اضغط في أي مكان على الشاشة للمتابعة...</p>
           </div>
         </div>
       )}

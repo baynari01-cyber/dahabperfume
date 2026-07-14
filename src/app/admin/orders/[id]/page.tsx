@@ -6,6 +6,7 @@ import { AdminSidebar } from '@/components/AdminSidebar';
 import { updateOrderStatus, confirmStorefrontOrder } from '@/actions/orders';
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
+import { OrderWhatsAppButton } from '@/components/OrderWhatsAppButton';
 
 export default async function AdminOrderDetailPage({
   params
@@ -208,10 +209,21 @@ export default async function AdminOrderDetailPage({
                   <p className="text-[10px] text-zinc-500 mt-1">عند تعديل رسوم التوصيل، سيتم إعادة احتساب الإجمالي النهائي للطلب تلقائياً.</p>
                 </div>
 
-                <button type="submit" className="w-full bg-blue-600 text-white font-bold py-2.5 rounded hover:bg-blue-700 transition-colors text-sm">
-                  حفظ التعديلات
+                <button type="submit" className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-[var(--color-champagne-500)] to-[var(--color-champagne-600)] hover:from-[var(--color-champagne-600)] hover:to-[var(--color-champagne-700)] text-white font-bold py-3 rounded-lg shadow-md transition-all active:scale-95 text-sm">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  حفظ وتحديث تفاصيل الحالة
                 </button>
               </form>
+
+              {order.status === 'CONFIRMED' && (
+                <OrderWhatsAppButton 
+                  phone={order.customerPhone} 
+                  reference={order.reference} 
+                  orderId={order.id} 
+                />
+              )}
             </div>
           </div>
         </div>

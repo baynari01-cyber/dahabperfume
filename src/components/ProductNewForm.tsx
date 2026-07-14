@@ -10,6 +10,7 @@ interface Variant {
   sku: string;
   price: string;
   isActive: boolean;
+  usesGlobalPricing?: boolean;
 }
 
 interface Category {
@@ -17,14 +18,20 @@ interface Category {
   name: string;
 }
 
-export function ProductNewForm({ categories }: { categories: Category[] }) {
+export function ProductNewForm({ categories, globalPrices = {} }: { categories: Category[], globalPrices?: Record<string, number> }) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState('');
   const [preview, setPreview] = useState<string | null>(null);
-  const [variants, setVariants] = useState<Variant[]>([
-    { size: '50ml', sku: '', price: '25', isActive: true }
-  ]);
+  
+  // Default sizes and their prices from global configuration (default fallback if missing)
+  const defaultVariants: Variant[] = [
+    { size: '50ml', sku: '', price: ((globalPrices['50ml'] || 10000) / 1000).toString(), isActive: true, usesGlobalPricing: true },
+    { size: '100ml', sku: '', price: ((globalPrices['100ml'] || 15000) / 1000).toString(), isActive: true, usesGlobalPricing: true },
+    { size: '200ml', sku: '', price: ((globalPrices['200ml'] || 25000) / 1000).toString(), isActive: true, usesGlobalPricing: true },
+  ];
+  
+  const [variants, setVariants] = useState<Variant[]>(defaultVariants);
 
   const addVariant = () => {
     setVariants(prev => [...prev, { size: '', sku: '', price: '', isActive: true }]);
@@ -58,13 +65,14 @@ export function ProductNewForm({ categories }: { categories: Category[] }) {
         size: v.size,
         sku: v.sku,
         price: Math.round(parseFloat(v.price) * 1000),
-        isActive: v.isActive
+        isActive: v.isActive,
+        usesGlobalPricing: v.usesGlobalPricing ?? true
       }));
       formData.set('variants', JSON.stringify(variantsForAction));
 
       const res = await createProduct(formData);
       if (res.success) {
-        router.push('/admin/products');
+        window.location.href = '/admin/products';
       } else {
         setError(res.error || 'حدث خطأ');
         setPending(false);
@@ -198,9 +206,15 @@ export function ProductNewForm({ categories }: { categories: Category[] }) {
         <p className="text-xs text-zinc-500 mt-1">يُفضل PNG بخلفية شفافة، مقاس مربع.</p>
       </div>
 
-      <div className="flex items-center gap-2 border-t pt-4">
-        <input type="checkbox" name="isVisible" value="true" defaultChecked id="isVisible" className="w-4 h-4 rounded" />
-        <label htmlFor="isVisible" className="text-sm font-bold text-zinc-700 cursor-pointer">عرض العطر في المتجر الإلكتروني ونظام البيع</label>
+      <div className="flex flex-col gap-3 border-t pt-4">
+        <div className="flex items-center gap-2">
+          <input type="checkbox" name="isVisible" value="true" defaultChecked id="isVisible" className="w-4 h-4 rounded" />
+          <label htmlFor="isVisible" className="text-sm font-bold text-zinc-700 cursor-pointer">عرض العطر في المتجر الإلكتروني ونظام البيع</label>
+        </div>
+        <div className="flex items-center gap-2">
+          <input type="checkbox" name="isFeatured" value="true" id="isFeatured" className="w-4 h-4 rounded" />
+          <label htmlFor="isFeatured" className="text-sm font-bold text-zinc-700 cursor-pointer">تمييز كأكثر مبيعاً (Best Seller)</label>
+        </div>
       </div>
 
       <div className="pt-4 flex justify-end gap-3">

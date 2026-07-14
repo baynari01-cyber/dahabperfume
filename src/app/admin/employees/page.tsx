@@ -20,7 +20,23 @@ export default async function AdminEmployeesPage({
   const editId = resolvedParams.id;
 
   const roles = await prisma.role.findMany();
-  const allPermissions = await prisma.permission.findMany();
+  let allPermissions = await prisma.permission.findMany();
+
+  // Auto-seed missing POS permissions
+  const requiredPerms = [
+    { action: 'pos.orders.view', description: 'عرض طلبات المتجر في شاشة الكاشير' },
+    { action: 'pos.orders.manage', description: 'إدارة وتغيير حالة طلبات المتجر في الكاشير' }
+  ];
+  let permAdded = false;
+  for (const rp of requiredPerms) {
+    if (!allPermissions.find(p => p.action === rp.action)) {
+      await prisma.permission.create({ data: rp });
+      permAdded = true;
+    }
+  }
+  if (permAdded) {
+    allPermissions = await prisma.permission.findMany();
+  }
 
   // Load employee list
   const employees = await prisma.employee.findMany({
@@ -74,6 +90,7 @@ export default async function AdminEmployeesPage({
         id: empId,
         name,
         email,
+        password: password || undefined,
         roleId,
         isActive,
         selectedPermissionIds,
@@ -172,17 +189,17 @@ export default async function AdminEmployeesPage({
                 />
               </div>
 
-              {action === 'new' && (
-                <div>
-                  <label className="block text-sm font-bold text-zinc-700 mb-1">كلمة المرور (تلقائي إن تُرِك فارغاً)</label>
-                  <input
-                    type="password"
-                    name="password"
-                    placeholder="أدخل كلمة مرور قوية"
-                    className="w-full border border-zinc-200 rounded px-3 py-2 text-sm outline-none focus:border-[var(--color-forest-800)]"
-                  />
-                </div>
-              )}
+              <div>
+                <label className="block text-sm font-bold text-zinc-700 mb-1">
+                  {action === 'new' ? 'كلمة المرور (تلقائي إن تُرِك فارغاً)' : 'إعادة تعيين كلمة المرور (اختياري)'}
+                </label>
+                <input
+                  type="password"
+                  name="password"
+                  placeholder={action === 'new' ? 'أدخل كلمة مرور قوية' : 'اتركه فارغاً لعدم التغيير'}
+                  className="w-full border border-zinc-200 rounded px-3 py-2 text-sm outline-none focus:border-[var(--color-forest-800)]"
+                />
+              </div>
 
               <div>
                 <label className="block text-sm font-bold text-zinc-700 mb-1">الدور الوظيفي الرئيسي</label>
@@ -235,6 +252,8 @@ export default async function AdminEmployeesPage({
                       <div>
                         <p className="text-sm font-bold text-zinc-800">
                           {perm.action === 'pos:access' ? 'صلاحية الكاشير (POS Access)' :
+                           perm.action === 'pos.orders.view' ? 'عرض طلبات المتجر في الـ POS' :
+                           perm.action === 'pos.orders.manage' ? 'إدارة حالات طلبات المتجر في الـ POS' :
                            perm.action === 'manage:products' ? 'إدارة المنتجات والأسعار' :
                            perm.action === 'manage:orders' ? 'إدارة الطلبات والفواتير' :
                            perm.action === 'manage:inventory' ? 'إدارة المخزون والتركيبات' :
