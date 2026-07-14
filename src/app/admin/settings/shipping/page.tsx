@@ -21,7 +21,7 @@ export default async function AdminShippingPage() {
   });
 
   return (
-    <div className="flex h-screen bg-[var(--color-ivory-100)]" dir="rtl">
+    <div className="flex flex-col md:flex-row h-screen bg-[var(--color-ivory-100)] overflow-hidden" dir="rtl">
       <AdminSidebar employeeName={session.employee.name} />
       <main className="flex-1 overflow-y-auto p-4 md:p-8 font-sans w-full max-w-full space-y-6">
       <div className="flex justify-between items-center">
@@ -32,7 +32,7 @@ export default async function AdminShippingPage() {
       </div>
 
       <div className="bg-white rounded-lg shadow-sm border border-zinc-200 overflow-hidden">
-        <table className="w-full text-right text-sm">
+        <div className="overflow-x-auto w-full max-w-[90vw] md:max-w-full pb-4"><table className="w-full text-right text-sm">
           <thead className="bg-zinc-50 text-zinc-500 border-b border-zinc-200">
             <tr>
               <th className="px-6 py-4 font-bold">المحافظة</th>
@@ -82,7 +82,7 @@ export default async function AdminShippingPage() {
               </tr>
             ))}
           </tbody>
-        </table>
+        </table></div>
       </div>
       </main>
     </div>

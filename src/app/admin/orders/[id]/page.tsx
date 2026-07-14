@@ -66,10 +66,10 @@ export default async function AdminOrderDetailPage({
   const orderSubtotal = order.totalAmount - order.shippingCost;
 
   return (
-    <div className="flex h-screen bg-[var(--color-ivory-100)]" dir="rtl">
+    <div className="flex flex-col md:flex-row h-screen bg-[var(--color-ivory-100)] overflow-hidden" dir="rtl">
       <AdminSidebar employeeName={session.employee.name} />
 
-      <main className="flex-1 overflow-y-auto p-8 font-sans">
+      <main className="flex-1 overflow-y-auto p-8 font-sans w-full max-w-full">
         <div className="flex justify-between items-center mb-8 border-b border-[var(--color-ivory-200)] pb-4">
           <div>
             <div className="flex items-center gap-3">

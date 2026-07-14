@@ -5,6 +5,11 @@ import { prisma } from '@/lib/db';
 import { filsToDisplay } from '@/lib/money';
 import { PrintButton } from './PrintButton';
 
+function toLocalDatetimeString(d: Date) {
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
 export default async function POSReportPage({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
   const session = await requirePermission('pos:access');
   
@@ -87,7 +92,7 @@ export default async function POSReportPage({ searchParams }: { searchParams: Pr
             <input 
               type="datetime-local" 
               name="from" 
-              defaultValue={fromDateParam || ''}
+              defaultValue={fromDateParam || toLocalDatetimeString(startOfPeriod)}
               className="border border-zinc-300 rounded px-3 py-1.5 text-sm outline-none"
             />
           </div>
@@ -96,7 +101,7 @@ export default async function POSReportPage({ searchParams }: { searchParams: Pr
             <input 
               type="datetime-local" 
               name="to" 
-              defaultValue={toDateParam || ''}
+              defaultValue={toDateParam || toLocalDatetimeString(endOfPeriod)}
               className="border border-zinc-300 rounded px-3 py-1.5 text-sm outline-none"
             />
           </div>
@@ -109,22 +114,47 @@ export default async function POSReportPage({ searchParams }: { searchParams: Pr
         </form>
 
         {/* Print Header (Visible only on print) */}
-        <div className="hidden print:block mb-8 text-center border-b pb-4">
-          <div className="w-16 h-16 mx-auto mb-2 bg-white rounded-full flex items-center justify-center p-1 shadow-sm">
-             <img src="/logo.png" alt="Dahab Perfumes Logo" className="max-w-full max-h-full object-contain grayscale" />
+        <div className="hidden print:block mb-8 text-center border-b pb-6">
+          <div className="w-48 h-20 mx-auto mb-4 flex items-center justify-center">
+             <img src="/logo.png" alt="Dahab Perfumes Logo" className="w-full h-full object-contain" />
           </div>
           <h2 className="text-xl font-bold">مؤسسة دهب للعطور</h2>
-          <p className="text-sm text-zinc-600">تقرير المبيعات من: {startOfPeriod.toLocaleString('ar-JO')} إلى: {endOfPeriod.toLocaleString('ar-JO')}</p>
+          <p className="text-sm text-zinc-600">تقرير المبيعات من: <span dir="ltr">{startOfPeriod.toLocaleString('en-US', { dateStyle: 'short', timeStyle: 'short' })}</span> إلى: <span dir="ltr">{endOfPeriod.toLocaleString('en-US', { dateStyle: 'short', timeStyle: 'short' })}</span></p>
         </div>
 
         {/* Global Print Styles */}
         <style dangerouslySetInnerHTML={{ __html: `
           @media print {
-            @page { margin: 0; }
+            @page { 
+              margin: 1cm;
+              size: A4 portrait;
+            }
             body { 
-              margin: 1.6cm; 
+              margin: 0 !important;
+              padding: 0 !important;
               -webkit-print-color-adjust: exact !important; 
               print-color-adjust: exact !important; 
+              background-color: white !important;
+            }
+            /* Force the main container to span full width and center its content safely */
+            .max-w-4xl {
+              max-width: 100% !important;
+              margin: 0 auto !important;
+              border: none !important;
+              box-shadow: none !important;
+              padding: 0 !important;
+            }
+            table {
+              width: 100% !important;
+              page-break-inside: auto;
+            }
+            tr {
+              page-break-inside: avoid;
+              page-break-after: auto;
+            }
+            th, td {
+              padding: 8px !important;
+              font-size: 12px !important;
             }
           }
         ` }} />
@@ -151,7 +181,7 @@ export default async function POSReportPage({ searchParams }: { searchParams: Pr
 
         {/* Sales Detailed Table */}
         {sales.length > 0 && (
-          <div className="mb-8 overflow-x-auto">
+          <div className="mb-8 overflow-x-auto print:overflow-visible">
             <h3 className="text-xl font-bold text-zinc-900 mb-4 border-b pb-2">فواتير الكاشير (POS)</h3>
             <table className="w-full text-right border-collapse text-sm">
               <thead>
@@ -166,7 +196,7 @@ export default async function POSReportPage({ searchParams }: { searchParams: Pr
                 {sales.map((sale) => (
                   <tr key={sale.id} className="border-b hover:bg-zinc-50">
                     <td className="p-3 border text-xs font-mono">{sale.id.slice(-8)}</td>
-                    <td className="p-3 border">{sale.createdAt.toLocaleString('ar-JO')}</td>
+                    <td className="p-3 border" dir="ltr">{sale.createdAt.toLocaleString('en-US', { dateStyle: 'short', timeStyle: 'short' })}</td>
                     <td className="p-3 border font-bold">{sale.payments?.[0]?.method === 'CASH' ? 'نقدي' : sale.payments?.[0]?.method === 'CARD' ? 'بطاقة' : 'متعدد'}</td>
                     <td className="p-3 border font-bold">{filsToDisplay(sale.total, 'ar')}</td>
                   </tr>
@@ -178,7 +208,7 @@ export default async function POSReportPage({ searchParams }: { searchParams: Pr
 
         {/* Online Orders Detailed Table */}
         {orders.length > 0 && (
-          <div className="mb-8 overflow-x-auto">
+          <div className="mb-8 overflow-x-auto print:overflow-visible">
             <h3 className="text-xl font-bold text-zinc-900 mb-4 border-b pb-2">طلبات الأونلاين (Online Orders)</h3>
             <table className="w-full text-right border-collapse text-sm">
               <thead>
@@ -195,7 +225,7 @@ export default async function POSReportPage({ searchParams }: { searchParams: Pr
                   <tr key={order.id} className="border-b hover:bg-zinc-50">
                     <td className="p-3 border font-bold">{order.reference}</td>
                     <td className="p-3 border">{order.customerName}</td>
-                    <td className="p-3 border">{order.createdAt.toLocaleString('ar-JO')}</td>
+                    <td className="p-3 border" dir="ltr">{order.createdAt.toLocaleString('en-US', { dateStyle: 'short', timeStyle: 'short' })}</td>
                     <td className="p-3 border font-bold">{order.status}</td>
                     <td className="p-3 border font-bold text-[var(--color-champagne-600)]">{filsToDisplay(order.totalAmount, 'ar')}</td>
                   </tr>

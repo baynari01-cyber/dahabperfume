@@ -43,7 +43,7 @@ export default async function AdminDashboardPage({
   });
 
   return (
-    <div className="flex h-screen bg-[var(--color-ivory-100)]" dir="rtl">
+    <div className="flex flex-col md:flex-row h-screen bg-[var(--color-ivory-100)] overflow-hidden" dir="rtl">
       {/* Sidebar on the right */}
       <AdminSidebar employeeName={session.employee.name} />
 

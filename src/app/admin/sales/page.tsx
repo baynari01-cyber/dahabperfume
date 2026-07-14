@@ -54,7 +54,7 @@ export default async function AdminSalesPage({
   const totalSalesSum = sales.reduce((sum, sale) => sum + sale.total, 0);
 
   return (
-    <div className="flex h-screen bg-[var(--color-ivory-100)]" dir="rtl">
+    <div className="flex flex-col md:flex-row h-screen bg-[var(--color-ivory-100)] overflow-hidden" dir="rtl">
       <AdminSidebar employeeName={session.employee.name} />
 
       <main className="flex-1 overflow-y-auto p-4 md:p-8 font-sans w-full max-w-full">
@@ -100,7 +100,7 @@ export default async function AdminSalesPage({
         </div>
 
         <div className="bg-white rounded-lg shadow-sm border border-[var(--color-ivory-200)] overflow-x-auto">
-          <table className="w-full text-right border-collapse min-w-[800px]">
+          <div className="overflow-x-auto w-full max-w-[90vw] md:max-w-full pb-4"><table className="w-full text-right border-collapse min-w-[800px]">
             <thead className="bg-zinc-50 border-b border-zinc-200">
               <tr className="text-sm font-bold text-zinc-700">
                 <th className="px-6 py-4">رقم العملية</th>
@@ -150,7 +150,7 @@ export default async function AdminSalesPage({
                 </tr>
               )}
             </tbody>
-          </table>
+          </table></div>
         </div>
       </main>
     </div>

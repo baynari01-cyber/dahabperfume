@@ -14,7 +14,7 @@ export default async function AdminCategoriesPage() {
   });
 
   return (
-    <div className="flex h-screen bg-[var(--color-ivory-100)]" dir="rtl">
+    <div className="flex flex-col md:flex-row h-screen bg-[var(--color-ivory-100)] overflow-hidden" dir="rtl">
       <AdminSidebar employeeName={session.employee.name} />
 
       <main className="flex-1 overflow-y-auto p-4 md:p-8 font-sans w-full max-w-full">
@@ -30,7 +30,7 @@ export default async function AdminCategoriesPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Categories List */}
           <div className="lg:col-span-2 bg-white rounded-lg shadow-sm border border-[var(--color-ivory-200)] overflow-x-auto">
-            <table className="w-full text-right border-collapse min-w-[600px]">
+            <div className="overflow-x-auto w-full max-w-[90vw] md:max-w-full pb-4"><table className="w-full text-right border-collapse min-w-[600px]">
               <thead className="bg-zinc-50 border-b border-zinc-200">
                 <tr className="text-sm font-bold text-zinc-700">
                   <th className="px-6 py-4">صورة المجموعة</th>
@@ -65,7 +65,7 @@ export default async function AdminCategoriesPage() {
                   </tr>
                 )}
               </tbody>
-            </table>
+            </table></div>
           </div>
 
           {/* Add Category Form */}

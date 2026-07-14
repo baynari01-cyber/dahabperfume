@@ -17,10 +17,10 @@ export default async function AdminProductsNewPage() {
   const globalPrices = await getGlobalSizePrices();
 
   return (
-    <div className="flex h-screen bg-[var(--color-ivory-100)]" dir="rtl">
+    <div className="flex flex-col md:flex-row h-screen bg-[var(--color-ivory-100)] overflow-hidden" dir="rtl">
       <AdminSidebar employeeName={user?.name || ''} />
 
-      <main className="flex-1 overflow-y-auto p-8 font-sans">
+      <main className="flex-1 overflow-y-auto p-8 font-sans w-full max-w-full">
         <div className="mb-8 border-b border-[var(--color-ivory-200)] pb-4">
           <div className="flex items-center gap-3 mb-2">
             <Link href="/admin/products" className="text-sm text-zinc-500 hover:underline">المنتجات</Link>

@@ -81,7 +81,7 @@ export default async function AdminPOSPage() {
   }
 
   return (
-    <div className="flex h-screen bg-[var(--color-ivory-100)]" dir="rtl">
+    <div className="flex flex-col md:flex-row h-screen bg-[var(--color-ivory-100)] overflow-hidden" dir="rtl">
       <AdminSidebar employeeName={session.employee.name} />
 
       <main className="flex-1 overflow-hidden font-sans relative">

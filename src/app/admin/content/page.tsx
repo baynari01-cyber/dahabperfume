@@ -35,10 +35,10 @@ export default async function AdminContentPage() {
   }
 
   return (
-    <div className="flex h-screen bg-[var(--color-ivory-100)]" dir="rtl">
+    <div className="flex flex-col md:flex-row h-screen bg-[var(--color-ivory-100)] overflow-hidden" dir="rtl">
       <AdminSidebar employeeName={session.employee.name} />
 
-      <main className="flex-1 overflow-y-auto p-8 font-sans">
+      <main className="flex-1 overflow-y-auto p-8 font-sans w-full max-w-full">
         <div className="flex justify-between items-center mb-8 border-b border-[var(--color-ivory-200)] pb-4">
           <div>
             <h1 className="text-3xl font-bold font-heading text-[var(--color-charcoal-900)]">

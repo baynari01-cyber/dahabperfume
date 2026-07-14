@@ -41,8 +41,7 @@ export function AdminSidebar({ employeeName, permissions = [] }: AdminSidebarPro
     { href: '/admin/inventory', label: 'المخزون', permission: 'manage:inventory' },
     { href: '/admin/employees', label: 'الموظفين والصلاحيات', permission: 'manage:settings' },
     { href: '/admin/settings/shipping', label: 'أسعار التوصيل', permission: 'manage:settings' },
-    { href: '/admin/content', label: 'المحتوى والمدونة (CMS)', permission: 'manage:settings' },
-    { href: '/admin/audit-logs', label: 'سجل العمليات (Audit)', permission: 'manage:settings' }
+    { href: '/admin/content', label: 'المحتوى والمدونة (CMS)', permission: 'manage:settings' }
   ];
 
   // Filter links based on employee permissions.
