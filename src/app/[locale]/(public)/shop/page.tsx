@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { filsToDisplay } from '@/lib/money';
 import { ShopFilters } from '@/components/ShopFilters';
 import { WishlistHeart } from '@/components/WishlistHeart';
+import { MobileCategoriesFeed } from '@/components/MobileCategoriesFeed';
 
 export const revalidate = 60;
 
@@ -46,6 +47,21 @@ export default async function ShopPage({ params, searchParams }: { params: Promi
 
   const categories = await prisma.category.findMany();
 
+  // Group filtered products by category for the mobile feed
+  const categoriesMap = new Map();
+  for (const product of products) {
+    if (!categoriesMap.has(product.categoryId)) {
+      categoriesMap.set(product.categoryId, {
+        id: product.categoryId,
+        name: product.category.name,
+        slug: product.category.slug,
+        products: []
+      });
+    }
+    categoriesMap.get(product.categoryId).products.push(product);
+  }
+  const groupedCategories = Array.from(categoriesMap.values());
+
   return (
     <div className="bg-[var(--color-ivory-100)] min-h-screen pb-20">
       {/* Header Banner */}
@@ -67,9 +83,22 @@ export default async function ShopPage({ params, searchParams }: { params: Promi
         </aside>
 
         {/* Product Grid */}
-        <main className="flex-1">
-          <div className="flex justify-between items-center mb-6 bg-white p-4 rounded-lg shadow-sm border border-[var(--color-ivory-200)]">
-            <span className="text-sm font-bold text-zinc-600">إظهار {products.length} نتائج</span>
+        <main className="flex-1 w-full max-w-full overflow-hidden">
+          {/* Mobile Specific: Categories Feed */}
+          <div className="md:hidden">
+            <MobileCategoriesFeed categories={groupedCategories} locale={locale} isAr={locale === 'ar'} />
+            
+            {products.length === 0 && (
+              <div className="text-center py-20">
+                <p className="text-xl text-zinc-500">لا توجد منتجات حالياً.</p>
+              </div>
+            )}
+          </div>
+
+          {/* Desktop Specific: Flat Grid */}
+          <div className="hidden md:block">
+            <div className="flex justify-between items-center mb-6 bg-white p-4 rounded-lg shadow-sm border border-[var(--color-ivory-200)]">
+              <span className="text-sm font-bold text-zinc-600">إظهار {products.length} نتائج</span>
             <select className="border border-zinc-300 rounded-md px-4 py-2 text-sm focus:outline-none focus:border-[var(--color-champagne-600)] bg-white text-zinc-700">
               <option>ترتيب حسب: الأحدث</option>
               <option>السعر: من الأقل للأعلى</option>
@@ -127,6 +156,7 @@ export default async function ShopPage({ params, searchParams }: { params: Promi
               <p className="text-xl text-zinc-500">لا توجد منتجات حالياً.</p>
             </div>
           )}
+          </div>
         </main>
       </div>
     </div>

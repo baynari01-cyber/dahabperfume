@@ -5,7 +5,7 @@ import { getHeroSlides, getHeroCarouselSettings, getStoreLocationSettings } from
 import { HeroCarousel } from '@/components/HeroCarousel';
 import { StoreLocationSection } from '@/components/StoreLocationSection';
 import { WishlistHeart } from '@/components/WishlistHeart';
-import { MobileCategoriesFeed } from '@/components/MobileCategoriesFeed';
+
 import { filsToDisplay } from '@/lib/money';
 import { Sparkles } from 'lucide-react';
 
@@ -244,9 +244,6 @@ export default async function StoreFrontPage({ params }: { params: Promise<Param
       <section className="py-20 bg-[var(--color-ivory-100)]">
         <div className="container mx-auto px-6">
           
-          {/* Mobile Specific: Categories Feed */}
-          <MobileCategoriesFeed categories={collections} locale={locale} isAr={isAr} />
-
           {/* Desktop Specific: Featured Products Grid */}
           <div className="hidden md:block">
             <div className="text-center mb-16">
