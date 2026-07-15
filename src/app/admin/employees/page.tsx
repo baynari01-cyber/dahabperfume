@@ -19,7 +19,20 @@ export default async function AdminEmployeesPage({
   const action = resolvedParams.action;
   const editId = resolvedParams.id;
 
-  const roles = await prisma.role.findMany();
+  const allRoles = await prisma.role.findMany();
+  const allowedRoles = ['Admin', 'Cashier'];
+  
+  // Ensure Admin and Cashier roles exist
+  for (const roleName of allowedRoles) {
+    if (!allRoles.find(r => r.name === roleName)) {
+      await prisma.role.create({ data: { name: roleName } });
+    }
+  }
+
+  // Only fetch Admin and Cashier roles to satisfy the requirement "احذف اي دور اخر"
+  const roles = await prisma.role.findMany({
+    where: { name: { in: allowedRoles } }
+  });
   let allPermissions = await prisma.permission.findMany();
 
   // Auto-seed missing POS permissions
@@ -76,13 +89,8 @@ export default async function AdminEmployeesPage({
     const roleId = formData.get('roleId') as string;
     const isActive = formData.get('isActive') === 'true';
     
-    // Collect permissions from checkbox fields
+    // Roles dictate permissions completely now.
     const selectedPermissionIds: string[] = [];
-    for (const p of allPermissions) {
-      if (formData.get(`perm_${p.id}`) === 'on') {
-        selectedPermissionIds.push(p.id);
-      }
-    }
 
     if (empId) {
       // Update
@@ -140,7 +148,7 @@ export default async function AdminEmployeesPage({
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen bg-[var(--color-ivory-100)]" dir="rtl">
-      <AdminSidebar employeeName={session.employee.name} permissions={activePermissions} />
+      <AdminSidebar employeeName={session.employee.name} roleName={session?.employee?.role?.name || "ADMIN"} />
 
       <main className="flex-1 p-4 md:p-8 font-sans w-full max-w-4xl mx-auto">
         {/* Header */}
@@ -210,11 +218,16 @@ export default async function AdminEmployeesPage({
                   className="w-full border border-zinc-200 rounded px-3 py-2 text-sm outline-none bg-white focus:border-[var(--color-charcoal-800)]"
                 >
                   <option value="">اختر الدور الوظيفي...</option>
-                  {roles.map((role) => (
-                    <option key={role.id} value={role.id}>
-                      {role.name === 'Admin' ? 'مدير نظام (Admin)' : role.name}
-                    </option>
-                  ))}
+                  {roles.map((role) => {
+                    let displayName = role.name;
+                    if (role.name === 'Admin') displayName = 'أدمن رئيسي (Admin)';
+                    if (role.name === 'Cashier') displayName = 'كاشير (Cashier)';
+                    return (
+                      <option key={role.id} value={role.id}>
+                        {displayName}
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
 
@@ -229,41 +242,6 @@ export default async function AdminEmployeesPage({
                   <option value="true">نشط</option>
                   <option value="false">معطل / موقف</option>
                 </select>
-              </div>
-            </div>
-
-            {/* Checkbox Permission Grid */}
-            <div className="border-t border-zinc-100 pt-4 mt-6">
-              <h3 className="text-sm font-bold text-[var(--color-charcoal-900)] mb-3">الصلاحيات المخصصة (Checkbox Permissions Override)</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {allPermissions.map((perm) => {
-                  const isChecked = editEmployeePermIds.includes(perm.id);
-                  return (
-                    <label
-                      key={perm.id}
-                      className="flex items-center gap-3 p-3 rounded border border-zinc-100 bg-zinc-50/50 hover:bg-zinc-50 cursor-pointer transition-colors"
-                    >
-                      <input
-                        type="checkbox"
-                        name={`perm_${perm.id}`}
-                        defaultChecked={isChecked}
-                        className="h-4.5 w-4.5 rounded border-zinc-300 text-[var(--color-charcoal-800)] focus:ring-[var(--color-charcoal-800)]"
-                      />
-                      <div>
-                        <p className="text-sm font-bold text-zinc-800">
-                          {perm.action === 'pos:access' ? 'صلاحية الكاشير (POS Access)' :
-                           perm.action === 'pos.orders.view' ? 'عرض طلبات المتجر في الـ POS' :
-                           perm.action === 'pos.orders.manage' ? 'إدارة حالات طلبات المتجر في الـ POS' :
-                           perm.action === 'manage:products' ? 'إدارة المنتجات والأسعار' :
-                           perm.action === 'manage:orders' ? 'إدارة الطلبات والفواتير' :
-                           perm.action === 'manage:inventory' ? 'إدارة المخزون والتركيبات' :
-                           perm.action === 'manage:settings' ? 'إدارة إعدادات النظام والموظفين' : perm.action}
-                        </p>
-                        <p className="text-xs text-zinc-500 mt-0.5">{perm.description || 'تخويل الموظف للقيام بالعمليات البرمجية لهذه الصلاحية'}</p>
-                      </div>
-                    </label>
-                  );
-                })}
               </div>
             </div>
 
@@ -302,7 +280,7 @@ export default async function AdminEmployeesPage({
 
                 <div className="flex flex-wrap gap-2 text-xs pt-1">
                   <span className="bg-[var(--color-ivory-200)] px-2 py-0.5 rounded font-bold text-[var(--color-charcoal-900)]">
-                    الدور: {emp.role.name === 'Admin' ? 'مدير نظام (Admin)' : emp.role.name}
+                    الدور: {emp.role.name === 'Admin' ? 'أدمن رئيسي' : emp.role.name === 'Cashier' ? 'كاشير' : emp.role.name}
                   </span>
                   
                   {emp.permissions.map((ep) => (

@@ -63,6 +63,7 @@ export async function login(prevState: any, formData: FormData) {
   }
   
   const { email, password } = parsed.data;
+  const loginType = formData.get('loginType') as string;
   
   const employee = await prisma.employee.findUnique({
     where: { email },
@@ -86,6 +87,15 @@ export async function login(prevState: any, formData: FormData) {
   // Account Lockout check
   if (employee.lockoutUntil && employee.lockoutUntil > new Date()) {
     return { error: `الحساب مقفل مؤقتاً بسبب محاولات فاشلة متكررة. حاول مجدداً بعد انتهاء مدة القفل.` };
+  }
+
+  // Role constraint checks based on login route
+  const roleName = employee.role.name.toUpperCase();
+  if (loginType === 'pos' && roleName !== 'CASHIER') {
+    return { error: 'خطأ في البريد الإلكتروني أو كلمة المرور' };
+  }
+  if (loginType === 'admin' && roleName === 'CASHIER') {
+    return { error: 'خطأ في البريد الإلكتروني أو كلمة المرور' };
   }
 
   const isValid = await verifyPassword(password, employee.passwordHash);
@@ -126,15 +136,6 @@ export async function login(prevState: any, formData: FormData) {
     return { error: 'خطأ في البريد الإلكتروني أو كلمة المرور' };
   }
   
-  // Success: Reset failed attempts
-  await prisma.employee.update({
-    where: { id: employee.id },
-    data: {
-      failedAttempts: 0,
-      lockoutUntil: null
-    }
-  });
-
   // MFA is temporarily disabled as per user request. 
   // It will only trigger if an employee has already explicitly enabled it.
   if (employee.mfaEnabled) {
@@ -150,22 +151,28 @@ export async function login(prevState: any, formData: FormData) {
     return { requiresMfa: true, mfaToken: token, mfaSetupRequired: !employee.mfaEnabled };
   }
 
-  // Create standard session
-  await prisma.loginAttempt.create({
-    data: { email, ipAddress, userAgent, success: true, employeeId: employee.id }
-  });
+  // Success: Parallelize post-login DB ops for speed
+  const [, , , sessionData] = await Promise.all([
+    prisma.employee.update({
+      where: { id: employee.id },
+      data: { failedAttempts: 0, lockoutUntil: null }
+    }),
+    prisma.loginAttempt.create({
+      data: { email, ipAddress, userAgent, success: true, employeeId: employee.id }
+    }),
+    prisma.auditLog.create({
+      data: {
+        employeeId: employee.id,
+        action: 'SESSION_CREATED',
+        entityType: 'Session',
+        entityId: employee.id,
+        ipAddress
+      }
+    }),
+    createSession(employee.id, roleName)
+  ]);
 
-  await prisma.auditLog.create({
-    data: {
-      employeeId: employee.id,
-      action: 'SESSION_CREATED',
-      entityType: 'Session',
-      entityId: employee.id,
-      ipAddress
-    }
-  });
-
-  const { token, expiresAt, role } = await createSession(employee.id);
+  const { token, expiresAt, role } = sessionData;
   await setSessionCookie(token, expiresAt, role);
   
   if (employee.role.name.toLowerCase() === 'cashier') {
@@ -373,7 +380,12 @@ export async function confirmMfaSetup(prevState: any, formData: FormData) {
 
 export async function logout() {
   const session = await getCurrentSession();
+  let redirectUrl = '/admin/login';
+
   if (session) {
+    if (session.employee?.role?.name?.toUpperCase() === 'CASHIER') {
+      redirectUrl = '/pos/login';
+    }
     const { cookies } = await import('next/headers');
     const token = (await cookies()).get('dahab_session')?.value;
     if (token) {
@@ -395,7 +407,7 @@ export async function logout() {
     }
   }
   await deleteSessionCookie();
-  redirect('/admin/login');
+  redirect(redirectUrl);
 }
 
 export async function verifyUnlockPassword(password: string) {

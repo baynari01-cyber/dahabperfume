@@ -8,13 +8,13 @@ export default async function AdminPagesCMS() {
   const session = await requireAuth();
 
   // Fetch all current CMS texts for the pages
-  const about = await getCMSContent('brand_story', { titleAr: '', titleEn: '', contentAr: '', contentEn: '' });
-  const ingredients = await getCMSContent('ingredients_page', { titleAr: '', titleEn: '', contentAr: '', contentEn: '' });
-  const privacy = await getCMSContent('privacy_policy', { titleAr: '', titleEn: '', contentAr: '', contentEn: '' });
-  const terms = await getCMSContent('terms_of_service', { titleAr: '', titleEn: '', contentAr: '', contentEn: '' });
-  const returns = await getCMSContent('returns_policy', { titleAr: '', titleEn: '', contentAr: '', contentEn: '' });
-  const faq = await getCMSContent('faq_content', { titleAr: '', titleEn: '', contentAr: '', contentEn: '' });
-  const shipping = await getCMSContent('shipping_policy', { titleAr: '', titleEn: '', introAr: '', introEn: '' });
+  const about = await getCMSContent('brand_story', { titleAr: 'قصتنا', titleEn: 'Our Story', contentAr: 'تأسست دهب للعطور لتقديم أفضل العطور.', contentEn: 'Dahab Perfumes was founded to provide the best fragrances.' });
+  const ingredients = await getCMSContent('ingredients_page', { titleAr: 'مكونات عطورنا', titleEn: 'Our Ingredients', contentAr: 'نحن نستخدم مكونات طبيعية 100%.', contentEn: 'We use 100% natural ingredients.' });
+  const privacy = await getCMSContent('privacy_policy', { titleAr: 'سياسة الخصوصية', titleEn: 'Privacy Policy', contentAr: 'نحن نحترم خصوصيتك.', contentEn: 'We respect your privacy.' });
+  const terms = await getCMSContent('terms_of_service', { titleAr: 'الشروط والأحكام', titleEn: 'Terms of Service', contentAr: 'شروط استخدام الموقع.', contentEn: 'Terms of using the website.' });
+  const returns = await getCMSContent('returns_policy', { titleAr: 'سياسة الاسترجاع', titleEn: 'Returns Policy', contentAr: 'يمكنك استرجاع المنتجات خلال 14 يوماً.', contentEn: 'You can return products within 14 days.' });
+  const faq = await getCMSContent('faq_content', { titleAr: 'الأسئلة الشائعة', titleEn: 'FAQ', contentAr: 'الأسئلة الشائعة للعملاء.', contentEn: 'Frequently asked questions.' });
+  const shipping = await getCMSContent('shipping_policy', { titleAr: 'سياسة الشحن', titleEn: 'Shipping Policy', introAr: 'نشحن إلى جميع مناطق المملكة.', introEn: 'We ship to all regions.' });
 
   async function handleSavePageCMS(formData: FormData) {
     'use server';
@@ -51,7 +51,7 @@ export default async function AdminPagesCMS() {
 
   return (
     <div className="flex flex-col md:flex-row h-screen bg-[var(--color-ivory-100)] overflow-hidden" dir="rtl">
-      <AdminSidebar employeeName={session.employee.name} />
+      <AdminSidebar employeeName={session.employee.name} roleName={session?.employee?.role?.name || "ADMIN"} />
 
       <main className="flex-1 overflow-y-auto p-4 md:p-8 font-sans w-full max-w-full">
         <div className="flex justify-between items-center mb-8 border-b border-[var(--color-ivory-200)] pb-4">

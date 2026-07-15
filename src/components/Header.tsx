@@ -45,6 +45,12 @@ export function Header() {
     setIsMobileMenuOpen(false);
   };
 
+  const isActive = (path: string) => {
+    if (path === `/${locale}` && pathname === `/${locale}`) return true;
+    if (path !== `/${locale}` && pathname.startsWith(path)) return true;
+    return false;
+  };
+
   return (
     <header className="w-full bg-[var(--color-ivory-100)] border-b border-[var(--color-ivory-200)] sticky top-0 z-50">
       <div className="container mx-auto px-6 py-4 flex items-center justify-between">
@@ -83,16 +89,16 @@ export function Header() {
 
         {/* Center: Navigation Links */}
         <nav className="hidden md:flex items-center gap-8 font-bold text-[var(--color-charcoal-900)]">
-          <Link href={`/${locale}`} className="text-[var(--color-champagne-600)]">الرئيسية</Link>
-          <Link href={`/${locale}/shop`} className="hover:text-[var(--color-champagne-600)] transition-colors">المتجر</Link>
-          <Link href={`/${locale}/collections`} className="hover:text-[var(--color-champagne-600)] transition-colors">المجموعات</Link>
-          <Link href={`/${locale}/about`} className="hover:text-[var(--color-champagne-600)] transition-colors">عن دهب</Link>
-          <Link href={`/${locale}/contact`} className="hover:text-[var(--color-champagne-600)] transition-colors">تواصل معنا</Link>
+          <Link href={`/${locale}`} className={`${isActive(`/${locale}`) ? 'text-[var(--color-champagne-600)]' : 'hover:text-[var(--color-champagne-600)] transition-colors'}`}>الرئيسية</Link>
+          <Link href={`/${locale}/shop`} className={`${isActive(`/${locale}/shop`) ? 'text-[var(--color-champagne-600)]' : 'hover:text-[var(--color-champagne-600)] transition-colors'}`}>المتجر</Link>
+          <Link href={`/${locale}/collections`} className={`${isActive(`/${locale}/collections`) ? 'text-[var(--color-champagne-600)]' : 'hover:text-[var(--color-champagne-600)] transition-colors'}`}>المجموعات</Link>
+          <Link href={`/${locale}/about`} className={`${isActive(`/${locale}/about`) ? 'text-[var(--color-champagne-600)]' : 'hover:text-[var(--color-champagne-600)] transition-colors'}`}>عن دهب</Link>
+          <Link href={`/${locale}/contact`} className={`${isActive(`/${locale}/contact`) ? 'text-[var(--color-champagne-600)]' : 'hover:text-[var(--color-champagne-600)] transition-colors'}`}>تواصل معنا</Link>
         </nav>
 
         {/* Right Side: Logo */}
         <Link href={`/${locale}`} className="flex items-center gap-2">
-          <Image src="/logo.png" alt="Dahab Perfumes Logo" width={120} height={40} className="object-contain h-10 w-auto" />
+          <Image src="/logo.png?v=2" unoptimized alt="Dahab Perfumes Logo" width={120} height={40} className="object-contain h-10 w-auto" />
         </Link>
       </div>
 
@@ -108,7 +114,7 @@ export function Header() {
           <div className="relative w-4/5 max-w-sm bg-[var(--color-ivory-100)] h-full shadow-2xl flex flex-col transform transition-transform duration-300">
             <div className="p-6 flex items-center justify-between border-b border-[var(--color-ivory-200)]">
               <Link href={`/${locale}`} className="flex items-center gap-2" onClick={() => setIsMobileMenuOpen(false)}>
-                <Image src="/logo.png" alt="Dahab Perfumes Logo" width={120} height={40} className="object-contain h-10 w-auto" />
+                <Image src="/logo.png?v=2" unoptimized alt="Dahab Perfumes Logo" width={120} height={40} className="object-contain h-10 w-auto" />
               </Link>
               <button 
                 onClick={() => setIsMobileMenuOpen(false)}
@@ -119,12 +125,12 @@ export function Header() {
             </div>
             
             <nav className="flex-1 overflow-y-auto py-6 px-6 flex flex-col gap-6 text-lg font-bold text-[var(--color-charcoal-900)]">
-              <Link href={`/${locale}`} onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[var(--color-champagne-600)] transition-colors border-b border-zinc-100 pb-2">الرئيسية</Link>
-              <Link href={`/${locale}/shop`} onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[var(--color-champagne-600)] transition-colors border-b border-zinc-100 pb-2">المتجر</Link>
-              <Link href={`/${locale}/collections`} onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[var(--color-champagne-600)] transition-colors border-b border-zinc-100 pb-2">المجموعات العطرية</Link>
-              <Link href={`/${locale}/about`} onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[var(--color-champagne-600)] transition-colors border-b border-zinc-100 pb-2">عن دهب</Link>
-              <Link href={`/${locale}/contact`} onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[var(--color-champagne-600)] transition-colors border-b border-zinc-100 pb-2">تواصل معنا</Link>
-              <Link href={`/${locale}/wishlist`} onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[var(--color-champagne-600)] transition-colors border-b border-zinc-100 pb-2">قائمة المفضلة</Link>
+              <Link href={`/${locale}`} onClick={() => setIsMobileMenuOpen(false)} className={`${isActive(`/${locale}`) ? 'text-[var(--color-champagne-600)]' : 'hover:text-[var(--color-champagne-600)]'} transition-colors border-b border-zinc-100 pb-2`}>الرئيسية</Link>
+              <Link href={`/${locale}/shop`} onClick={() => setIsMobileMenuOpen(false)} className={`${isActive(`/${locale}/shop`) ? 'text-[var(--color-champagne-600)]' : 'hover:text-[var(--color-champagne-600)]'} transition-colors border-b border-zinc-100 pb-2`}>المتجر</Link>
+              <Link href={`/${locale}/collections`} onClick={() => setIsMobileMenuOpen(false)} className={`${isActive(`/${locale}/collections`) ? 'text-[var(--color-champagne-600)]' : 'hover:text-[var(--color-champagne-600)]'} transition-colors border-b border-zinc-100 pb-2`}>المجموعات العطرية</Link>
+              <Link href={`/${locale}/about`} onClick={() => setIsMobileMenuOpen(false)} className={`${isActive(`/${locale}/about`) ? 'text-[var(--color-champagne-600)]' : 'hover:text-[var(--color-champagne-600)]'} transition-colors border-b border-zinc-100 pb-2`}>عن دهب</Link>
+              <Link href={`/${locale}/contact`} onClick={() => setIsMobileMenuOpen(false)} className={`${isActive(`/${locale}/contact`) ? 'text-[var(--color-champagne-600)]' : 'hover:text-[var(--color-champagne-600)]'} transition-colors border-b border-zinc-100 pb-2`}>تواصل معنا</Link>
+              <Link href={`/${locale}/wishlist`} onClick={() => setIsMobileMenuOpen(false)} className={`${isActive(`/${locale}/wishlist`) ? 'text-[var(--color-champagne-600)]' : 'hover:text-[var(--color-champagne-600)]'} transition-colors border-b border-zinc-100 pb-2`}>قائمة المفضلة</Link>
             </nav>
             
             <div className="p-6 border-t border-[var(--color-ivory-200)] bg-white mt-auto">

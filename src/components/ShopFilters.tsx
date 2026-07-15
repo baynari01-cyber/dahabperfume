@@ -13,121 +13,88 @@ interface ShopFiltersProps {
 export function ShopFilters({ categories, initialMinPrice = 0, initialMaxPrice = 500, initialCategory = '' }: ShopFiltersProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [minPrice, setMinPrice] = useState(initialMinPrice);
-  const [maxPrice, setMaxPrice] = useState(initialMaxPrice);
+  const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
 
+  const isFirstRender = React.useRef(true);
+
   useEffect(() => {
-    setMinPrice(Number(searchParams.get('minPrice')) || 0);
-    setMaxPrice(Number(searchParams.get('maxPrice')) || 500);
+    setSearchQuery(searchParams.get('q') || '');
     setSelectedCategory(searchParams.get('category') || '');
   }, [searchParams]);
 
-  const handleApply = () => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set('minPrice', minPrice.toString());
-    params.set('maxPrice', maxPrice.toString());
-    if (selectedCategory) {
-      params.set('category', selectedCategory);
-    } else {
-      params.delete('category');
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
     }
-    router.push(`?${params.toString()}`);
-  };
+
+    const delayDebounceFn = setTimeout(() => {
+      const params = new URLSearchParams(searchParams.toString());
+      let changed = false;
+
+      const currentQ = searchParams.get('q') || '';
+      if (searchQuery !== currentQ) {
+        if (searchQuery) params.set('q', searchQuery);
+        else params.delete('q');
+        changed = true;
+      }
+
+      const currentCat = searchParams.get('category') || '';
+      if (selectedCategory !== currentCat) {
+        if (selectedCategory) params.set('category', selectedCategory);
+        else params.delete('category');
+        changed = true;
+      }
+
+      if (changed) {
+        router.push(`?${params.toString()}`);
+      }
+    }, 400);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchQuery, selectedCategory, router, searchParams]);
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-sm border border-[var(--color-ivory-200)] sticky top-24">
-      <h3 className="font-bold text-lg text-[var(--color-charcoal-900)] mb-4 border-b pb-2">تصفية البحث</h3>
-      
-      <div className="mb-6">
-        <h4 className="font-bold text-sm text-zinc-700 mb-3">المجموعة</h4>
-        <div className="space-y-2">
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input 
-              type="radio" 
-              name="category"
-              checked={selectedCategory === ''} 
-              onChange={() => setSelectedCategory('')}
-              className="text-[var(--color-champagne-600)] focus:ring-[var(--color-champagne-600)]" 
-            />
-            <span className="text-sm text-zinc-600">الجميع</span>
-          </label>
-          {categories.map(cat => (
-            <label key={cat.id} className="flex items-center gap-2 cursor-pointer">
-              <input 
-                type="radio" 
-                name="category"
-                checked={selectedCategory === cat.id}
-                onChange={() => setSelectedCategory(cat.id)}
-                className="text-[var(--color-champagne-600)] focus:ring-[var(--color-champagne-600)]" 
-              />
-              <span className="text-sm text-zinc-600">{cat.name}</span>
-            </label>
-          ))}
-        </div>
+    <div className="bg-white p-4 rounded-lg shadow-sm border border-[var(--color-ivory-200)] flex flex-col md:flex-row gap-4">
+      <div className="flex-1 min-w-[200px]">
+        <label className="block text-sm font-bold text-zinc-700 mb-2">بحث بالاسم</label>
+        <input 
+          type="text" 
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="ابحث عن عطر..."
+          className="w-full border border-zinc-300 rounded px-3 py-2 text-sm focus:border-[var(--color-champagne-600)] outline-none bg-white"
+        />
       </div>
 
-      <div className="mb-6">
-        <h4 className="font-bold text-sm text-zinc-700 mb-3">نطاق السعر (دينار)</h4>
-        
-        {/* Simple Dual Handle Slider using two range inputs overlayed */}
-        <div className="relative h-2 bg-zinc-200 rounded-full mb-6">
-          <div 
-            className="absolute h-2 bg-[var(--color-champagne-600)] rounded-full" 
-            style={{ 
-              left: `${(minPrice / 500) * 100}%`, 
-              right: `${100 - (maxPrice / 500) * 100}%` 
-            }}
-          ></div>
-          <input 
-            type="range" 
-            min="0" 
-            max="500" 
-            value={minPrice} 
-            onChange={(e) => setMinPrice(Math.min(Number(e.target.value), maxPrice - 5))}
-            className="absolute w-full h-2 top-0 appearance-none pointer-events-none bg-transparent [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-[var(--color-champagne-600)]"
-            style={{ zIndex: minPrice > 250 ? 5 : 3 }}
-          />
-          <input 
-            type="range" 
-            min="0" 
-            max="500" 
-            value={maxPrice} 
-            onChange={(e) => setMaxPrice(Math.max(Number(e.target.value), minPrice + 5))}
-            className="absolute w-full h-2 top-0 appearance-none pointer-events-none bg-transparent [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-[var(--color-champagne-600)]"
-            style={{ zIndex: 4 }}
-          />
-        </div>
-        
-        <div className="flex justify-between items-center gap-2">
-          <div className="flex-1">
-            <span className="text-xs text-zinc-500 mb-1 block">من</span>
-            <input 
-              type="number" 
-              value={minPrice} 
-              onChange={(e) => setMinPrice(Number(e.target.value))}
-              className="w-full border border-zinc-300 rounded px-2 py-1 text-sm text-center focus:border-[var(--color-champagne-600)] outline-none"
-            />
-          </div>
-          <span className="text-zinc-400 mt-5">-</span>
-          <div className="flex-1">
-            <span className="text-xs text-zinc-500 mb-1 block">إلى</span>
-            <input 
-              type="number" 
-              value={maxPrice} 
-              onChange={(e) => setMaxPrice(Number(e.target.value))}
-              className="w-full border border-zinc-300 rounded px-2 py-1 text-sm text-center focus:border-[var(--color-champagne-600)] outline-none"
-            />
-          </div>
-        </div>
+      <div className="flex-1 min-w-[150px]">
+        <label className="block text-sm font-bold text-zinc-700 mb-2">المجموعة</label>
+        <select 
+          value={selectedCategory}
+          onChange={(e) => setSelectedCategory(e.target.value)}
+          className="w-full border border-zinc-300 rounded px-3 py-2 text-sm focus:border-[var(--color-champagne-600)] outline-none bg-white"
+        >
+          <option value="">الجميع</option>
+          {categories.map(cat => (
+            <option key={cat.id} value={cat.id}>{cat.name}</option>
+          ))}
+        </select>
       </div>
-      
-      <button 
-        onClick={handleApply}
-        className="w-full bg-[var(--color-charcoal-900)] hover:bg-[var(--color-charcoal-800)] text-white py-2 rounded-md font-bold text-sm transition-colors"
-      >
-        تطبيق الفلاتر
-      </button>
+
+      <div className="flex-1 min-w-[120px]">
+        <label className="block text-sm font-bold text-zinc-700 mb-2 text-zinc-400">الجنس</label>
+        <select disabled className="w-full border border-zinc-200 text-zinc-400 rounded px-3 py-2 text-sm outline-none bg-zinc-50 cursor-not-allowed">
+          <option>قريباً...</option>
+        </select>
+      </div>
+
+      <div className="flex-1 min-w-[120px]">
+        <label className="block text-sm font-bold text-zinc-700 mb-2 text-zinc-400">النوتات العطرية</label>
+        <select disabled className="w-full border border-zinc-200 text-zinc-400 rounded px-3 py-2 text-sm outline-none bg-zinc-50 cursor-not-allowed">
+          <option>قريباً...</option>
+        </select>
+      </div>
     </div>
   );
 }

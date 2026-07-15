@@ -18,7 +18,7 @@ export default async function AdminProductsNewPage() {
 
   return (
     <div className="flex flex-col md:flex-row h-screen bg-[var(--color-ivory-100)] overflow-hidden" dir="rtl">
-      <AdminSidebar employeeName={user?.name || ''} />
+      <AdminSidebar employeeName={user?.name || ''} roleName={"ADMIN"} />
 
       <main className="flex-1 overflow-y-auto p-8 font-sans w-full max-w-full">
         <div className="mb-8 border-b border-[var(--color-ivory-200)] pb-4">

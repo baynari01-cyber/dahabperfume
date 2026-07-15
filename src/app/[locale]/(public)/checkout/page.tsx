@@ -15,6 +15,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ locale: str
   const [mounted, setMounted] = useState(false);
   const [zones, setZones] = useState<any[]>([]);
   const [selectedZoneId, setSelectedZoneId] = useState<string>('');
+  const [isSubmittingLocal, setIsSubmittingLocal] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem('dahab_cart');
@@ -45,6 +46,8 @@ export default function CheckoutPage({ params }: { params: Promise<{ locale: str
       // Clear cart on success
       localStorage.removeItem('dahab_cart');
       window.location.href = state.whatsappUrl;
+    } else if (state?.error) {
+      setIsSubmittingLocal(false);
     }
   }, [state]);
 
@@ -97,7 +100,17 @@ export default function CheckoutPage({ params }: { params: Promise<{ locale: str
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
         {/* Delivery Form */}
         <div>
-          <form action={formAction} className="bg-white p-8 rounded-lg shadow-sm border border-[var(--color-ivory-200)]">
+          <form 
+            action={formAction} 
+            onSubmit={(e) => {
+              if (isSubmittingLocal || isPending) {
+                e.preventDefault();
+                return;
+              }
+              setIsSubmittingLocal(true);
+            }}
+            className="bg-white p-8 rounded-lg shadow-sm border border-[var(--color-ivory-200)]"
+          >
             <h2 className="text-xl font-bold text-zinc-900 mb-6">
               {isAr ? 'تفاصيل التوصيل' : 'Delivery Details'}
             </h2>
@@ -213,10 +226,10 @@ export default function CheckoutPage({ params }: { params: Promise<{ locale: str
             <div className="mt-8">
               <button
                 type="submit"
-                disabled={isPending || cartItems.length === 0}
+                disabled={isPending || isSubmittingLocal || cartItems.length === 0}
                 className="w-full bg-[var(--color-charcoal-900)] hover:bg-[var(--color-charcoal-800)] text-white font-bold py-4 rounded transition-colors disabled:opacity-50"
               >
-                {isPending ? (isAr ? 'جاري المعالجة...' : 'Processing...') : (isAr ? 'تأكيد الطلب عبر واتساب' : 'Confirm Order via WhatsApp')}
+                {(isPending || isSubmittingLocal) ? (isAr ? 'جاري المعالجة...' : 'Processing...') : (isAr ? 'تأكيد الطلب عبر واتساب' : 'Confirm Order via WhatsApp')}
               </button>
             </div>
           </form>

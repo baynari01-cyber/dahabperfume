@@ -30,7 +30,7 @@ export default async function AdminCMSHomepagePage() {
 
   return (
     <div className="flex min-h-screen bg-[var(--color-ivory-100)] text-zinc-800" dir="rtl">
-      <AdminSidebar employeeName={session.employee.name} />
+      <AdminSidebar employeeName={session.employee.name} roleName={session?.employee?.role?.name || "ADMIN"} />
       
       <main className="flex-1 p-6 md:p-12 font-sans w-full max-w-6xl mx-auto space-y-6">
         <div>

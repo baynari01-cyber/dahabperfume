@@ -71,11 +71,10 @@ export function ProductEditForm({ productId, initialData, categories }: ProductE
     try {
       const formData = new FormData(e.currentTarget);
 
-      // Variants in fils
       const variantsForAction = variants.map(v => ({
         id: v.id,
         size: v.size,
-        sku: v.sku,
+        sku: v.size ? `${initialData.sku}-${v.size.toUpperCase().replace(/\s+/g, '')}` : v.sku,
         price: typeof v.price === 'string' ? Math.round(parseFloat(v.price) * 1000) : v.price,
         isActive: v.isActive
       }));
@@ -117,7 +116,7 @@ export function ProductEditForm({ productId, initialData, categories }: ProductE
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div>
           <label className="block text-sm font-bold text-zinc-700 mb-2">SKU الأساسي *</label>
-          <input type="text" name="sku" defaultValue={initialData.sku} required dir="ltr" className="w-full border rounded p-2 text-sm font-mono text-left outline-none focus:border-[var(--color-champagne-600)]" />
+          <input type="text" name="sku" readOnly value={initialData.sku} required dir="ltr" className="w-full border rounded p-2 text-sm font-mono text-left outline-none focus:border-[var(--color-champagne-600)] bg-zinc-50 cursor-not-allowed text-zinc-500" />
         </div>
         <div>
           <label className="block text-sm font-bold text-zinc-700 mb-2">التصنيف *</label>
@@ -167,7 +166,8 @@ export function ProductEditForm({ productId, initialData, categories }: ProductE
                 <input type="text" value={v.size} onChange={e => updateVariant(i, 'size', e.target.value)} required placeholder="50ml" className="w-full border rounded p-1.5 text-xs outline-none focus:border-[var(--color-champagne-600)]" dir="ltr" />
               </div>
               <div className="col-span-4">
-                <input type="text" value={v.sku} onChange={e => updateVariant(i, 'sku', e.target.value)} required className="w-full border rounded p-1.5 text-xs font-mono outline-none focus:border-[var(--color-champagne-600)]" dir="ltr" />
+                <input type="text" value={v.size ? `${initialData.sku}-${v.size.toUpperCase().replace(/\s+/g, '')}` : ''} readOnly className="w-full border rounded p-1.5 text-xs font-mono outline-none bg-zinc-50 cursor-not-allowed text-zinc-500" dir="ltr" />
+                <input type="hidden" name={`variants[${i}].sku`} value={v.size ? `${initialData.sku}-${v.size.toUpperCase().replace(/\s+/g, '')}` : ''} />
               </div>
               <div className="col-span-3">
                 <input

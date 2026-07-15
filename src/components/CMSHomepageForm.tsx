@@ -60,13 +60,23 @@ const SlideEditor = ({
       {/* 1. Media Section */}
       <div className="bg-white p-5 rounded-lg border shadow-sm space-y-4">
         <h4 className="font-bold text-sm text-[var(--color-charcoal-800)] border-b pb-2">1. صورة أو فيديو الإعلان</h4>
-        <div className="space-y-3 text-center">
-          <label className="text-xs font-bold text-zinc-700 block">سيتم ضبط الأبعاد تلقائياً لتناسب جميع الشاشات (كمبيوتر وجوال)</label>
-          <MediaPreview url={slide.imageDesktopPath} isMobile={false} />
-          <label className="bg-[var(--color-champagne-600)] hover:bg-[var(--color-champagne-500)] text-white px-4 py-2 rounded text-xs cursor-pointer inline-block shadow-sm transition-colors font-bold mt-2">
-            اختيار صورة أو فيديو
-            <input type="file" className="hidden" accept="image/*,video/*" onChange={(e) => handleFileUpload(e, false, isEdit)} />
-          </label>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-3 text-center">
+            <label className="text-xs font-bold text-zinc-700 block">نسخة الكمبيوتر (Desktop)</label>
+            <MediaPreview url={slide.imageDesktopPath} isMobile={false} />
+            <label className="bg-[var(--color-champagne-600)] hover:bg-[var(--color-champagne-500)] text-white px-4 py-2 rounded text-xs cursor-pointer inline-block shadow-sm transition-colors font-bold mt-2">
+              تغيير صورة الكمبيوتر
+              <input type="file" className="hidden" accept="image/*,video/*" onChange={(e) => handleFileUpload(e, false, isEdit)} />
+            </label>
+          </div>
+          <div className="space-y-3 text-center">
+            <label className="text-xs font-bold text-zinc-700 block">نسخة الهاتف المحمول (Mobile)</label>
+            <MediaPreview url={slide.imageMobilePath} isMobile={true} />
+            <label className="bg-[var(--color-charcoal-900)] hover:bg-[var(--color-charcoal-800)] text-white px-4 py-2 rounded text-xs cursor-pointer inline-block shadow-sm transition-colors font-bold mt-2">
+              تغيير صورة الهاتف
+              <input type="file" className="hidden" accept="image/*,video/*" onChange={(e) => handleFileUpload(e, true, isEdit)} />
+            </label>
+          </div>
         </div>
       </div>
 
@@ -287,9 +297,15 @@ export function CMSHomepageForm({
         const res = await uploadMedia(formData);
         if (res.success && res.url) {
           if (isEditing) {
-            setEditingSlide((prev: any) => ({ ...prev, imageDesktopPath: res.url, imageMobilePath: res.url }));
+            setEditingSlide((prev: any) => ({
+              ...prev,
+              ...(isMobile ? { imageMobilePath: res.url } : { imageDesktopPath: res.url })
+            }));
           } else {
-            setNewSlide((prev: any) => ({ ...prev, imageDesktopPath: res.url, imageMobilePath: res.url }));
+            setNewSlide((prev: any) => ({
+              ...prev,
+              ...(isMobile ? { imageMobilePath: res.url } : { imageDesktopPath: res.url })
+            }));
           }
         } else {
           alert(res.error || 'فشل في رفع الملف');

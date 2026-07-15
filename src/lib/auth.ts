@@ -7,7 +7,13 @@ const SESSION_COOKIE_NAME = 'dahab_session';
 const SESSION_EXPIRATION_DAYS = 7;
 
 export async function hashPassword(password: string): Promise<string> {
-  return argon2.hash(password, { type: argon2.argon2id });
+  // Use faster argon2 parameters to reduce login time (especially useful in dev)
+  return argon2.hash(password, { 
+    type: argon2.argon2id,
+    timeCost: 2,
+    memoryCost: 19456, // 19 MB
+    parallelism: 1
+  });
 }
 
 export async function verifyPassword(password: string, hash: string): Promise<boolean> {
@@ -23,16 +29,20 @@ export function hashSessionToken(token: string): string {
   return createHash('sha256').update(token).digest('hex');
 }
 
-export async function createSession(employeeId: string) {
+export async function createSession(employeeId: string, preFetchedRole?: string) {
   const token = generateSessionToken();
   const hashedToken = hashSessionToken(token);
   
-  const employee = await prisma.employee.findUnique({
-    where: { id: employeeId },
-    include: { role: true }
-  });
+  let roleName = preFetchedRole;
+  if (!roleName) {
+    const employee = await prisma.employee.findUnique({
+      where: { id: employeeId },
+      include: { role: true }
+    });
+    roleName = employee?.role?.name || 'User';
+  }
   
-  const isCashier = employee?.role?.name === 'Cashier';
+  const isCashier = roleName?.toUpperCase() === 'CASHIER';
   const lifetimeMs = isCashier ? 15 * 60 * 60 * 1000 : 7 * 24 * 60 * 60 * 1000;
   const expiresAt = new Date(Date.now() + lifetimeMs);
 
@@ -44,7 +54,7 @@ export async function createSession(employeeId: string) {
     },
   });
 
-  return { token, expiresAt, role: employee?.role?.name || 'User' };
+  return { token, expiresAt, role: roleName };
 }
 
 export async function validateSessionToken(token: string) {

@@ -51,6 +51,6 @@ export async function createCategory(formData: FormData) {
     return { success: true, categoryId: category.id };
   } catch (error: any) {
     console.error('Error creating category:', error);
-    return { success: false, error: error.message };
+    return { success: false, error: error.message || 'حدث خطأ غير معروف' };
   }
 }

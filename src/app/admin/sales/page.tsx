@@ -55,7 +55,7 @@ export default async function AdminSalesPage({
 
   return (
     <div className="flex flex-col md:flex-row h-screen bg-[var(--color-ivory-100)] overflow-hidden" dir="rtl">
-      <AdminSidebar employeeName={session.employee.name} />
+      <AdminSidebar employeeName={session.employee.name} roleName={session?.employee?.role?.name || "ADMIN"} />
 
       <main className="flex-1 overflow-y-auto p-4 md:p-8 font-sans w-full max-w-full">
         <div className="flex justify-between items-center mb-8 border-b border-[var(--color-ivory-200)] pb-4">
@@ -107,7 +107,7 @@ export default async function AdminSalesPage({
                 <th className="px-6 py-4">الكاشير</th>
                 <th className="px-6 py-4">المصدر</th>
                 <th className="px-6 py-4">اسم العميل</th>
-                <th className="px-6 py-4">المجموع الفرعي</th>
+                <th className="px-6 py-4 min-w-[250px]">المنتجات</th>
                 <th className="px-6 py-4">المجموع الإجمالي</th>
                 <th className="px-6 py-4">طريقة الدفع</th>
                 <th className="px-6 py-4">التاريخ والوقت</th>
@@ -126,7 +126,13 @@ export default async function AdminSalesPage({
                       </span>
                     </td>
                     <td className="px-6 py-4">{sale.customerName || '-'}</td>
-                    <td className="px-6 py-4">{filsToDisplay(sale.subtotal, 'ar')}</td>
+                    <td className="px-6 py-4 text-xs text-zinc-600">
+                      <ul className="list-disc list-inside">
+                        {sale.items.map(item => (
+                          <li key={item.id}>{item.name} ({item.size}) <span className="font-bold text-zinc-800">x{item.quantity}</span></li>
+                        ))}
+                      </ul>
+                    </td>
                     <td className="px-6 py-4 font-bold text-emerald-600">
                       {filsToDisplay(sale.total, 'ar')}
                     </td>

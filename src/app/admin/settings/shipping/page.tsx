@@ -22,7 +22,7 @@ export default async function AdminShippingPage() {
 
   return (
     <div className="flex flex-col md:flex-row h-screen bg-[var(--color-ivory-100)] overflow-hidden" dir="rtl">
-      <AdminSidebar employeeName={session.employee.name} />
+      <AdminSidebar employeeName={session.employee.name} roleName={session?.employee?.role?.name || "ADMIN"} />
       <main className="flex-1 overflow-y-auto p-4 md:p-8 font-sans w-full max-w-full space-y-6">
       <div className="flex justify-between items-center">
         <div>

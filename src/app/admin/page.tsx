@@ -1,7 +1,6 @@
 import { redirect } from 'next/navigation';
 import { getCurrentSession } from '@/lib/auth';
-
-export default async function AdminRootPage() {
+const AdminIndexPage = async () => {
   const session = await getCurrentSession();
 
   if (!session) {
@@ -16,4 +15,6 @@ export default async function AdminRootPage() {
 
   // Otherwise, default to the admin dashboard
   redirect('/admin/dashboard');
-}
+};
+
+export default AdminIndexPage;

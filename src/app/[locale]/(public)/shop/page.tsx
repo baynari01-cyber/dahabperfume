@@ -11,13 +11,9 @@ export default async function ShopPage({ params, searchParams }: { params: Promi
   const { locale } = await params;
   const sp = await searchParams;
   
-  const minPriceStr = typeof sp.minPrice === 'string' ? sp.minPrice : '0';
-  const maxPriceStr = typeof sp.maxPrice === 'string' ? sp.maxPrice : '500';
+  const q = typeof sp.q === 'string' ? sp.q : '';
   const categoryStr = typeof sp.category === 'string' ? sp.category : '';
   
-  const minPriceFils = parseInt(minPriceStr) * 1000;
-  const maxPriceFils = parseInt(maxPriceStr) * 1000;
-
   // Build prisma where clause
   const where: any = { isVisible: true };
   
@@ -25,15 +21,12 @@ export default async function ShopPage({ params, searchParams }: { params: Promi
     where.categoryId = categoryStr;
   }
   
-  // Filter by price using variants
-  where.variants = {
-    some: {
-      price: {
-        gte: minPriceFils || 0,
-        lte: maxPriceFils || 500000
-      }
-    }
-  };
+  if (q) {
+    where.OR = [
+      { nameAr: { contains: q } },
+      { nameEn: { contains: q } }
+    ];
+  }
 
   const products = await prisma.product.findMany({
     where,
@@ -70,20 +63,18 @@ export default async function ShopPage({ params, searchParams }: { params: Promi
         <p className="text-zinc-300 text-lg">اكتشف تشكيلتنا الحصرية من العطور الفاخرة</p>
       </div>
 
-      <div className="container mx-auto px-6 mt-12 flex flex-col md:flex-row gap-8">
+      <div className="container mx-auto px-6 mt-8 flex flex-col gap-6">
         
-        {/* Sidebar Filters */}
-        <aside className="w-full md:w-64 flex-shrink-0">
+        {/* Inline Top Filters */}
+        <div className="mb-12">
           <ShopFilters 
             categories={categories} 
-            initialMinPrice={parseInt(minPriceStr)} 
-            initialMaxPrice={parseInt(maxPriceStr)} 
-            initialCategory={categoryStr} 
+            initialCategory={categoryStr}
           />
-        </aside>
+        </div>
 
         {/* Product Grid */}
-        <main className="flex-1 w-full max-w-full overflow-hidden">
+        <main className="w-full overflow-hidden">
           {/* Mobile Specific: Categories Feed */}
           <div className="md:hidden">
             <MobileCategoriesFeed categories={groupedCategories} locale={locale} isAr={locale === 'ar'} />

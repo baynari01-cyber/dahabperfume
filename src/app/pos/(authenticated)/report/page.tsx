@@ -189,6 +189,7 @@ export default async function POSReportPage({ searchParams }: { searchParams: Pr
                   <th className="p-3 border">الرقم المرجعي</th>
                   <th className="p-3 border">الوقت</th>
                   <th className="p-3 border">طريقة الدفع</th>
+                  <th className="p-3 border min-w-[200px]">المنتجات</th>
                   <th className="p-3 border">المجموع</th>
                 </tr>
               </thead>
@@ -198,6 +199,13 @@ export default async function POSReportPage({ searchParams }: { searchParams: Pr
                     <td className="p-3 border text-xs font-mono">{sale.id.slice(-8)}</td>
                     <td className="p-3 border" dir="ltr">{sale.createdAt.toLocaleString('en-US', { dateStyle: 'short', timeStyle: 'short' })}</td>
                     <td className="p-3 border font-bold">{sale.payments?.[0]?.method === 'CASH' ? 'نقدي' : sale.payments?.[0]?.method === 'CARD' ? 'بطاقة' : 'متعدد'}</td>
+                    <td className="p-3 border text-xs text-zinc-600">
+                      <ul className="list-disc list-inside">
+                        {sale.items.map(item => (
+                          <li key={item.id}>{item.name} ({item.size}) <span className="font-bold text-zinc-800">x{item.quantity}</span></li>
+                        ))}
+                      </ul>
+                    </td>
                     <td className="p-3 border font-bold">{filsToDisplay(sale.total, 'ar')}</td>
                   </tr>
                 ))}
@@ -217,6 +225,7 @@ export default async function POSReportPage({ searchParams }: { searchParams: Pr
                   <th className="p-3 border">العميل</th>
                   <th className="p-3 border">الوقت</th>
                   <th className="p-3 border">الحالة</th>
+                  <th className="p-3 border min-w-[200px]">المنتجات</th>
                   <th className="p-3 border">المجموع</th>
                 </tr>
               </thead>
@@ -227,6 +236,13 @@ export default async function POSReportPage({ searchParams }: { searchParams: Pr
                     <td className="p-3 border">{order.customerName}</td>
                     <td className="p-3 border" dir="ltr">{order.createdAt.toLocaleString('en-US', { dateStyle: 'short', timeStyle: 'short' })}</td>
                     <td className="p-3 border font-bold">{order.status}</td>
+                    <td className="p-3 border text-xs text-zinc-600">
+                      <ul className="list-disc list-inside">
+                        {order.items.map(item => (
+                          <li key={item.id}>{item.name} ({item.size}) <span className="font-bold text-zinc-800">x{item.quantity}</span></li>
+                        ))}
+                      </ul>
+                    </td>
                     <td className="p-3 border font-bold text-[var(--color-champagne-600)]">{filsToDisplay(order.totalAmount, 'ar')}</td>
                   </tr>
                 ))}

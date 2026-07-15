@@ -297,6 +297,27 @@ export async function updateSecuritySettings(data: SecuritySettings, adminId: st
 }
 
 // 5. Backups Settings
+export interface BackupSettings {
+  autoBackup: boolean;
+  frequency: string;
+}
+export async function getBackupSettings(): Promise<BackupSettings> {
+  return await getSiteSettings<BackupSettings>('backup_settings', { autoBackup: true, frequency: 'daily' });
+}
+export async function updateBackupSettings(data: BackupSettings, adminId: string) {
+  return await saveSiteSettings('backup_settings', data, adminId, 'BACKUP_SETTINGS_UPDATED');
+}
+
+// 6. Inventory Settings
+export interface InventorySettings {
+  lowStockThreshold: number;
+}
+export async function getInventorySettings(): Promise<InventorySettings> {
+  return await getSiteSettings<InventorySettings>('inventory_settings', { lowStockThreshold: 1.0 });
+}
+export async function updateInventorySettings(data: InventorySettings, adminId: string) {
+  return await saveSiteSettings('inventory_settings', data, adminId, 'INVENTORY_SETTINGS_UPDATED');
+}
 export async function triggerBackupDownload() {
   const session = await requireSuperAdmin();
   const categories = await prisma.category.findMany();

@@ -76,8 +76,8 @@ export default async function StoreFrontPage({ params }: { params: Promise<Param
       eyebrowEn: 'New Arrival',
       ctaAr: 'تسوق الآن',
       ctaEn: 'Shop Now',
-      imageDesktopPath: '/logo.png', // Temporary fallback image
-      imageMobilePath: '/logo.png',
+      imageDesktopPath: '',
+      imageMobilePath: '',
       altAr: 'مجموعة الصيف',
       altEn: 'Summer Collection',
       destinationType: 'URL',
@@ -98,8 +98,8 @@ export default async function StoreFrontPage({ params }: { params: Promise<Param
       eyebrowEn: 'Best Seller',
       ctaAr: 'اكتشف المجموعة',
       ctaEn: 'Discover',
-      imageDesktopPath: '/logo.png',
-      imageMobilePath: '/logo.png',
+      imageDesktopPath: '',
+      imageMobilePath: '',
       altAr: 'مجموعة العود الملكي',
       altEn: 'Royal Oud Collection',
       destinationType: 'URL',
@@ -146,54 +146,36 @@ export default async function StoreFrontPage({ params }: { params: Promise<Param
       )}
 
       {/* Hero Section */}
-      <section className="relative w-full bg-[var(--color-charcoal-900)] text-white py-12 md:py-20 overflow-hidden flex items-center min-h-[550px]">
-        <div className="container mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-20">
-          
-          {/* Content Column */}
-          <div className="lg:col-span-6 space-y-6 text-center lg:text-start rtl:lg:text-right">
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight text-[var(--color-champagne-400)] font-heading">
-              {isAr ? (
-                <>حين تُترجم الفخامة <br /> إلى عطر</>
-              ) : (
-                <>Where Luxury <br /> Translates to Scent</>
-              )}
-            </h1>
-            <p className="text-sm md:text-base text-zinc-200 max-w-xl mx-auto lg:mx-0 rtl:lg:mr-0 leading-relaxed">
-              {isAr 
-                ? 'دهب للعطور.. نفحات مختارة بعناية من الشرق، لترافق هويتك وتُشعرك بالأصالة والتميز.'
-                : 'Dahab Perfumes.. meticulously selected notes from the East to accompany your identity and embrace your heritage.'}
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start rtl:lg:justify-start">
-              <Link 
-                href="/shop" 
-                className="px-6 py-2.5 bg-[var(--color-champagne-600)] hover:bg-[var(--color-champagne-500)] text-white font-bold rounded-sm transition-all text-sm shadow-md"
-              >
-                {isAr ? 'تسوق الآن' : 'Shop Now'}
-              </Link>
-              <Link 
-                href="/collections" 
-                className="px-6 py-2.5 bg-transparent border border-[var(--color-champagne-600)] text-[var(--color-champagne-400)] hover:bg-[var(--color-champagne-600)] hover:text-white font-bold rounded-sm transition-all text-sm"
-              >
-                {isAr ? 'اكتشف المجموعات' : 'Explore Collections'}
-              </Link>
-            </div>
-          </div>
-
-          {/* Carousel Column */}
-          <div className="lg:col-span-6 w-full">
-            {carouselSettings.enabled && carouselSlidesToDisplay.length > 0 ? (
-              <HeroCarousel slides={carouselSlidesToDisplay} settings={carouselSettings} />
-            ) : (
-              // Non-ad Hero fallback composition
-              <div className="relative w-full aspect-[4/3] rounded-md overflow-hidden bg-white/5 border border-white/10 flex items-center justify-center p-6">
-                <div className="text-center space-y-4 opacity-40 flex flex-col items-center">
-                  <Sparkles className="w-12 h-12 text-[var(--color-champagne-400)]" />
-                  <span className="text-xs text-zinc-300 block font-heading tracking-widest uppercase">Dahab Perfumes</span>
-                </div>
+      <section className="relative w-full overflow-hidden min-h-[60vh] md:min-h-[80vh] flex items-center">
+        <div className="absolute inset-0 w-full h-full z-10">
+          {carouselSettings.enabled && carouselSlidesToDisplay.length > 0 ? (
+            <HeroCarousel slides={carouselSlidesToDisplay} settings={carouselSettings} />
+          ) : (
+            // Non-ad Hero fallback composition
+            <div className="relative w-full h-full bg-[var(--color-charcoal-900)] flex flex-col items-center justify-center p-6 text-center z-20">
+              <Sparkles className="w-12 h-12 text-[var(--color-champagne-400)] mb-6 opacity-80" />
+              <h1 className="text-3xl md:text-5xl font-bold leading-tight text-white font-heading mb-4">
+                {isAr ? (
+                  <>حين تُترجم الفخامة إلى عطر</>
+                ) : (
+                  <>Where Luxury Translates to Scent</>
+                )}
+              </h1>
+              <p className="text-sm md:text-base text-zinc-300 max-w-xl mx-auto leading-relaxed mb-8">
+                {isAr 
+                  ? 'دهب للعطور.. نفحات مختارة بعناية من الشرق، لترافق هويتك وتُشعرك بالأصالة والتميز.'
+                  : 'Dahab Perfumes.. meticulously selected notes from the East to accompany your identity and embrace your heritage.'}
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link 
+                  href="/shop" 
+                  className="px-8 py-3 bg-[var(--color-champagne-600)] hover:bg-[var(--color-champagne-500)] text-white font-bold rounded-sm transition-all text-sm shadow-md"
+                >
+                  {isAr ? 'تسوق الآن' : 'Shop Now'}
+                </Link>
               </div>
-            )}
-          </div>
-
+            </div>
+          )}
         </div>
       </section>
 

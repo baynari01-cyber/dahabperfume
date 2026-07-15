@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { createProduct } from '@/actions/products';
 import { Loader2, Plus, Trash2 } from 'lucide-react';
@@ -19,7 +19,9 @@ interface Category {
 }
 
 export function ProductNewForm({ categories, globalPrices = {} }: { categories: Category[], globalPrices?: Record<string, number> }) {
+  const [isPending, startTransition] = useTransition();
   const router = useRouter();
+  const [autoSku] = useState(() => 'PRD-' + Math.floor(100000 + Math.random() * 900000).toString());
   const [pending, setPending] = useState(false);
   const [error, setError] = useState('');
   const [preview, setPreview] = useState<string | null>(null);
@@ -45,13 +47,6 @@ export function ProductNewForm({ categories, globalPrices = {} }: { categories: 
     setVariants(prev => prev.map((v, i) => i === index ? { ...v, [field]: value } : v));
   };
 
-  const handleSkuChange = (baseSku: string) => {
-    setVariants(prev => prev.map((v, i) => ({
-      ...v,
-      sku: v.sku === '' || i === 0 ? `${baseSku}-${v.size}` : v.sku
-    })));
-  };
-
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setPending(true);
@@ -59,11 +54,12 @@ export function ProductNewForm({ categories, globalPrices = {} }: { categories: 
 
     try {
       const formData = new FormData(e.currentTarget);
+      formData.set('sku', autoSku);
 
       // Convert variants to JD → fils
       const variantsForAction = variants.map(v => ({
         size: v.size,
-        sku: v.sku,
+        sku: `${autoSku}-${v.size.toUpperCase().replace(/\s+/g, '')}`,
         price: Math.round(parseFloat(v.price) * 1000),
         isActive: v.isActive,
         usesGlobalPricing: v.usesGlobalPricing ?? true
@@ -106,15 +102,16 @@ export function ProductNewForm({ categories, globalPrices = {} }: { categories: 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div>
           <label className="block text-sm font-bold text-zinc-700 mb-2">SKU الأساسي *</label>
-          <input
-            type="text"
+          <input 
+            type="text" 
             name="sku"
+            readOnly
+            value={autoSku}
             required
+            className="w-full border border-zinc-200 rounded px-3 py-2 text-sm outline-none focus:border-[var(--color-champagne-600)] bg-zinc-50 cursor-not-allowed"
             dir="ltr"
-            className="w-full border rounded p-2 text-sm font-mono text-left outline-none focus:border-[var(--color-champagne-600)]"
-            onChange={e => handleSkuChange(e.target.value)}
           />
-          <p className="text-xs text-zinc-400 mt-1">مثال: DHB-001</p>
+          <p className="text-xs text-zinc-400 mt-1">يتم إنشاؤه تلقائياً</p>
         </div>
         <div>
           <label className="block text-sm font-bold text-zinc-700 mb-2">التصنيف *</label>
@@ -165,7 +162,7 @@ export function ProductNewForm({ categories, globalPrices = {} }: { categories: 
                 <input type="text" value={v.size} onChange={e => updateVariant(i, 'size', e.target.value)} required placeholder="50ml" className="w-full border rounded p-1.5 text-xs outline-none focus:border-[var(--color-champagne-600)]" dir="ltr" />
               </div>
               <div className="col-span-4">
-                <input type="text" value={v.sku} onChange={e => updateVariant(i, 'sku', e.target.value)} required placeholder="DHB-001-50" className="w-full border rounded p-1.5 text-xs font-mono outline-none focus:border-[var(--color-champagne-600)]" dir="ltr" />
+                <input type="text" value={v.size ? `${autoSku}-${v.size.toUpperCase().replace(/\s+/g, '')}` : ''} readOnly className="w-full border rounded p-1.5 text-xs font-mono outline-none bg-zinc-50 cursor-not-allowed text-zinc-500" dir="ltr" />
               </div>
               <div className="col-span-3">
                 <input type="number" step="0.001" value={v.price} onChange={e => updateVariant(i, 'price', e.target.value)} required placeholder="25.000" className="w-full border rounded p-1.5 text-xs outline-none focus:border-[var(--color-champagne-600)]" dir="ltr" />

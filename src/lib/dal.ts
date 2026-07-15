@@ -19,49 +19,18 @@ export async function requireAuth() {
 export async function requirePermission(action: string) {
   const session = await requireAuth();
   
-  // P1-009: Sync Permissions to Schema
-  // Dynamically register the permission if it does not exist, so admins can manage it.
-  await prisma.permission.upsert({
-    where: { action },
-    update: {},
-    create: { action, description: `Auto-registered permission for ${action}` }
-  });
-  
-  const overrides = await prisma.employeePermission.findMany({
-    where: {
-      employeeId: session.employeeId,
-      permission: { action }
-    },
-    include: { permission: true }
-  });
+  // Enforce strict role-based permissions
+  const roleName = session.employee.role.name.toUpperCase();
 
-  const now = new Date();
-
-  // 1. Explicit employee DENY override
-  const denyOverride = overrides.find(o => o.effect === 'DENY');
-  if (denyOverride) {
-    throw new Error(`Unauthorized Access: Explicitly Denied ${action}`);
-  }
-
-  // 2. Explicit employee ALLOW override (must not be expired)
-  const allowOverride = overrides.find(o => o.effect === 'ALLOW' && (!o.expiresAt || o.expiresAt > now));
-  if (allowOverride) {
+  if (roleName === 'ADMIN') {
     return session;
   }
 
-  // 3. Role permission
-  const employeeRole = await prisma.role.findUnique({
-    where: { id: session.employee.roleId },
-    include: { permissions: { include: { permission: true } } }
-  });
-
-  const hasRolePermission = employeeRole?.permissions.some(p => p.permission.action === action);
-  
-  if (!hasRolePermission) {
-    throw new Error(`Unauthorized Access: Missing ${action}`);
+  if (roleName === 'CASHIER' && action.startsWith('pos:')) {
+    return session;
   }
-  
-  return session;
+
+  throw new Error(`Unauthorized Access: ${roleName} does not have permission for ${action}`);
 }
 
 export async function requireSuperAdmin() {

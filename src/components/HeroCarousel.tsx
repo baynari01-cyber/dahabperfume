@@ -191,7 +191,7 @@ export function HeroCarousel({ slides, settings }: HeroCarouselProps) {
 
   return (
     <div 
-      className="relative w-full h-full min-h-[300px] lg:min-h-[400px] bg-[var(--color-charcoal-950)] rounded-md overflow-hidden border border-white/5 shadow-md select-none group/carousel focus:outline-none focus:ring-1 focus:ring-[var(--color-champagne-500)]"
+      className="relative w-full h-full min-h-[60vh] lg:min-h-[80vh] overflow-hidden select-none group/carousel focus:outline-none focus:ring-1 focus:ring-[var(--color-champagne-500)]"
       onMouseEnter={() => settings.pauseOnHover && setIsPaused(true)}
       onMouseLeave={() => settings.pauseOnHover && setIsPaused(false)}
       onKeyDown={handleKeyDown}
@@ -201,7 +201,7 @@ export function HeroCarousel({ slides, settings }: HeroCarouselProps) {
       aria-label="Carousel"
     >
       {/* Slides Viewport */}
-      <div className="relative w-full h-full aspect-[4/3] sm:aspect-[16/9] lg:aspect-auto lg:h-[420px]">
+      <div className="relative w-full h-full min-h-[60vh] lg:min-h-[80vh]">
         {activeSlides.map((slide, index) => {
           const isActive = index === currentIndex;
           const slideUrl = resolveSlideUrl(slide);
@@ -220,32 +220,36 @@ export function HeroCarousel({ slides, settings }: HeroCarouselProps) {
               style={{ transitionProperty: prefersReducedMotion ? 'opacity' : 'opacity, transform' }}
             >
               {/* Media Delivery (Video or Image) */}
-              {isVideoMedia ? (
-                <video 
-                  src={slide.imageDesktopPath}
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-[8000ms] ease-out scale-102 group-hover/carousel:scale-105"
-                  style={{
-                    transitionProperty: prefersReducedMotion ? 'none' : 'transform',
-                    contentVisibility: isActive ? 'auto' : 'hidden'
-                  }}
-                />
+              {slide.imageDesktopPath ? (
+                isVideoMedia ? (
+                  <video 
+                    src={slide.imageDesktopPath}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-[8000ms] ease-out scale-102 group-hover/carousel:scale-105"
+                    style={{
+                      transitionProperty: prefersReducedMotion ? 'none' : 'transform',
+                      contentVisibility: isActive ? 'auto' : 'hidden'
+                    }}
+                  />
+                ) : (
+                  <Image
+                    src={slide.imageDesktopPath}
+                    alt={isAr ? slide.altAr : slide.altEn}
+                    fill
+                    priority={index === 0} // Load LCP image eagerly
+                    sizes="100vw"
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-[8000ms] ease-out scale-102 group-hover/carousel:scale-105"
+                    style={{
+                      transitionProperty: prefersReducedMotion ? 'none' : 'transform',
+                      contentVisibility: isActive ? 'auto' : 'hidden'
+                    }}
+                  />
+                )
               ) : (
-                <Image
-                  src={slide.imageDesktopPath}
-                  alt={isAr ? slide.altAr : slide.altEn}
-                  fill
-                  priority={index === 0} // Load LCP image eagerly
-                  sizes="100vw"
-                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-[8000ms] ease-out scale-102 group-hover/carousel:scale-105"
-                  style={{
-                    transitionProperty: prefersReducedMotion ? 'none' : 'transform',
-                    contentVisibility: isActive ? 'auto' : 'hidden'
-                  }}
-                />
+                <div className="absolute inset-0 w-full h-full bg-zinc-800 transition-transform duration-[8000ms] ease-out scale-102 group-hover/carousel:scale-105" />
               )}
 
               {/* Dynamic Gradient Overlay */}

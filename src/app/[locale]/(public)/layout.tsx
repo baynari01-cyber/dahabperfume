@@ -20,7 +20,7 @@ export default async function PublicLayout({
       <main className="flex-grow flex-1 bg-[var(--color-ivory-100)]">
         {children}
       </main>
-      <Footer />
+      <Footer locale={locale} />
       <FloatingCart locale={locale} />
     </div>
   );

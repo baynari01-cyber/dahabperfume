@@ -14,6 +14,12 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
     phone: '+962785050655'
   });
 
+  const socialLinks = await getCMSContent('social_links', {
+    instagram: '',
+    whatsapp: '',
+    facebook: ''
+  });
+
   return (
     <div className="container mx-auto px-6 py-16">
       <div className="max-w-3xl mx-auto bg-white border border-[var(--color-ivory-200)] rounded-lg p-10 shadow-sm">
@@ -40,13 +46,29 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
             
             <div className="mt-8">
               <a
-                href={`https://wa.me/${locationInfo.phone.replace(/[^0-9]/g, '')}`}
+                href={socialLinks.whatsapp || `https://wa.me/${locationInfo.phone.replace(/[^0-9]/g, '')}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-block bg-[#25D366] hover:bg-[#20ba5a] text-white px-6 py-3 rounded font-bold transition-colors"
+                className="inline-flex items-center gap-2 bg-[#25D366] hover:bg-[#20ba5a] text-white px-6 py-3 rounded font-bold transition-colors mb-4"
               >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 21l1.65-3.8a9 9 0 1 1 3.4 2.9L3 21"/><path d="M9 10a.5.5 0 0 0 1 0V9a.5.5 0 0 0-1 0v1a5 5 0 0 0 5 5h1a.5.5 0 0 0 0-1h-1a.5.5 0 0 0-5-5z"/></svg>
                 {isAr ? 'تواصل معنا عبر واتساب' : 'Chat via WhatsApp'}
               </a>
+
+              {(socialLinks.instagram || socialLinks.facebook) && (
+                <div className="flex gap-4 mt-2 border-t pt-4">
+                  {socialLinks.instagram && (
+                    <a href={socialLinks.instagram} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center w-10 h-10 rounded-full bg-[var(--color-charcoal-900)] text-white hover:bg-[var(--color-champagne-600)] transition-colors">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
+                    </a>
+                  )}
+                  {socialLinks.facebook && (
+                    <a href={socialLinks.facebook} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center w-10 h-10 rounded-full bg-[var(--color-charcoal-900)] text-white hover:bg-[var(--color-champagne-600)] transition-colors">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+                    </a>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 

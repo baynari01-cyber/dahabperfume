@@ -7,33 +7,15 @@ import Image from 'next/image';
 
 interface AdminSidebarProps {
   employeeName: string;
-  permissions?: string[]; // permissions list of the logged-in employee
+  roleName?: string;
 }
 
-export function AdminSidebar({ employeeName, permissions = [] }: AdminSidebarProps) {
+export function AdminSidebar({ employeeName, roleName = 'ADMIN' }: AdminSidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [activePermissions, setActivePermissions] = useState<string[]>(permissions);
-
-  React.useEffect(() => {
-    if (permissions && permissions.length > 0) {
-      setActivePermissions(permissions);
-    } else if (activePermissions.length === 0) {
-      fetch('/api/auth/permissions')
-        .then((res) => res.json())
-        .then((perms) => {
-          if (Array.isArray(perms)) {
-            setActivePermissions(perms);
-          }
-        })
-        .catch(() => {});
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [permissions]);
 
   const allLinks = [
     { href: '/admin/dashboard', label: 'لوحة التحكم', permission: null },
-    { href: '/admin/dashboard/pos', label: 'الكاشير (نظام البيع)', permission: 'pos:access' },
     { href: '/admin/products', label: 'المنتجات والأسعار', permission: 'manage:products' },
     { href: '/admin/categories', label: 'المجموعات', permission: 'manage:products' },
     { href: '/admin/orders', label: 'طلبات المتجر', permission: 'manage:orders' },
@@ -44,11 +26,8 @@ export function AdminSidebar({ employeeName, permissions = [] }: AdminSidebarPro
     { href: '/admin/content', label: 'المحتوى والمدونة (CMS)', permission: 'manage:settings' }
   ];
 
-  // Filter links based on employee permissions.
-  // If permission is null, it's public. If it matches, show it.
-  const filteredLinks = allLinks.filter(
-    (link) => !link.permission || activePermissions.includes(link.permission)
-  );
+  // If ADMIN, they see all links
+  const filteredLinks = roleName?.toUpperCase() === 'ADMIN' ? allLinks : allLinks.filter(l => !l.permission);
 
   return (
     <>
@@ -111,8 +90,8 @@ export function AdminSidebar({ employeeName, permissions = [] }: AdminSidebarPro
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
           </button>
 
-          <div className={`bg-white/10 p-2 rounded-md mb-3 flex items-center justify-center shadow-inner ${isCollapsed ? 'md:w-10 md:h-10 md:mb-0' : 'w-16 h-16'}`}>
-            <img src="/logo.png" alt="Dahab Perfumes Logo" className="object-contain w-full h-full" />
+          <div className={`flex items-center justify-center mb-3 ${isCollapsed ? 'md:w-10 md:h-10 md:mb-0' : 'w-24 h-24'}`}>
+            <img src="/logo.png" alt="Dahab Perfumes Logo" className="object-contain w-full h-full drop-shadow-md" />
           </div>
           {!isCollapsed && (
             <>

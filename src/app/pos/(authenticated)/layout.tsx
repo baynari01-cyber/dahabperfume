@@ -3,7 +3,7 @@ import { requireAuth, getEmployeePermissions } from '@/lib/dal';
 import Link from 'next/link';
 import { logout } from '@/actions/auth';
 
-export default async function POSLayout({
+export default async function Layout({
   children,
 }: {
   children: React.ReactNode;
@@ -32,7 +32,7 @@ export default async function POSLayout({
             {session.employee.name}
           </span>
           <form action={logout}>
-            <button type="submit" className="text-[var(--color-champagne-400)] font-bold underline hover:text-white">
+            <button type="submit" className="bg-red-950/60 hover:bg-red-900 text-red-300 hover:text-white px-3 py-1.5 rounded-md font-bold text-xs transition-colors">
               خروج
             </button>
           </form>

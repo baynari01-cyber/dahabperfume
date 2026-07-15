@@ -362,28 +362,6 @@ export function POSCashierWorkspace({
   return (
     <div className="flex flex-col w-full h-full relative" dir="rtl">
       
-      {/* POS Cashier Custom Top Header Status Bar */}
-      <div className="bg-neutral-900 text-white px-4 py-2.5 flex justify-between items-center text-xs border-b border-neutral-800 shrink-0 z-10">
-        <div className="flex items-center gap-3">
-          <span className="font-bold text-[var(--color-champagne-400)]">الكاشير: {cashierName}</span>
-          <span className="h-3 w-px bg-neutral-700" />
-          <span className="text-neutral-400">صلاحية الجلسة: {formatCountdown(sessionTimeLeft)}</span>
-        </div>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={handleLockAction}
-            className="bg-neutral-800 hover:bg-neutral-700 px-2.5 py-1 rounded text-neutral-300 hover:text-white transition-colors"
-          >
-            قفل الشاشة
-          </button>
-          <button
-            onClick={handleLogoutAction}
-            className="bg-red-950/60 hover:bg-red-900 text-red-300 hover:text-white px-2.5 py-1 rounded transition-colors"
-          >
-            تسجيل الخروج
-          </button>
-        </div>
-      </div>
 
       <div className="flex-1 flex flex-col md:flex-row w-full overflow-hidden">
         
@@ -687,7 +665,7 @@ export function POSCashierWorkspace({
                 </button>
                 <button
                   onClick={handleLogoutAction}
-                  className="bg-neutral-800 hover:bg-neutral-700 text-neutral-300 py-3 rounded font-bold text-sm transition-colors"
+                  className="bg-red-950/60 hover:bg-red-900 text-red-300 hover:text-white py-3 rounded font-bold text-sm transition-colors"
                 >
                   خروج
                 </button>
@@ -702,7 +680,7 @@ export function POSCashierWorkspace({
         <div className="fixed inset-0 bg-neutral-950/98 z-54 flex flex-col items-center justify-center p-6 text-white text-center animate-fade-in select-none">
           <div className="max-w-md w-full space-y-8 flex flex-col items-center">
             {/* Transparent Dahab Logo Rendering */}
-            <div className="w-32 h-32 bg-white/5 rounded-full p-4 flex items-center justify-center shadow-lg border border-white/10">
+            <div className="w-48 h-48 flex items-center justify-center drop-shadow-2xl">
               <img
                 src="/logo.png"
                 alt="Dahab Perfumes Logo"
