@@ -10,6 +10,11 @@ const nextConfig: NextConfig = {
     ],
     dangerouslyAllowSVG: true,
   },
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '50mb',
+    },
+  },
   async redirects() {
     return [
       {
