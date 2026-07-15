@@ -55,13 +55,18 @@ export default async function AdminPagesCMS() {
 
       <main className="flex-1 overflow-y-auto p-4 md:p-8 font-sans w-full max-w-full">
         <div className="flex justify-between items-center mb-8 border-b border-[var(--color-ivory-200)] pb-4">
-          <div>
-            <h1 className="text-3xl font-bold font-heading text-[var(--color-charcoal-900)]">
-              إدارة صفحات الموقع (الفوتر)
-            </h1>
-            <p className="text-zinc-650 mt-1">
-              تعديل النصوص والشروط للصفحات الثابتة المعروضة في أسفل الموقع. يمكنك استخدام Markdown في الحقول النصية لإضافة نقاط أو خط غامق.
-            </p>
+          <div className="flex items-center gap-4">
+            <a href="/admin/content" className="bg-white border border-zinc-200 hover:bg-zinc-100 text-zinc-700 p-2 rounded-lg transition-colors flex items-center justify-center shadow-sm shrink-0" title="الرجوع للصفحة السابقة">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+            </a>
+            <div>
+              <h1 className="text-3xl font-bold font-heading text-[var(--color-charcoal-900)]">
+                إدارة صفحات الموقع (الفوتر)
+              </h1>
+              <p className="text-zinc-650 mt-1">
+                تعديل النصوص والشروط للصفحات الثابتة المعروضة في أسفل الموقع. يمكنك استخدام Markdown في الحقول النصية لإضافة نقاط أو خط غامق.
+              </p>
+            </div>
           </div>
         </div>
 
