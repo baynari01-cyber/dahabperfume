@@ -12,16 +12,9 @@ const BASE_URL = 'https://dahabperfumes.com';
 export const revalidate = 3600; // تحديث صفحات المنتجات كل ساعة
 
 // بناء مسبق لصفحات المنتجات (Static Site Generation)
+// تجنباً للضغط على قاعدة البيانات أثناء البناء (Connection Timeout)، نستخدم ISR (الريندر عند الطلب)
 export async function generateStaticParams() {
-  const products = await prisma.product.findMany({
-    where: { isVisible: true },
-    select: { slug: true },
-  });
-
-  return products.flatMap((product) => [
-    { locale: 'ar', slug: product.slug },
-    { locale: 'en', slug: product.slug },
-  ]);
+  return [];
 }
 
 export async function generateMetadata({
