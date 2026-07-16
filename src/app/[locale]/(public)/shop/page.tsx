@@ -161,7 +161,7 @@ export default async function ShopPage({ params, searchParams }: { params: Promi
                     </div>
                     <div className="absolute inset-0 flex items-center justify-center text-[var(--color-charcoal-600)]">
                       {mainImage ? (
-                        <div className="w-full h-full bg-cover bg-center group-hover:scale-105 transition-transform duration-500" style={{ backgroundImage: `url(${mainImage.url.startsWith('local://') ? '/product-placeholder.png' : mainImage.url})` }} />
+                        <div className="w-full h-full bg-cover bg-center group-hover:scale-105 transition-transform duration-500" style={{ backgroundImage: `url("${mainImage.url.startsWith('local://') ? '/product-placeholder.png' : mainImage.url}")` }} />
                       ) : 'صورة العطر'}
                     </div>
                   </div>
