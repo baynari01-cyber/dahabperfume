@@ -3,6 +3,7 @@ import { requireAuth } from '@/lib/dal';
 import { prisma } from '@/lib/db';
 import { AdminSidebar } from '@/components/AdminSidebar';
 import { CategoryNewForm } from '@/components/CategoryNewForm';
+import { CategoryActionsMenu } from '@/components/CategoryActionsMenu';
 
 export default async function AdminCategoriesPage() {
   const session = await requireAuth();
@@ -37,6 +38,7 @@ export default async function AdminCategoriesPage() {
                   <th className="px-6 py-4">اسم المجموعة</th>
                   <th className="px-6 py-4">Slug</th>
                   <th className="px-6 py-4 text-center">عدد المنتجات</th>
+                  <th className="px-6 py-4"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-100">
@@ -54,12 +56,18 @@ export default async function AdminCategoriesPage() {
                     <td className="px-6 py-4 text-center font-bold text-[var(--color-charcoal-800)]">
                       {cat._count.products}
                     </td>
+                    <td className="px-6 py-4 text-left">
+                      <CategoryActionsMenu 
+                        category={{ id: cat.id, name: cat.name, imagePath: cat.imagePath }} 
+                        allCategories={categories.map(c => ({ id: c.id, name: c.name }))} 
+                      />
+                    </td>
                   </tr>
                 ))}
 
                 {categories.length === 0 && (
                   <tr>
-                    <td colSpan={3} className="px-6 py-12 text-center text-zinc-500">
+                    <td colSpan={5} className="px-6 py-12 text-center text-zinc-500">
                       لا توجد مجموعات حالياً.
                     </td>
                   </tr>
