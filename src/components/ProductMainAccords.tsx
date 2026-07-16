@@ -57,7 +57,7 @@ export default function ProductMainAccords({ accords }: ProductMainAccordsProps)
           const percentage = Math.min(100, Math.max(10, accord.value));
           
           return (
-            <div key={accord.id} className="relative w-full h-10 flex items-center group">
+            <div key={accord.id} className="relative w-full h-10 flex items-center pr-12 group">
               <div 
                 className="h-full rounded-r-lg transition-all duration-700 ease-out flex items-center justify-center relative overflow-hidden group-hover:brightness-110"
                 style={{ 
@@ -79,7 +79,7 @@ export default function ProductMainAccords({ accords }: ProductMainAccordsProps)
                 <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:animate-[shimmer_1.5s_infinite]" />
               </div>
               
-              <div className="opacity-0 group-hover:opacity-100 absolute left-full ml-3 text-zinc-400 text-xs font-mono transition-opacity whitespace-nowrap">
+              <div className="absolute right-2 text-zinc-400 text-sm font-bold font-mono whitespace-nowrap">
                 {accord.value}%
               </div>
             </div>

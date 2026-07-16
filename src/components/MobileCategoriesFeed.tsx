@@ -77,7 +77,7 @@ export function MobileCategoriesFeed({ categories, locale, isAr }: { categories:
                         }} />
                       </div>
                       {mainImage ? (
-                        <div className="w-full h-full bg-cover bg-center" style={{ backgroundImage: `url("${mainImage.url.startsWith('local://') ? '/product-placeholder.png' : mainImage.url}")` }} />
+                        <div className="w-full h-full bg-contain bg-center bg-no-repeat" style={{ backgroundImage: `url("${mainImage.url.startsWith('local://') ? '/product-placeholder.png' : mainImage.url}")` }} />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-[var(--color-charcoal-600)] text-[10px]">
                           {isAr ? 'صورة العطر' : 'Perfume Image'}

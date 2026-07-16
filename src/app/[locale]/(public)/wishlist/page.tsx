@@ -63,7 +63,7 @@ export default function WishlistPage({ params }: { params: Promise<{ locale: str
                 <div className="w-24 h-24 bg-[var(--color-ivory-200)] rounded-md flex-shrink-0 flex items-center justify-center text-[var(--color-charcoal-600)] text-xs overflow-hidden">
                   {item.imageUrl ? (
                     <div 
-                      className="w-full h-full bg-cover bg-center" 
+                      className="w-full h-full bg-contain bg-center bg-no-repeat" 
                       style={{ backgroundImage: `url(${item.imageUrl.startsWith('local://') ? '/product-placeholder.png' : item.imageUrl})` }} 
                     />
                   ) : 'صورة العطر'}

@@ -424,9 +424,9 @@ export function POSCashierWorkspace({
                 <button 
                   key={product.id} 
                   onClick={() => handleSelectProduct(product)}
-                  className="bg-white rounded-lg border border-[var(--color-ivory-200)] shadow-sm hover:border-[var(--color-champagne-600)] hover:shadow transition-all text-right flex flex-col justify-between active:scale-95 duration-100 animate-fade-in overflow-hidden h-48"
+                  className="bg-white rounded-lg border border-[var(--color-ivory-200)] shadow-sm hover:border-[var(--color-champagne-600)] hover:shadow transition-all text-right flex flex-col justify-between active:scale-95 duration-100 animate-fade-in overflow-hidden h-64"
                 >
-                  <div className="w-full h-28 bg-zinc-50 relative flex items-center justify-center border-b border-zinc-100 overflow-hidden">
+                  <div className="w-full h-40 bg-zinc-50 relative flex items-center justify-center border-b border-zinc-100 overflow-hidden">
                     {product.imageUrl ? (
                        <img src={product.imageUrl.startsWith('local://') ? '/product-placeholder.png' : product.imageUrl} alt={product.nameAr} className="w-full h-full object-contain p-2" />
                     ) : (

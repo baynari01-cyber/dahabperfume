@@ -174,7 +174,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           <div className="aspect-square bg-[var(--color-ivory-200)] rounded-lg overflow-hidden relative border border-[var(--color-ivory-200)]">
              <div className="absolute inset-0 flex items-center justify-center text-[var(--color-charcoal-600)]">
                {mainImage ? (
-                  <div className="w-full h-full bg-cover bg-center" style={{ backgroundImage: `url("${mainImage.url.startsWith('local://') ? '/product-placeholder.png' : mainImage.url}")` }} />
+                  <div className="w-full h-full bg-contain bg-center bg-no-repeat" style={{ backgroundImage: `url("${mainImage.url.startsWith('local://') ? '/product-placeholder.png' : mainImage.url}")` }} />
                ) : 'صورة العطر'}
             </div>
           </div>
@@ -182,7 +182,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             <div className="flex gap-4 overflow-x-auto pb-2">
               {product.images.map((img) => (
                 <div key={img.id} className={`w-24 h-24 flex-shrink-0 rounded-md border-2 overflow-hidden bg-[var(--color-ivory-200)] ${img.id === mainImage?.id ? 'border-[var(--color-champagne-600)]' : 'border-transparent'}`}>
-                  <div className="w-full h-full bg-cover bg-center" style={{ backgroundImage: `url("${img.url.startsWith('local://') ? '/product-placeholder.png' : img.url}")` }} />
+                  <div className="w-full h-full bg-contain bg-center bg-no-repeat" style={{ backgroundImage: `url("${img.url.startsWith('local://') ? '/product-placeholder.png' : img.url}")` }} />
                 </div>
               ))}
             </div>

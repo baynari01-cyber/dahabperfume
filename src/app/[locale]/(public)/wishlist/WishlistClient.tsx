@@ -84,7 +84,7 @@ export default function WishlistClient({ locale }: { locale: string }) {
               <div className="relative aspect-square w-full bg-[var(--color-ivory-200)] rounded-md mb-4 overflow-hidden">
                 <div className="absolute inset-0 flex items-center justify-center text-[var(--color-charcoal-600)]">
                   {mainImage ? (
-                    <div className="w-full h-full bg-cover bg-center group-hover:scale-105 transition-transform duration-500" style={{ backgroundImage: `url(${mainImage.url.startsWith('local://') ? '/product-placeholder.png' : mainImage.url})` }} />
+                    <div className="w-full h-full bg-contain bg-center bg-no-repeat group-hover:scale-105 transition-transform duration-500" style={{ backgroundImage: `url(${mainImage.url.startsWith('local://') ? '/product-placeholder.png' : mainImage.url})` }} />
                   ) : 'صورة العطر'}
                 </div>
               </div>

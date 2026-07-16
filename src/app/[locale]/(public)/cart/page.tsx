@@ -81,7 +81,7 @@ export default function CartPage({ params }: { params: Promise<{ locale: string 
                   <div className="w-20 h-20 bg-[var(--color-ivory-200)] rounded-md flex-shrink-0 flex items-center justify-center overflow-hidden">
                     {item.image ? (
                       <div 
-                        className="w-full h-full bg-cover bg-center" 
+                        className="w-full h-full bg-contain bg-center bg-no-repeat" 
                         style={{ backgroundImage: `url(${item.image.startsWith('local://') ? '/product-placeholder.png' : item.image})` }} 
                       />
                     ) : 'صورة العطر'}
