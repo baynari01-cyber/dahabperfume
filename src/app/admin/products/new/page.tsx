@@ -14,6 +14,9 @@ export default async function AdminProductsNewPage() {
   });
 
   const categories = await prisma.category.findMany({ orderBy: { name: 'asc' } });
+  const genders = await prisma.gender.findMany({ orderBy: { name: 'asc' } });
+  const seasons = await prisma.season.findMany({ orderBy: { name: 'asc' } });
+  const families = await prisma.fragranceFamily.findMany({ orderBy: { name: 'asc' } });
   const globalPrices = await getGlobalSizePrices();
 
   return (
@@ -34,6 +37,9 @@ export default async function AdminProductsNewPage() {
 
         <ProductNewForm 
           categories={categories.map(c => ({ id: c.id, name: c.name }))} 
+          genders={genders.map(g => ({ id: g.id, name: g.name }))}
+          seasons={seasons.map(s => ({ id: s.id, name: s.name }))}
+          families={families.map(f => ({ id: f.id, name: f.name }))}
           globalPrices={globalPrices}
         />
       </main>

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useActionState, use, useEffect, useState } from 'react';
+import Link from 'next/link';
 import { confirmMfaSetup, generateMfaSetup } from '@/actions/auth';
 import Image from 'next/image';
 
@@ -34,7 +35,7 @@ export default function MfaSetupPage({ searchParams }: { searchParams: Promise<{
       <div className="min-h-screen flex items-center justify-center bg-zinc-50 px-4" dir="rtl">
         <div className="max-w-md w-full bg-white p-8 rounded-xl shadow-lg text-center">
           <p className="text-red-500 font-bold">{error}</p>
-          <a href="/admin/login" className="text-emerald-600 mt-4 inline-block underline">العودة لتسجيل الدخول</a>
+          <Link href="/admin/login" className="text-emerald-600 mt-4 inline-block underline">العودة لتسجيل الدخول</Link>
         </div>
       </div>
     );

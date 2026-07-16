@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { updateProduct } from '@/actions/products';
 import { Loader2, Plus, Trash2 } from 'lucide-react';
 
@@ -35,14 +36,27 @@ interface ProductEditFormProps {
     isVisible: boolean;
     isFeatured: boolean;
     categoryId: string;
-    stockLiters: number;
+    genderId?: string | null;
+    seasonId?: string | null;
+    familyId?: string | null;
+    stockLiters: number | string;
     variants: Variant[];
     images: ProductImage[];
   };
   categories: Category[];
+  genders?: Category[];
+  seasons?: Category[];
+  families?: Category[];
 }
 
-export function ProductEditForm({ productId, initialData, categories }: ProductEditFormProps) {
+export function ProductEditForm({ 
+  productId, 
+  initialData, 
+  categories,
+  genders = [],
+  seasons = [],
+  families = []
+}: ProductEditFormProps) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState('');
@@ -130,6 +144,36 @@ export function ProductEditForm({ productId, initialData, categories }: ProductE
         <div>
           <label className="block text-sm font-bold text-zinc-700 mb-2">مخزون اللترات الحالي</label>
           <input type="number" step="0.001" name="stockLiters" defaultValue={initialData.stockLiters} dir="ltr" className="w-full border rounded p-2 text-sm text-left outline-none focus:border-[var(--color-champagne-600)]" />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div>
+          <label className="block text-sm font-bold text-zinc-700 mb-2">الجنس</label>
+          <select name="genderId" defaultValue={initialData.genderId || ''} className="w-full border rounded p-2 text-sm outline-none bg-white focus:border-[var(--color-champagne-600)]">
+            <option value="">-- بدون --</option>
+            {genders.map(g => (
+              <option key={g.id} value={g.id}>{g.name}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-bold text-zinc-700 mb-2">الموسم</label>
+          <select name="seasonId" defaultValue={initialData.seasonId || ''} className="w-full border rounded p-2 text-sm outline-none bg-white focus:border-[var(--color-champagne-600)]">
+            <option value="">-- بدون --</option>
+            {seasons.map(s => (
+              <option key={s.id} value={s.id}>{s.name}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-bold text-zinc-700 mb-2">العائلة العطرية</label>
+          <select name="familyId" defaultValue={initialData.familyId || ''} className="w-full border rounded p-2 text-sm outline-none bg-white focus:border-[var(--color-champagne-600)]">
+            <option value="">-- بدون --</option>
+            {families.map(f => (
+              <option key={f.id} value={f.id}>{f.name}</option>
+            ))}
+          </select>
         </div>
       </div>
 
@@ -234,9 +278,9 @@ export function ProductEditForm({ productId, initialData, categories }: ProductE
       </div>
 
       <div className="pt-4 flex justify-end gap-3">
-        <a href="/admin/products" className="px-6 py-2 border rounded font-bold text-zinc-600 hover:bg-zinc-50 transition-colors text-sm">
+        <Link href="/admin/products" className="px-6 py-2 border rounded font-bold text-zinc-600 hover:bg-zinc-50 transition-colors text-sm">
           إلغاء
-        </a>
+        </Link>
         <button type="submit" disabled={pending} className="bg-[var(--color-charcoal-900)] text-white px-8 py-2 rounded font-bold hover:bg-[var(--color-charcoal-800)] transition-colors text-sm shadow-sm disabled:opacity-60 flex items-center gap-2">
           {pending && <Loader2 className="w-4 h-4 animate-spin" />}
           {pending ? 'جاري الحفظ...' : 'حفظ التعديلات'}

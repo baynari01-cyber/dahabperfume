@@ -4,8 +4,32 @@ import { filsToDisplay } from '@/lib/money';
 import { ShopFilters } from '@/components/ShopFilters';
 import { WishlistHeart } from '@/components/WishlistHeart';
 import { MobileCategoriesFeed } from '@/components/MobileCategoriesFeed';
+import type { Metadata } from 'next';
 
 export const revalidate = 60;
+
+const BASE_URL = 'https://dahabperfumes.com';
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const isAr = locale === 'ar';
+  return {
+    title: isAr ? 'المتجر | دهب للعطور' : 'Shop | Dahab Perfumes',
+    description: isAr
+      ? 'تصفح تشكيلتنا الكاملة من العطور الشرقية الفاخرة. اكتشف العود والمسك والبخور وعطور رجالية ونسائية مميزة في دهب للعطور عمّان.'
+      : 'Browse our full collection of luxury oriental fragrances. Discover oud, musk, incense and exclusive perfumes at Dahab Perfumes Amman.',
+    alternates: {
+      canonical: `${BASE_URL}/${locale}/shop`,
+      languages: { ar: `${BASE_URL}/ar/shop`, en: `${BASE_URL}/en/shop` },
+    },
+    openGraph: {
+      title: isAr ? 'متجر دهب للعطور' : 'Dahab Perfumes Shop',
+      description: isAr ? 'عطور شرقية فاخرة من قلب عمّان' : 'Luxury oriental fragrances from Amman',
+      url: `${BASE_URL}/${locale}/shop`,
+      locale: isAr ? 'ar_JO' : 'en_US',
+    },
+  };
+}
 
 export default async function ShopPage({ params, searchParams }: { params: Promise<{ locale: string }>, searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
   const { locale } = await params;

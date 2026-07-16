@@ -32,6 +32,9 @@ export async function createProduct(formData: FormData) {
     const isVisible = formData.get('isVisible') === 'true';
     const isFeatured = formData.get('isFeatured') === 'true';
     const categoryId = formData.get('categoryId') as string;
+    const genderId = (formData.get('genderId') as string) || null;
+    const seasonId = (formData.get('seasonId') as string) || null;
+    const familyId = (formData.get('familyId') as string) || null;
     const stockLiters = parseFloat(formData.get('stockLiters') as string) || 0;
     const slug = sku.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Date.now();
 
@@ -64,6 +67,9 @@ export async function createProduct(formData: FormData) {
         isVisible,
         isFeatured,
         categoryId,
+        genderId,
+        seasonId,
+        familyId,
         stockLiters,
         variants: {
           create: variants.map((v: any) => ({
@@ -101,6 +107,9 @@ export async function updateProduct(productId: string, formData: FormData) {
     const isVisible = formData.get('isVisible') === 'true';
     const isFeatured = formData.get('isFeatured') === 'true';
     const categoryId = formData.get('categoryId') as string;
+    const genderId = (formData.get('genderId') as string) || null;
+    const seasonId = (formData.get('seasonId') as string) || null;
+    const familyId = (formData.get('familyId') as string) || null;
     const stockLiters = parseFloat(formData.get('stockLiters') as string) || 0;
 
     if (!categoryId) throw new Error('التصنيف مطلوب');
@@ -130,6 +139,9 @@ export async function updateProduct(productId: string, formData: FormData) {
         isVisible,
         isFeatured,
         categoryId,
+        genderId,
+        seasonId,
+        familyId,
         stockLiters,
       }
     });

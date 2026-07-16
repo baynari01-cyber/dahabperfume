@@ -137,7 +137,7 @@ export async function setSessionCookie(token: string, expiresAt: Date, role?: st
   cookieStore.set(SESSION_COOKIE_NAME, token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    sameSite: 'strict',
     expires: expiresAt,
     path: '/',
   });
@@ -145,7 +145,7 @@ export async function setSessionCookie(token: string, expiresAt: Date, role?: st
     cookieStore.set('dahab_role', role, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      sameSite: 'strict',
       expires: expiresAt,
       path: '/',
     });

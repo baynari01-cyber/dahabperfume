@@ -2,6 +2,7 @@
 
 import React, { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { createProduct } from '@/actions/products';
 import { Loader2, Plus, Trash2 } from 'lucide-react';
 
@@ -18,7 +19,19 @@ interface Category {
   name: string;
 }
 
-export function ProductNewForm({ categories, globalPrices = {} }: { categories: Category[], globalPrices?: Record<string, number> }) {
+export function ProductNewForm({ 
+  categories, 
+  genders = [],
+  seasons = [],
+  families = [],
+  globalPrices = {} 
+}: { 
+  categories: Category[], 
+  genders?: Category[],
+  seasons?: Category[],
+  families?: Category[],
+  globalPrices?: Record<string, number> 
+}) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
   const [autoSku] = useState(() => 'PRD-' + Math.floor(100000 + Math.random() * 900000).toString());
@@ -129,6 +142,36 @@ export function ProductNewForm({ categories, globalPrices = {} }: { categories: 
         </div>
       </div>
 
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div>
+          <label className="block text-sm font-bold text-zinc-700 mb-2">الجنس</label>
+          <select name="genderId" className="w-full border rounded p-2 text-sm outline-none bg-white focus:border-[var(--color-champagne-600)]">
+            <option value="">-- بدون --</option>
+            {genders.map(g => (
+              <option key={g.id} value={g.id}>{g.name}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-bold text-zinc-700 mb-2">الموسم</label>
+          <select name="seasonId" className="w-full border rounded p-2 text-sm outline-none bg-white focus:border-[var(--color-champagne-600)]">
+            <option value="">-- بدون --</option>
+            {seasons.map(s => (
+              <option key={s.id} value={s.id}>{s.name}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-bold text-zinc-700 mb-2">العائلة العطرية</label>
+          <select name="familyId" className="w-full border rounded p-2 text-sm outline-none bg-white focus:border-[var(--color-champagne-600)]">
+            <option value="">-- بدون --</option>
+            {families.map(f => (
+              <option key={f.id} value={f.id}>{f.name}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
       <div>
         <label className="block text-sm font-bold text-zinc-700 mb-2">الوصف القصير (عربي)</label>
         <textarea name="shortDescription" rows={2} className="w-full border rounded p-2 text-sm outline-none focus:border-[var(--color-champagne-600)]" placeholder="وصف مختصر يظهر في قائمة المنتجات..."></textarea>
@@ -215,9 +258,9 @@ export function ProductNewForm({ categories, globalPrices = {} }: { categories: 
       </div>
 
       <div className="pt-4 flex justify-end gap-3">
-        <a href="/admin/products" className="px-6 py-2 border rounded font-bold text-zinc-600 hover:bg-zinc-50 transition-colors text-sm">
+        <Link href="/admin/products" className="px-6 py-2 border rounded font-bold text-zinc-600 hover:bg-zinc-50 transition-colors text-sm">
           إلغاء
-        </a>
+        </Link>
         <button type="submit" disabled={pending} className="bg-[var(--color-charcoal-900)] text-white px-8 py-2 rounded font-bold hover:bg-[var(--color-charcoal-800)] transition-colors text-sm shadow-sm disabled:opacity-60 flex items-center gap-2">
           {pending && <Loader2 className="w-4 h-4 animate-spin" />}
           {pending ? 'جاري الحفظ...' : 'حفظ وإضافة العطر'}

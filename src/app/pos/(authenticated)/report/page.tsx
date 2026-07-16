@@ -108,9 +108,9 @@ export default async function POSReportPage({ searchParams }: { searchParams: Pr
           <button type="submit" className="bg-[var(--color-champagne-600)] text-white px-6 py-1.5 rounded font-bold hover:bg-[var(--color-champagne-700)] text-sm">
             تطبيق الفلتر
           </button>
-          <a href="/pos/report" className="text-sm text-zinc-500 hover:text-zinc-800 mr-2 underline">
+          <Link href="/pos/report" className="text-sm text-zinc-500 hover:text-zinc-800 mr-2 underline">
             مسح الفلاتر
-          </a>
+          </Link>
         </form>
 
         {/* Print Header (Visible only on print) */}

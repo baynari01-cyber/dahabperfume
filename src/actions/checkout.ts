@@ -86,21 +86,36 @@ export async function processCheckout(prevState: any, formData: FormData) {
     }
   }
 
-  // 1. Reload prices from PostgreSQL
+  // 1. جلب كل التباينات دفعة واحدة (إصلاح N+1 queries)
+  const variantIds = parsedItems.map((item: { variantId: string }) => item.variantId);
+  const variants = await prisma.productVariant.findMany({
+    where: { id: { in: variantIds }, isActive: true },
+    include: { product: { select: { nameAr: true, nameEn: true, id: true } } },
+  });
+
+  // إنشاء Map سريع للبحث
+  const variantMap = new Map(variants.map(v => [v.id, v]));
+
   let totalAmount = 0;
-  const orderItemsData: any[] = [];
-  
+  const orderItemsData: {
+    productId: string;
+    variantId: string;
+    sku: string;
+    name: string;
+    size: string;
+    quantity: number;
+    unitPrice: number;
+    total: number;
+  }[] = [];
+
   for (const item of parsedItems) {
     const { productId, variantId, quantity } = item;
-    
+
     if (quantity <= 0) continue;
 
-    const variant = await prisma.productVariant.findUnique({
-      where: { id: variantId },
-      include: { product: true }
-    });
+    const variant = variantMap.get(variantId);
 
-    if (!variant || variant.productId !== productId || !variant.isActive) {
+    if (!variant || variant.productId !== productId) {
       return { error: 'أحد المنتجات غير متوفر' };
     }
 
@@ -119,6 +134,7 @@ export async function processCheckout(prevState: any, formData: FormData) {
       total
     });
   }
+
 
   // Calculate Shipping from DB
   let shippingCost = 0;

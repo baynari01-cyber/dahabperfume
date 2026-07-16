@@ -473,6 +473,10 @@ model RateLimitEvent {
   points    Int      @default(1)
   expireAt  DateTime
   createdAt DateTime @default(now())
+
+  // فهارس لتسريع الاستعلامات تحت الضغط العالي
+  @@index([expireAt])              // للحذف الدوري
+  @@index([key, route, expireAt]) // للبحث في كل طلب
 }
 
 model Shift {

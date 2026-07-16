@@ -5,6 +5,7 @@ import { getHeroSlides, getHeroCarouselSettings, getStoreLocationSettings } from
 import { HeroCarousel } from '@/components/HeroCarousel';
 import { StoreLocationSection } from '@/components/StoreLocationSection';
 import { WishlistHeart } from '@/components/WishlistHeart';
+import type { Metadata } from 'next';
 
 import { filsToDisplay } from '@/lib/money';
 import { Sparkles } from 'lucide-react';
@@ -13,30 +14,89 @@ interface Params {
   locale?: string;
 }
 
+export const revalidate = 60;
+
+export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
+  const { locale = 'ar' } = await params;
+  const isAr = locale === 'ar';
+  const BASE_URL = 'https://dahabperfumes.com';
+
+  return {
+    title: isAr
+      ? 'دهب للعطور — عطور شرقية فاخرة في عمّان | الصفحة الرئيسية'
+      : 'Dahab Perfumes — Luxury Oriental Fragrances in Amman | Home',
+    description: isAr
+      ? 'دهب للعطور وجهتك الأولى للعطور الشرقية الفاخرة في عمّان، الأردن. اكتشف تشكيلاتنا من العود والمسك والبخور والعطور الرجالية والنسائية. منذ عام 2007.'
+      : 'Dahab Perfumes is your premier destination for luxury oriental fragrances in Amman, Jordan. Discover our collections of oud, musk, incense, and perfumes since 2007.',
+    alternates: {
+      canonical: `${BASE_URL}/${locale}`,
+      languages: {
+        'ar': `${BASE_URL}/ar`,
+        'en': `${BASE_URL}/en`,
+      },
+    },
+    openGraph: {
+      title: isAr ? 'دهب للعطور — عطور فاخرة في عمّان' : 'Dahab Perfumes — Luxury Fragrances in Amman',
+      description: isAr
+        ? 'عطور شرقية فاخرة من قلب عمّان منذ 2007. العود والمسك والبخور والعطور الراقية.'
+        : 'Luxury oriental fragrances from the heart of Amman since 2007.',
+      url: `${BASE_URL}/${locale}`,
+      locale: isAr ? 'ar_JO' : 'en_US',
+    },
+  };
+}
+
 export default async function StoreFrontPage({ params }: { params: Promise<Params> }) {
   const { locale = 'ar' } = await params;
   const isAr = locale === 'ar';
 
-  // 1. Fetch Featured Products
-  const featuredProducts = await prisma.product.findMany({
-    where: { isVisible: true, isFeatured: true },
-    orderBy: { featuredOrder: 'asc' },
-    take: 4,
-    include: {
-      variants: true,
-      images: {
-        where: { isMain: true },
-        take: 1
-      },
-      category: true
-    }
-  });
+  // تشغيل كل استعلامات قاعدة البيانات بشكل متوازي لتحسين الأداء
+  const [
+    featuredProducts,
+    carouselSettings,
+    allSlides,
+    locationSettings,
+    collections,
+  ] = await Promise.all([
+    // 1. المنتجات المميزة
+    prisma.product.findMany({
+      where: { isVisible: true, isFeatured: true },
+      orderBy: { featuredOrder: 'asc' },
+      take: 4,
+      include: {
+        variants: true,
+        images: {
+          where: { isMain: true },
+          take: 1
+        },
+        category: true
+      }
+    }),
+    // 2. إعدادات الكاروسيل
+    getHeroCarouselSettings(),
+    // 3. شرائح الكاروسيل
+    getHeroSlides(),
+    // 4. إعدادات موقع المتجر
+    getStoreLocationSettings(),
+    // 5. المجموعات (التصنيفات) مع المنتجات
+    prisma.category.findMany({
+      include: {
+        products: {
+          where: { isVisible: true },
+          take: 6,
+          include: {
+            variants: true,
+            images: {
+              where: { isMain: true },
+              take: 1
+            }
+          }
+        }
+      }
+    }),
+  ]);
 
-  // 2. Fetch Carousel settings & active slides
-  const carouselSettings = await getHeroCarouselSettings();
-  const allSlides = await getHeroSlides();
   const now = new Date();
-  
   const activeSlides = allSlides.filter(slide => {
     if (!slide.isEnabled) return false;
     if (slide.startsAt && new Date(slide.startsAt) > now) return false;
@@ -44,25 +104,6 @@ export default async function StoreFrontPage({ params }: { params: Promise<Param
     return true;
   });
 
-  // 3. Fetch Store location settings
-  const locationSettings = await getStoreLocationSettings();
-
-  // 4. Fetch Collections (Categories) with products for mobile feed
-  const collections = await prisma.category.findMany({
-    include: {
-      products: {
-        where: { isVisible: true },
-        take: 6, // Fetch top 6 products per category for mobile feed
-        include: {
-          variants: true,
-          images: {
-            where: { isMain: true },
-            take: 1
-          }
-        }
-      }
-    }
-  });
 
   // Default mock collections if none configured in CMS
   const defaultSlides: any[] = [
@@ -189,33 +230,56 @@ export default async function StoreFrontPage({ params }: { params: Promise<Param
             <div className="w-16 h-1 bg-[var(--color-champagne-600)] mx-auto rounded-full" />
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
             {collections.length > 0 ? collections.map(collection => (
-              <Link href={`/shop?category=${collection.id}`} key={collection.id} className="block group">
-                <div className="p-8 bg-zinc-50 rounded-lg border border-zinc-100 hover:shadow-md transition-shadow relative overflow-hidden group-hover:border-[var(--color-champagne-600)] h-full flex flex-col items-center">
-                  {collection.imagePath && (
-                    <div className="w-24 h-24 mb-4 rounded-full overflow-hidden border-2 border-[var(--color-ivory-200)] group-hover:border-[var(--color-champagne-600)] transition-colors shadow-sm">
-                      <img src={collection.imagePath.startsWith('local://') ? '/product-placeholder.png' : collection.imagePath} alt={collection.name} className="w-full h-full object-cover" />
-                    </div>
+              <Link href={`/${locale}/shop?category=${collection.id}`} key={collection.id} className="block group">
+                {/* بطاقة المجموعة — الصورة تملأ البطاقة كاملاً مع gradient overlay */}
+                <div className="relative rounded-xl overflow-hidden shadow-md border border-[var(--color-ivory-200)] group-hover:border-[var(--color-champagne-600)] group-hover:shadow-xl transition-all duration-300 aspect-[4/5]">
+                  {/* صورة المجموعة كاملة */}
+                  {collection.imagePath ? (
+                    <img
+                      src={collection.imagePath.startsWith('local://') ? '/product-placeholder.png' : collection.imagePath}
+                      alt={collection.name}
+                      className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                  ) : (
+                    /* Gradient placeholder عندما لا توجد صورة */
+                    <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-charcoal-800)] via-[var(--color-charcoal-700)] to-[var(--color-champagne-600)] group-hover:scale-105 transition-transform duration-500" />
                   )}
-                  <h3 className="text-xl font-bold text-[var(--color-charcoal-900)] mb-2">{collection.name}</h3>
-                  {collection.description && <p className="text-zinc-600 line-clamp-2 text-sm">{collection.description}</p>}
+
+                  {/* Gradient overlay من الأسفل */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+
+                  {/* محتوى البطاقة في الأسفل */}
+                  <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
+                    <h3 className="text-xl font-bold font-heading mb-1 drop-shadow-md">
+                      {collection.name}
+                    </h3>
+                    {collection.description && (
+                      <p className="text-sm text-zinc-200 line-clamp-2 drop-shadow-sm">
+                        {collection.description}
+                      </p>
+                    )}
+                    {/* زر "تسوق الآن" يظهر عند hover */}
+                    <div className="mt-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 translate-y-2 group-hover:translate-y-0">
+                      <span className="inline-block text-xs font-bold bg-[var(--color-champagne-600)] text-white px-4 py-1.5 rounded-full">
+                        {isAr ? 'تسوق الآن ←' : 'Shop Now →'}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </Link>
             )) : (
               <>
-                <div className="p-8 bg-zinc-50 rounded-lg border border-zinc-100 hover:shadow-md transition-shadow">
-                  <h3 className="text-xl font-bold text-[var(--color-charcoal-900)] mb-4">{isAr ? 'رجالي' : 'Men'}</h3>
-                  <p className="text-zinc-600">{isAr ? 'عطور رجالية بحضور فخم وثبات يدوم طويلاً.' : 'Men\'s fragrances with a luxurious presence and long-lasting hold.'}</p>
-                </div>
-                <div className="p-8 bg-zinc-50 rounded-lg border border-zinc-100 hover:shadow-md transition-shadow">
-                  <h3 className="text-xl font-bold text-[var(--color-charcoal-900)] mb-4">{isAr ? 'نسائي' : 'Women'}</h3>
-                  <p className="text-zinc-600">{isAr ? 'تركيبات ناعمة وجذابة تناسب كافة المناسبات.' : 'Soft and attractive compositions suitable for all occasions.'}</p>
-                </div>
-                <div className="p-8 bg-zinc-50 rounded-lg border border-zinc-100 hover:shadow-md transition-shadow">
-                  <h3 className="text-xl font-bold text-[var(--color-charcoal-900)] mb-4">{isAr ? 'عود' : 'Oud'}</h3>
-                  <p className="text-zinc-600">{isAr ? 'عود، عنبر، مسك وتوابل دافئة بحضور واضح.' : 'Oud, amber, musk and warm spices with a clear presence.'}</p>
-                </div>
+                {[isAr ? 'رجالي' : 'Men', isAr ? 'نسائي' : 'Women', isAr ? 'عود' : 'Oud'].map((label, i) => (
+                  <div key={i} className="relative rounded-xl overflow-hidden shadow-md aspect-[4/5] border border-[var(--color-ivory-200)]">
+                    <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-charcoal-800)] via-[var(--color-charcoal-700)] to-[var(--color-champagne-600)]" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                    <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
+                      <h3 className="text-xl font-bold font-heading">{label}</h3>
+                    </div>
+                  </div>
+                ))}
               </>
             )}
           </div>
@@ -358,12 +422,12 @@ export default async function StoreFrontPage({ params }: { params: Promise<Param
       
       {/* Quote Section */}
       <section className="py-24 bg-[var(--color-ivory-50)] border-y border-[var(--color-ivory-200)] relative overflow-hidden">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 text-9xl text-[var(--color-ivory-200)] opacity-50 select-none font-serif">"</div>
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 text-9xl text-[var(--color-ivory-200)] opacity-50 select-none font-serif">&quot;</div>
         <div className="container mx-auto px-6 text-center relative z-10">
           <p className="text-2xl md:text-3xl font-heading font-medium text-[var(--color-charcoal-900)] leading-relaxed max-w-4xl mx-auto">
             {isAr 
               ? '«نحن عشاق العطور وصناع الذكريات، نؤمن بأن كل عطر يحمل قصة، وكل شعور له نفحة.»'
-              : '"We are perfume lovers and memory makers, we believe that every perfume carries a story, and every feeling has a scent."'}
+              : '&quot;We are perfume lovers and memory makers, we believe that every perfume carries a story, and every feeling has a scent.&quot;'}
           </p>
         </div>
       </section>

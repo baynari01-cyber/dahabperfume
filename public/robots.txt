@@ -1,0 +1,61 @@
+# Dahab Perfumes — robots.txt
+# https://dahabperfumes.com
+
+User-agent: *
+
+# السماح بكل الصفحات العامة
+Allow: /ar/
+Allow: /en/
+Allow: /ar/shop
+Allow: /ar/products/
+Allow: /en/products/
+Allow: /ar/collections/
+Allow: /en/collections/
+Allow: /ar/about
+Allow: /en/about
+Allow: /ar/contact
+Allow: /en/contact
+Allow: /ar/faq
+Allow: /en/faq
+Allow: /ar/ingredients
+Allow: /en/ingredients
+Allow: /ar/returns
+Allow: /en/returns
+Allow: /ar/shipping
+Allow: /en/shipping
+Allow: /ar/privacy
+Allow: /en/privacy
+Allow: /ar/terms
+Allow: /en/terms
+Allow: /ar/store-location
+Allow: /en/store-location
+
+# حجب الصفحات الحساسة — Admin & POS (لا تظهر في البحث أبداً)
+Disallow: /admin/
+Disallow: /admin
+Disallow: /pos/
+Disallow: /pos
+Disallow: /api/
+Disallow: /api
+Disallow: /ar/admin/
+Disallow: /en/admin/
+
+# حجب صفحات الفاتورة والطلبات الخاصة
+Disallow: /ar/invoice/
+Disallow: /en/invoice/
+Disallow: /ar/order-success/
+Disallow: /en/order-success/
+Disallow: /ar/checkout/
+Disallow: /en/checkout/
+Disallow: /ar/wishlist/
+Disallow: /en/wishlist/
+Disallow: /ar/cart/
+Disallow: /en/cart/
+
+# حجب ملفات النظام
+Disallow: /_next/
+Disallow: /uploads/
+Disallow: /*.json$
+
+# Sitemap
+Sitemap: https://dahabperfumes.com/sitemap.xml

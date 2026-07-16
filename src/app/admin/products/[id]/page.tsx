@@ -31,6 +31,9 @@ export default async function AdminProductEditPage({
   if (!product) notFound();
 
   const categories = await prisma.category.findMany({ orderBy: { name: 'asc' } });
+  const genders = await prisma.gender.findMany({ orderBy: { name: 'asc' } });
+  const seasons = await prisma.season.findMany({ orderBy: { name: 'asc' } });
+  const families = await prisma.fragranceFamily.findMany({ orderBy: { name: 'asc' } });
 
   const initialData = {
     nameAr: product.nameAr,
@@ -40,8 +43,11 @@ export default async function AdminProductEditPage({
     longDescription: product.longDescription,
     isVisible: product.isVisible,
     isFeatured: product.isFeatured,
-    categoryId: product.categoryId || '',
-    stockLiters: product.stockLiters,
+    categoryId: product.categoryId,
+    genderId: product.genderId,
+    seasonId: product.seasonId,
+    familyId: product.familyId,
+    stockLiters: product.stockLiters.toString(),
     variants: product.variants.map(v => ({
       id: v.id,
       size: v.size,
@@ -73,9 +79,12 @@ export default async function AdminProductEditPage({
         </div>
 
         <ProductEditForm
-          productId={id}
+          productId={product.id}
           initialData={initialData}
           categories={categories.map(c => ({ id: c.id, name: c.name }))}
+          genders={genders.map(g => ({ id: g.id, name: g.name }))}
+          seasons={seasons.map(s => ({ id: s.id, name: s.name }))}
+          families={families.map(f => ({ id: f.id, name: f.name }))}
         />
       </main>
     </div>

@@ -8,6 +8,9 @@ function hashKey(key: string): string {
 /**
  * Checks and records a rate limit attempt.
  * Returns success = false if the rate limit is exceeded.
+ * 
+ * NOTE: Cleanup of expired events is handled by the nightly cron job
+ * (/api/cron/cleanup-ratelimits) to avoid slowing down every request.
  */
 export async function rateLimit(options: {
   key: string;       // Unique key (e.g., IP address, email, session token)
@@ -24,14 +27,7 @@ export async function rateLimit(options: {
   const now = new Date();
   const resetTime = new Date(now.getTime() + options.durationMinutes * 60 * 1000);
 
-  // 1. Clean up expired events for this key
-  await prisma.rateLimitEvent.deleteMany({
-    where: {
-      expireAt: { lt: now }
-    }
-  });
-
-  // 2. Count active attempts
+  // عد المحاولات النشطة فقط (بدون تنظيف في كل طلب)
   const count = await prisma.rateLimitEvent.count({
     where: {
       key: hashedKey,
@@ -49,7 +45,7 @@ export async function rateLimit(options: {
     };
   }
 
-  // 3. Record new attempt
+  // تسجيل المحاولة الجديدة
   await prisma.rateLimitEvent.create({
     data: {
       key: hashedKey,
