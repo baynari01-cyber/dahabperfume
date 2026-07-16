@@ -687,35 +687,25 @@ export function POSCashierWorkspace({
 
       {/* INACTIVITY SHUTTER IDLE PRIVACY OVERLAY */}
       {isIdle && (
-        <div className="fixed inset-0 bg-neutral-950/98 z-54 flex flex-col items-center justify-center p-6 text-white text-center animate-fade-in select-none">
-          <div className="max-w-md w-full space-y-8 flex flex-col items-center">
-            {/* Transparent Dahab Logo Rendering */}
-            <div className="w-48 h-48 flex items-center justify-center drop-shadow-2xl">
-              <img
-                src="/logo.png"
-                alt="Dahab Perfumes Logo"
-                onError={(e) => {
-                  (e.target as HTMLElement).style.display = 'none';
-                }}
-                className="max-h-full max-w-full object-contain filter brightness-110"
-              />
-            </div>
-
+        <div 
+          className="fixed inset-0 z-54 flex flex-col items-center justify-end pb-16 p-6 text-white text-center animate-fade-in select-none bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: 'url("/sleep.jpg")' }}
+        >
+          <div className="absolute inset-0 bg-black/40 z-0" />
+          
+          <div className="relative z-10 w-full space-y-6 flex flex-col items-center drop-shadow-2xl">
             <div className="space-y-2">
               {posIdleShowClock && (
-                <h1 className="text-4xl md:text-5xl font-mono tracking-wider font-extrabold text-[var(--color-champagne-400)]">{currentTime}</h1>
+                <h1 className="text-6xl md:text-7xl font-mono tracking-wider font-extrabold text-[var(--color-champagne-400)]">{currentTime}</h1>
               )}
               {posIdleShowDate && (
-                <p className="text-sm md:text-base text-neutral-400 font-medium">{currentDate}</p>
+                <p className="text-xl md:text-2xl text-neutral-200 font-medium">{currentDate}</p>
               )}
             </div>
 
             <div className="space-y-2">
-              <div className="text-xl font-bold text-neutral-200">
+              <div className="text-3xl font-bold text-white animate-pulse">
                 انقر للمتابعة
-              </div>
-              <div className="text-sm text-neutral-450" dir="ltr">
-                Click to continue
               </div>
             </div>
           </div>
