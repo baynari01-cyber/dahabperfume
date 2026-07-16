@@ -5,22 +5,39 @@ import { useRouter, useSearchParams } from 'next/navigation';
 
 interface ShopFiltersProps {
   categories: { id: string; name: string; slug: string }[];
+  genders: { id: string; name: string }[];
+  families: { id: string; name: string }[];
   initialMinPrice?: number;
   initialMaxPrice?: number;
   initialCategory?: string;
+  initialGender?: string;
+  initialFamily?: string;
 }
 
-export function ShopFilters({ categories, initialMinPrice = 0, initialMaxPrice = 500, initialCategory = '' }: ShopFiltersProps) {
+export function ShopFilters({ 
+  categories, 
+  genders,
+  families,
+  initialMinPrice = 0, 
+  initialMaxPrice = 500, 
+  initialCategory = '',
+  initialGender = '',
+  initialFamily = ''
+}: ShopFiltersProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
+  const [selectedGender, setSelectedGender] = useState(initialGender);
+  const [selectedFamily, setSelectedFamily] = useState(initialFamily);
 
   const isFirstRender = React.useRef(true);
 
   useEffect(() => {
     setSearchQuery(searchParams.get('q') || '');
     setSelectedCategory(searchParams.get('category') || '');
+    setSelectedGender(searchParams.get('gender') || '');
+    setSelectedFamily(searchParams.get('family') || '');
   }, [searchParams]);
 
   useEffect(() => {
@@ -47,13 +64,27 @@ export function ShopFilters({ categories, initialMinPrice = 0, initialMaxPrice =
         changed = true;
       }
 
+      const currentGen = searchParams.get('gender') || '';
+      if (selectedGender !== currentGen) {
+        if (selectedGender) params.set('gender', selectedGender);
+        else params.delete('gender');
+        changed = true;
+      }
+
+      const currentFam = searchParams.get('family') || '';
+      if (selectedFamily !== currentFam) {
+        if (selectedFamily) params.set('family', selectedFamily);
+        else params.delete('family');
+        changed = true;
+      }
+
       if (changed) {
         router.push(`?${params.toString()}`);
       }
     }, 400);
 
     return () => clearTimeout(delayDebounceFn);
-  }, [searchQuery, selectedCategory, router, searchParams]);
+  }, [searchQuery, selectedCategory, selectedGender, selectedFamily, router, searchParams]);
 
   return (
     <div className="bg-white p-4 rounded-lg shadow-sm border border-[var(--color-ivory-200)] flex flex-col md:flex-row gap-4">
@@ -83,16 +114,30 @@ export function ShopFilters({ categories, initialMinPrice = 0, initialMaxPrice =
       </div>
 
       <div className="flex-1 min-w-[120px]">
-        <label className="block text-sm font-bold text-zinc-700 mb-2 text-zinc-400">الجنس</label>
-        <select disabled className="w-full border border-zinc-200 text-zinc-400 rounded px-3 py-2 text-sm outline-none bg-zinc-50 cursor-not-allowed">
-          <option>قريباً...</option>
+        <label className="block text-sm font-bold text-zinc-700 mb-2">الجنس</label>
+        <select 
+          value={selectedGender}
+          onChange={(e) => setSelectedGender(e.target.value)}
+          className="w-full border border-zinc-300 rounded px-3 py-2 text-sm focus:border-[var(--color-champagne-600)] outline-none bg-white"
+        >
+          <option value="">الجميع</option>
+          {genders.map(g => (
+            <option key={g.id} value={g.id}>{g.name}</option>
+          ))}
         </select>
       </div>
 
       <div className="flex-1 min-w-[120px]">
-        <label className="block text-sm font-bold text-zinc-700 mb-2 text-zinc-400">النوتات العطرية</label>
-        <select disabled className="w-full border border-zinc-200 text-zinc-400 rounded px-3 py-2 text-sm outline-none bg-zinc-50 cursor-not-allowed">
-          <option>قريباً...</option>
+        <label className="block text-sm font-bold text-zinc-700 mb-2">العائلة العطرية</label>
+        <select 
+          value={selectedFamily}
+          onChange={(e) => setSelectedFamily(e.target.value)}
+          className="w-full border border-zinc-300 rounded px-3 py-2 text-sm focus:border-[var(--color-champagne-600)] outline-none bg-white"
+        >
+          <option value="">الجميع</option>
+          {families.map(f => (
+            <option key={f.id} value={f.id}>{f.name}</option>
+          ))}
         </select>
       </div>
     </div>

@@ -7,7 +7,16 @@ import * as xlsx from 'xlsx';
 import * as fs from 'fs';
 import * as path from 'path';
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+// Parse URL and remove pgbouncer if present to avoid local pooling issues
+const dbUrl = new URL(process.env.DATABASE_URL || '');
+dbUrl.searchParams.delete('pgbouncer');
+
+const pool = new Pool({ 
+  connectionString: dbUrl.toString(),
+  max: 5,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 10000,
+});
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
@@ -43,6 +52,14 @@ async function main() {
   const seasonMap = new Map<string, string>();
   const familyMap = new Map<string, string>();
   const accordMap = new Map<string, string>();
+
+  // Fetch global prices
+  let globalPrices = { '50ml': 10000, '100ml': 15000, '200ml': 25000 };
+  const settings = await prisma.siteSettings.findUnique({ where: { key: 'global_size_prices' } });
+  if (settings) {
+    try { globalPrices = JSON.parse(settings.value); } catch(e) {}
+  }
+  console.log('Using Global Prices:', globalPrices);
 
   async function getOrCreateCategory(name: string) {
     if (!name) return null;
@@ -156,37 +173,19 @@ async function main() {
         }
       }
 
-      const usesGlobalPricing = String(row['يستخدم الأسعار العامة؟']) === 'نعم';
-      const prices = [
-        { size: '50ml', priceCol: row['سعر 50ml خاص'] },
-        { size: '100ml', priceCol: row['سعر 100ml خاص'] },
-        { size: '200ml', priceCol: row['سعر 200ml خاص'] },
+      const variantsToCreate = [
+        { size: '50ml', price: globalPrices['50ml'] || 10000 },
+        { size: '100ml', price: globalPrices['100ml'] || 15000 },
+        { size: '200ml', price: globalPrices['200ml'] || 25000 },
       ];
 
-      let variantCreated = false;
-      for (const p of prices) {
-        if (p.priceCol && !isNaN(parseFloat(p.priceCol))) {
-          await prisma.productVariant.create({
-            data: {
-              productId: product.id,
-              size: p.size,
-              sku: `${sku}-${p.size}`,
-              price: Math.round(parseFloat(p.priceCol) * 1000),
-              usesGlobalPricing: false,
-              isActive: true
-            }
-          });
-          variantCreated = true;
-        }
-      }
-
-      if (!variantCreated) {
+      for (const v of variantsToCreate) {
         await prisma.productVariant.create({
           data: {
             productId: product.id,
-            size: '100ml',
-            sku: `${sku}-100ML`,
-            price: 15000,
+            size: v.size,
+            sku: `${sku}-${v.size.toUpperCase()}`,
+            price: v.price,
             usesGlobalPricing: true,
             isActive: true
           }

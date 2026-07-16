@@ -37,12 +37,22 @@ export default async function ShopPage({ params, searchParams }: { params: Promi
   
   const q = typeof sp.q === 'string' ? sp.q : '';
   const categoryStr = typeof sp.category === 'string' ? sp.category : '';
+  const genderStr = typeof sp.gender === 'string' ? sp.gender : '';
+  const familyStr = typeof sp.family === 'string' ? sp.family : '';
   
   // Build prisma where clause
   const where: any = { isVisible: true };
   
   if (categoryStr) {
     where.categoryId = categoryStr;
+  }
+
+  if (genderStr) {
+    where.genderId = genderStr;
+  }
+
+  if (familyStr) {
+    where.familyId = familyStr;
   }
   
   if (q) {
@@ -63,6 +73,8 @@ export default async function ShopPage({ params, searchParams }: { params: Promi
   });
 
   const categories = await prisma.category.findMany();
+  const genders = await prisma.gender.findMany();
+  const families = await prisma.fragranceFamily.findMany();
 
   // Group filtered products by category for the mobile feed
   const categoriesMap = new Map();
@@ -93,7 +105,11 @@ export default async function ShopPage({ params, searchParams }: { params: Promi
         <div className="mb-12">
           <ShopFilters 
             categories={categories} 
+            genders={genders}
+            families={families}
             initialCategory={categoryStr}
+            initialGender={genderStr}
+            initialFamily={familyStr}
           />
         </div>
 

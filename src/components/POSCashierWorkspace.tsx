@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useTransition } from 'react';
 import { X } from 'lucide-react';
 import { processPOSCheckout } from '@/actions/pos';
 import { verifyUnlockPassword } from '@/actions/auth';
-import { MainAccordsBars } from './MainAccordsBars';
+import ProductMainAccords, { AccordData } from './ProductMainAccords';
 import { POSOrdersPanel } from './POSOrdersPanel';
 
 interface ProductNote {
@@ -40,6 +40,7 @@ interface ProductItem {
   stockLiters: number;
   variants: ProductVariant[];
   imageUrl: string | null;
+  accords?: AccordData[];
 }
 
 interface POSCashierWorkspaceProps {
@@ -333,6 +334,14 @@ export function POSCashierWorkspace({
 
   const handleCheckout = () => {
     if (cart.length === 0) return;
+
+    const grandTotalFils = getGrandTotal();
+    const tenderedFils = paymentMethod === 'CASH' ? Math.round((parseFloat(amountTendered) || 0) * 1000) : grandTotalFils;
+
+    if (paymentMethod === 'CASH' && tenderedFils < grandTotalFils) {
+      alert('المبلغ المستلم نقداً يجب أن يكون مساوياً للإجمالي أو أكبر منه!');
+      return;
+    }
     
     const payload = {
       items: cart.map(item => ({
@@ -343,7 +352,7 @@ export function POSCashierWorkspace({
       customerName,
       paymentMethod,
       discount: getDiscount(),
-      amountTendered: paymentMethod === 'CASH' ? (parseFloat(amountTendered) || 0) * 1000 : getGrandTotal()
+      amountTendered: tenderedFils
     };
 
     startTransition(async () => {
@@ -562,7 +571,7 @@ export function POSCashierWorkspace({
                     step="0.01"
                     value={amountTendered}
                     onChange={(e) => setAmountTendered(e.target.value)}
-                    placeholder="0.00"
+                    placeholder={(getGrandTotal() / 1000).toFixed(3)}
                     className="w-24 border border-zinc-300 rounded px-2 py-1 text-left outline-none focus:ring-1 focus:ring-[var(--color-champagne-600)]"
                   />
                 </div>
@@ -608,10 +617,11 @@ export function POSCashierWorkspace({
             )}
 
             {/* Accords Breakdown Section */}
-            <div>
-              <h4 className="text-xs font-bold text-neutral-800 mb-2">المكونات العطرية الأساسية (Main Accords)</h4>
-              
-            </div>
+            {selectedProduct.accords && selectedProduct.accords.length > 0 && (
+              <div className="pt-2">
+                <ProductMainAccords accords={selectedProduct.accords} />
+              </div>
+            )}
 
 
 

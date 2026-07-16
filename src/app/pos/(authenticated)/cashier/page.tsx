@@ -31,6 +31,9 @@ export default async function POSCashierPage() {
       images: {
         where: { isMain: true },
         take: 1
+      },
+      accords: {
+        include: { accord: true }
       }
     }
   });
@@ -45,7 +48,12 @@ export default async function POSCashierPage() {
     stockStatus: p.stockStatus,
     variants: p.variants,
     stockLiters: p.stockLiters,
-    imageUrl: p.images[0]?.url || null
+    imageUrl: p.images[0]?.url || null,
+    accords: p.accords.map(a => ({
+      id: a.accordId,
+      name: a.accord.name,
+      value: a.value
+    }))
   }));
 
   // 4. Fetch site settings

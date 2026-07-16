@@ -41,7 +41,6 @@ export default function ProductMainAccords({ accords }: ProductMainAccordsProps)
   if (!accords || accords.length === 0) return null;
 
   const sortedAccords = [...accords].sort((a, b) => b.value - a.value);
-  const maxStrength = sortedAccords[0].value || 100;
 
   return (
     <div className="bg-[#1c1c1c] rounded-xl p-6 w-full shadow-lg border border-zinc-800" dir="ltr">
@@ -54,7 +53,8 @@ export default function ProductMainAccords({ accords }: ProductMainAccordsProps)
         
         {sortedAccords.map((accord) => {
           const colorData = ACCORD_COLORS[accord.name.toLowerCase()] || DEFAULT_COLOR;
-          const percentage = Math.max(10, (accord.value / maxStrength) * 100);
+          // Use the raw value as percentage directly (cap at 100%)
+          const percentage = Math.min(100, Math.max(10, accord.value));
           
           return (
             <div key={accord.id} className="relative w-full h-10 flex items-center group">
