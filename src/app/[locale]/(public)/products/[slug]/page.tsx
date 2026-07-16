@@ -9,7 +9,7 @@ import type { Metadata } from 'next';
 
 const BASE_URL = 'https://dahabperfumes.com';
 
-export const revalidate = 3600; // تحديث صفحات المنتجات كل ساعة
+export const revalidate = 60; // تحديث صفحات المنتجات كل دقيقة بدلاً من ساعة
 
 // بناء مسبق لصفحات المنتجات (Static Site Generation)
 // تجنباً للضغط على قاعدة البيانات أثناء البناء (Connection Timeout)، نستخدم ISR (الريندر عند الطلب)
