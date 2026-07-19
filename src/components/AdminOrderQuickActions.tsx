@@ -1,14 +1,16 @@
 'use client';
 
 import React, { useTransition } from 'react';
+import { ExternalLink } from 'lucide-react';
 
 interface Props {
   orderId: string;
   status: string;
   phone: string;
   reference: string;
-  shippingCostFils: number;
-  updateStatusAction: (orderId: string, status: string, shippingCost: number) => Promise<any>;
+  confirmAction: (orderId: string) => Promise<any>;
+  cancelAction: (orderId: string) => Promise<any>;
+  updateStatusAction: (orderId: string, status: string, shippingCost?: number) => Promise<any>;
 }
 
 export function AdminOrderQuickActions({ 
@@ -16,7 +18,8 @@ export function AdminOrderQuickActions({
   status,
   phone,
   reference,
-  shippingCostFils,
+  confirmAction,
+  cancelAction,
   updateStatusAction
 }: Props) {
   const [isPending, startTransition] = useTransition();
@@ -29,7 +32,25 @@ export function AdminOrderQuickActions({
     }
 
     startTransition(async () => {
-      await updateStatusAction(orderId, newStatus, shippingCostFils);
+      if (newStatus === 'PREPARING' && (status === 'PENDING' || status === 'AWAITING_WHATSAPP')) {
+        // Confirm first to deduct stock and create sale/invoice
+        const res = await confirmAction(orderId);
+        if (res.success) {
+           await updateStatusAction(orderId, newStatus);
+        } else {
+           alert(res.error || 'حدث خطأ أثناء التأكيد وخصم المخزون');
+        }
+      } else if (newStatus === 'CANCELLED') {
+        const res = await cancelAction(orderId);
+        if (!res.success) {
+           alert(res.error || 'حدث خطأ أثناء إلغاء الطلب');
+        }
+      } else {
+        const res = await updateStatusAction(orderId, newStatus);
+        if (!res.success) {
+           alert(res.error || 'حدث خطأ أثناء تحديث الحالة');
+        }
+      }
     });
   };
 
@@ -43,9 +64,7 @@ export function AdminOrderQuickActions({
             className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold py-3 px-4 rounded shadow-sm text-sm flex items-center justify-center gap-2 w-full transition-colors"
           >
             بدء التجهيز وتأكيد واتساب
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-            </svg>
+            <ExternalLink className="w-4 h-4" />
           </button>
           <button 
             onClick={() => handleUpdate('CANCELLED', false)}

@@ -3,7 +3,9 @@
 import React, { useEffect, useState, useTransition } from 'react';
 import { X, RefreshCcw, ExternalLink } from 'lucide-react';
 import { getPOSOrders, updatePOSOrderStatus } from '@/actions/pos-orders';
+import { confirmStorefrontOrder, cancelStorefrontOrder } from '@/actions/orders';
 import { createBrowserClient } from '@supabase/ssr';
+import { AdminOrderQuickActions } from './AdminOrderQuickActions';
 
 export function POSOrdersPanel({
   onClose,
@@ -205,48 +207,16 @@ export function POSOrdersPanel({
             {/* ACTION BUTTONS UNDER TOTAL */}
             <div className="pt-6 space-y-3">
               {hasManagePermission ? (
-                <div className="flex flex-col gap-3">
-                  {(selectedOrder.status === 'PENDING' || selectedOrder.status === 'CONFIRMED' || selectedOrder.status === 'AWAITING_WHATSAPP') && (
-                    <>
-                      <button 
-                        onClick={() => {
-                          const msg = encodeURIComponent(`مرحباً بك في دهب للعطور 🌟.\nتم تأكيد طلبك والبدء بتجهيزه! رقم الطلب: #${selectedOrder.reference}\nيمكنك استعراض الفاتورة الرسمية عبر الرابط التالي:\n${window.location.origin}/${locale}/invoice/${selectedOrder.id}`);
-                          const phone = selectedOrder.customerPhone.replace(/\D/g, '');
-                          window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
-                          handleUpdateStatus(selectedOrder.id, 'PREPARING');
-                        }}
-                        disabled={isPending}
-                        className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold py-3 px-4 rounded shadow-sm text-sm flex items-center justify-center gap-2 w-full"
-                      >
-                        بدء التجهيز وتأكيد واتساب <ExternalLink className="w-4 h-4" />
-                      </button>
-                      <button 
-                        onClick={() => handleUpdateStatus(selectedOrder.id, 'CANCELLED')}
-                        disabled={isPending}
-                        className="bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 disabled:opacity-50 font-bold py-2.5 px-4 rounded shadow-sm text-sm w-full"
-                      >
-                        إلغاء الطلب (إرجاع للمخزون)
-                      </button>
-                    </>
-                  )}
-                  {(selectedOrder.status === 'PREPARING' || selectedOrder.status === 'PREPARED') && (
-                    <button 
-                      onClick={() => handleUpdateStatus(selectedOrder.id, 'SHIPPED')}
-                      disabled={isPending}
-                      className="bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white font-bold py-3 px-4 rounded shadow-sm text-sm w-full"
-                    >
-                      تسليم لمندوب التوصيل
-                    </button>
-                  )}
-                  {selectedOrder.status === 'SHIPPED' && (
-                    <button 
-                      onClick={() => handleUpdateStatus(selectedOrder.id, 'DELIVERED')}
-                      disabled={isPending}
-                      className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold py-3 px-4 rounded shadow-sm text-sm w-full"
-                    >
-                      تم التسليم (طلب مكتمل)
-                    </button>
-                  )}
+                <div className="mb-6">
+                  <AdminOrderQuickActions 
+                    orderId={selectedOrder.id} 
+                    status={selectedOrder.status} 
+                    phone={selectedOrder.customerPhone} 
+                    reference={selectedOrder.reference} 
+                    confirmAction={confirmStorefrontOrder}
+                    cancelAction={cancelStorefrontOrder}
+                    updateStatusAction={async (id, s) => updatePOSOrderStatus(id, s)} 
+                  />
                 </div>
               ) : (
                 <div className="text-center text-xs text-red-500 bg-red-50 p-2 rounded">لا تملك صلاحية تعديل حالة الطلب</div>

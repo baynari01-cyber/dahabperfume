@@ -3,7 +3,7 @@ import { requireAuth } from '@/lib/dal';
 import { filsToDisplay } from '@/lib/money';
 import { prisma } from '@/lib/db';
 import { AdminSidebar } from '@/components/AdminSidebar';
-import { updateOrderStatus, confirmStorefrontOrder } from '@/actions/orders';
+import { updateOrderStatus, confirmStorefrontOrder, cancelStorefrontOrder } from '@/actions/orders';
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { OrderWhatsAppButton } from '@/components/OrderWhatsAppButton';
@@ -39,29 +39,18 @@ export default async function AdminOrderDetailPage({
     notFound();
   }
 
-  // Handle action trigger in Page via form action
-  async function handleConfirm(formData: FormData) {
+  async function handleUpdateStatusQuick(orderId: string, newStatus: string, shippingCost?: number) {
     'use server';
-    const res = await confirmStorefrontOrder(id);
+    // Use existing shipping cost if not provided
+    const cost = shippingCost !== undefined ? shippingCost : order.shippingCost;
+    const res = await updateOrderStatus(orderId, newStatus, cost);
     if (res.success) {
-       // redirect or just refresh
-    } else {
-       console.error("Error confirming order:", res.error);
-    }
-  }
-
-  async function handleUpdateStatus(formData: FormData) {
-    'use server';
-    const newStatus = formData.get('status') as string;
-    const shippingCostJD = parseFloat(formData.get('shippingCost') as string);
-    const shippingCost = Math.round((shippingCostJD || 0) * 1000); // convert JD to fils
-
-    const res = await updateOrderStatus(id, newStatus, shippingCost);
-    if (res.success) {
-      redirect(`/admin/orders/${id}`);
+      // Revalidate or redirect will happen automatically via server actions or we can leave it
     } else {
       console.error("Error updating status:", res.error);
+      return res;
     }
+    return { success: true };
   }
 
   const orderSubtotal = order.totalAmount - order.shippingCost;
@@ -172,63 +161,18 @@ export default async function AdminOrderDetailPage({
                 إدارة الطلب
               </h3>
 
-              {order.status === 'AWAITING_WHATSAPP' || order.status === 'PENDING' ? (
-                <div className="space-y-4 mb-6 pb-6 border-b border-zinc-100">
-                  <p className="text-sm text-zinc-600">الطلب جديد بانتظار التأكيد. الضغط على تأكيد سيقوم بتسجيل المبيعات وخصم مخزون اللترات فوراً.</p>
-                  <form action={handleConfirm}>
-                    <button type="submit" className="w-full bg-[var(--color-charcoal-900)] text-white font-bold py-3 rounded hover:bg-[var(--color-charcoal-800)] transition-colors">
-                      تأكيد الطلب وخصم المخزون
-                    </button>
-                  </form>
-                </div>
-              ) : null}
-
-              {/* إجراءات سريعة لتحديث الحالة والواتساب */}
-              <div className="mb-6 pb-6 border-b border-zinc-100">
+              {/* إجراءات سريعة لتحديث الحالة والواتساب - مطابقة للكاشير */}
+              <div className="mb-6">
                 <AdminOrderQuickActions 
                   orderId={order.id} 
                   status={order.status} 
                   phone={order.customerPhone} 
                   reference={order.reference} 
-                  shippingCostFils={order.shippingCost} 
-                  updateStatusAction={updateOrderStatus} 
+                  confirmAction={confirmStorefrontOrder}
+                  cancelAction={cancelStorefrontOrder}
+                  updateStatusAction={handleUpdateStatusQuick} 
                 />
               </div>
-
-              <form action={handleUpdateStatus} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-bold text-zinc-700 mb-1">تحديث الحالة</label>
-                  <select name="status" defaultValue={order.status} className="w-full border rounded p-2 text-sm outline-none focus:border-[var(--color-champagne-600)]">
-                    <option value="AWAITING_WHATSAPP">بانتظار التأكيد (AWAITING_WHATSAPP)</option>
-                    <option value="PENDING">معلق (PENDING)</option>
-                    <option value="CONFIRMED">تم التأكيد (CONFIRMED)</option>
-                    <option value="PREPARING">قيد التجهيز (PREPARING)</option>
-                    <option value="PREPARED">تم التجهيز / جاهز للتوصيل (PREPARED)</option>
-                    <option value="SHIPPED">قيد التوصيل (SHIPPED)</option>
-                    <option value="DELIVERED">تم التوصيل / مكتمل (DELIVERED)</option>
-                    <option value="CANCELLED">ملغي (CANCELLED)</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-bold text-zinc-700 mb-1">رسوم التوصيل (دينار أردني)</label>
-                  <input 
-                    type="number" 
-                    step="0.01" 
-                    name="shippingCost" 
-                    defaultValue={(order.shippingCost / 1000).toFixed(3)}
-                    className="w-full border rounded p-2 text-sm outline-none focus:border-[var(--color-champagne-600)]"
-                  />
-                  <p className="text-[10px] text-zinc-500 mt-1">عند تعديل رسوم التوصيل، سيتم إعادة احتساب الإجمالي النهائي للطلب تلقائياً.</p>
-                </div>
-
-                <button type="submit" className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-[var(--color-champagne-500)] to-[var(--color-champagne-600)] hover:from-[var(--color-champagne-600)] hover:to-[var(--color-champagne-700)] text-white font-bold py-3 rounded-lg shadow-md transition-all active:scale-95 text-sm">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  حفظ وتحديث تفاصيل الحالة
-                </button>
-              </form>
 
             </div>
           </div>
