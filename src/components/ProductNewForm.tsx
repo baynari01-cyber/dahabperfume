@@ -36,7 +36,7 @@ export function ProductNewForm({
 }) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
-  const [autoSku] = useState(() => nextSku || 'PRD-' + Math.floor(100000 + Math.random() * 900000).toString());
+  const [autoSku] = useState(() => nextSku || 'DHB-' + Math.floor(1000 + Math.random() * 9000).toString());
   const [pending, setPending] = useState(false);
   const [error, setError] = useState('');
   const [preview, setPreview] = useState<string | null>(null);

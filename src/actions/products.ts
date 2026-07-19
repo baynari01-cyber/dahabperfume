@@ -91,6 +91,9 @@ export async function createProduct(formData: FormData) {
     return { success: true, productId: product.id };
   } catch (error: any) {
     console.error('Error creating product:', error);
+    if (error.code === 'P2002' && error.meta?.target?.includes('sku')) {
+      return { success: false, error: 'رقم المنتج (SKU) مستخدم مسبقاً. يرجى المحاولة مرة أخرى للحصول على رقم جديد.' };
+    }
     return { success: false, error: error.message };
   }
 }

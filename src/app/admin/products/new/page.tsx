@@ -22,21 +22,21 @@ export default async function AdminProductsNewPage() {
   // Find the highest product SKU to auto-increment
   const lastProduct = await prisma.product.findFirst({
     where: {
-      sku: { startsWith: 'PRD-' }
+      sku: { startsWith: 'DHB-' }
     },
     orderBy: {
-      createdAt: 'desc'
+      sku: 'desc'
     }
   });
 
-  let nextSkuNumber = 100000;
+  let nextSkuNumber = 1;
   if (lastProduct && lastProduct.sku) {
-    const match = lastProduct.sku.match(/PRD-(\d+)/);
+    const match = lastProduct.sku.match(/DHB-(\d+)/);
     if (match) {
       nextSkuNumber = parseInt(match[1], 10) + 1;
     }
   }
-  const nextSku = `PRD-${nextSkuNumber}`;
+  const nextSku = `DHB-${nextSkuNumber.toString().padStart(4, '0')}`;
 
   return (
     <div className="flex flex-col md:flex-row h-screen bg-[var(--color-ivory-100)] overflow-hidden" dir="rtl">
