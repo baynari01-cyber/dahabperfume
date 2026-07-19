@@ -1,12 +1,18 @@
 'use client';
 
-import React, { useTransition } from 'react';
+import React, { useTransition, useState } from 'react';
 import { createCategory } from '@/actions/categories';
 import { useRouter } from 'next/navigation';
 
 export function CategoryNewForm({ products = [] }: { products?: { id: string, nameAr: string, nameEn: string, category: { name: string } }[] }) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredProducts = products.filter(p => 
+    p.nameAr.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    p.nameEn.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -52,8 +58,15 @@ export function CategoryNewForm({ products = [] }: { products?: { id: string, na
         </div>
         <div>
           <label className="block text-sm font-medium text-zinc-700 mb-1">تحديد منتجات للمجموعة (اختياري)</label>
+          <input
+            type="text"
+            placeholder="البحث عن منتج..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full mb-2 border border-zinc-200 rounded px-3 py-1.5 text-sm bg-white outline-none focus:border-[var(--color-charcoal-800)]"
+          />
           <div className="max-h-48 overflow-y-auto border border-zinc-200 rounded p-2 text-sm bg-zinc-50 space-y-1">
-            {products.map(p => (
+            {filteredProducts.map(p => (
               <label key={p.id} className="flex items-center gap-2 p-1.5 hover:bg-zinc-100 rounded cursor-pointer">
                 <input type="checkbox" name="productIds" value={p.id} className="w-4 h-4 rounded text-[var(--color-charcoal-900)] focus:ring-[var(--color-charcoal-900)]" />
                 <span className="flex-1 truncate text-zinc-700 font-medium">{p.nameAr}</span>
@@ -64,8 +77,8 @@ export function CategoryNewForm({ products = [] }: { products?: { id: string, na
                 )}
               </label>
             ))}
-            {products.length === 0 && (
-              <div className="text-xs text-zinc-500 text-center py-4">لا توجد منتجات متاحة</div>
+            {filteredProducts.length === 0 && (
+              <div className="text-xs text-zinc-500 text-center py-4">لا توجد منتجات مطابقة</div>
             )}
           </div>
         </div>
