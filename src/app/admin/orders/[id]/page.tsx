@@ -7,6 +7,7 @@ import { updateOrderStatus, confirmStorefrontOrder } from '@/actions/orders';
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { OrderWhatsAppButton } from '@/components/OrderWhatsAppButton';
+import { AdminOrderQuickActions } from '@/components/AdminOrderQuickActions';
 
 export default async function AdminOrderDetailPage({
   params
@@ -182,6 +183,18 @@ export default async function AdminOrderDetailPage({
                 </div>
               ) : null}
 
+              {/* إجراءات سريعة لتحديث الحالة والواتساب */}
+              <div className="mb-6 pb-6 border-b border-zinc-100">
+                <AdminOrderQuickActions 
+                  orderId={order.id} 
+                  status={order.status} 
+                  phone={order.customerPhone} 
+                  reference={order.reference} 
+                  shippingCostFils={order.shippingCost} 
+                  updateStatusAction={updateOrderStatus} 
+                />
+              </div>
+
               <form action={handleUpdateStatus} className="space-y-4">
                 <div>
                   <label className="block text-sm font-bold text-zinc-700 mb-1">تحديث الحالة</label>
@@ -217,13 +230,6 @@ export default async function AdminOrderDetailPage({
                 </button>
               </form>
 
-              {order.status === 'CONFIRMED' && (
-                <OrderWhatsAppButton 
-                  phone={order.customerPhone} 
-                  reference={order.reference} 
-                  orderId={order.id} 
-                />
-              )}
             </div>
           </div>
         </div>

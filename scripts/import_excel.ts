@@ -1,5 +1,3 @@
-
-
 import { PrismaClient } from '@prisma/client';
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
@@ -20,8 +18,8 @@ const pool = new Pool({
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
-const EXCEL_PATH = '/home/moayad/Desktop/main avtivity/c6ac6e8b-eaba-4c64-acbe-2d55aacbb2fe.xlsx';
-const SOURCE_IMG_DIR = '/home/moayad/Desktop/main avtivity/DHB-0000';
+const EXCEL_PATH = '/home/moayad/Desktop/main avtivity/DAHAB_IMAGE_AUDIT_FINAL/dahab_products_image_status_updated.xlsx';
+const SOURCE_IMG_DIR = '/home/moayad/Desktop/main avtivity/DAHAB_IMAGE_AUDIT_FINAL/converted_webp_images';
 const TARGET_IMG_DIR = path.join(process.cwd(), 'public', 'uploads', 'products');
 
 async function main() {
@@ -30,10 +28,6 @@ async function main() {
   if (!fs.existsSync(TARGET_IMG_DIR)) {
     fs.mkdirSync(TARGET_IMG_DIR, { recursive: true });
   }
-
-  console.log('Cleaning existing data (TRUNCATE)...');
-  await prisma.$executeRawUnsafe(`TRUNCATE TABLE "Product", "Category", "Gender", "Season", "FragranceFamily", "Accord" CASCADE;`);
-  console.log('Existing data cleared.');
 
   console.log('Reading Excel file...');
   if (!fs.existsSync(EXCEL_PATH)) {
@@ -54,7 +48,7 @@ async function main() {
   const accordMap = new Map<string, string>();
 
   // Fetch global prices
-  let globalPrices = { '50ml': 10000, '100ml': 15000, '200ml': 25000 };
+  let globalPrices: Record<string, number> = { '50ml': 10000, '100ml': 15000, '200ml': 25000 };
   const settings = await prisma.siteSettings.findUnique({ where: { key: 'global_size_prices' } });
   if (settings) {
     try { globalPrices = JSON.parse(settings.value); } catch(e) {}
@@ -66,7 +60,10 @@ async function main() {
     let id = categoryMap.get(name);
     if (!id) {
       const slug = name.toLowerCase().replace(/\s+/g, '-');
-      const record = await prisma.category.create({ data: { name, slug } });
+      let record = await prisma.category.findUnique({ where: { slug } });
+      if (!record) {
+          record = await prisma.category.create({ data: { name, slug } });
+      }
       id = record.id;
       categoryMap.set(name, id);
     }
@@ -77,7 +74,10 @@ async function main() {
     if (!name) return null;
     let id = genderMap.get(name);
     if (!id) {
-      const record = await prisma.gender.create({ data: { name } });
+      let record = await prisma.gender.findFirst({ where: { name } });
+      if (!record) {
+          record = await prisma.gender.create({ data: { name } });
+      }
       id = record.id;
       genderMap.set(name, id);
     }
@@ -88,7 +88,10 @@ async function main() {
     if (!name) return null;
     let id = seasonMap.get(name);
     if (!id) {
-      const record = await prisma.season.create({ data: { name } });
+      let record = await prisma.season.findFirst({ where: { name } });
+      if (!record) {
+          record = await prisma.season.create({ data: { name } });
+      }
       id = record.id;
       seasonMap.set(name, id);
     }
@@ -99,7 +102,10 @@ async function main() {
     if (!name) return null;
     let id = familyMap.get(name);
     if (!id) {
-      const record = await prisma.fragranceFamily.create({ data: { name } });
+      let record = await prisma.fragranceFamily.findFirst({ where: { name } });
+      if (!record) {
+          record = await prisma.fragranceFamily.create({ data: { name } });
+      }
       id = record.id;
       familyMap.set(name, id);
     }
@@ -110,7 +116,10 @@ async function main() {
     if (!name) return null;
     let id = accordMap.get(name);
     if (!id) {
-      const record = await prisma.accord.create({ data: { name } });
+      let record = await prisma.accord.findFirst({ where: { name } });
+      if (!record) {
+          record = await prisma.accord.create({ data: { name } });
+      }
       id = record.id;
       accordMap.set(name, id);
     }
@@ -121,7 +130,7 @@ async function main() {
     try {
       const sku = String(row['SKU'] || '').trim();
       const nameAr = String(row['اسم العطر'] || '').trim();
-      if (!sku || !nameAr) continue;
+      if (!sku || !nameAr || sku === 'undefined') continue;
 
       console.log(`Processing: ${sku} - ${nameAr}`);
 
@@ -136,8 +145,23 @@ async function main() {
 
       const slug = encodeURIComponent(nameAr.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-أ-ي]/g, '') + '-' + sku.toLowerCase());
       
-      const product = await prisma.product.create({
-        data: {
+      const product = await prisma.product.upsert({
+        where: { sku: sku },
+        update: {
+          nameAr,
+          nameEn: row['V3 Search Query'] || nameAr,
+          slug,
+          shortDescription: shortDesc,
+          categoryId: categoryId!,
+          genderId,
+          seasonId,
+          familyId,
+          isVisible: isVisible,
+          isFeatured,
+          stockStatus: 'VERIFIED',
+          notesStatus: 'VERIFIED',
+        },
+        create: {
           sku,
           nameAr,
           nameEn: row['V3 Search Query'] || nameAr,
@@ -147,13 +171,15 @@ async function main() {
           genderId,
           seasonId,
           familyId,
-          isVisible: true,
+          isVisible: isVisible,
           isFeatured,
           stockStatus: 'VERIFIED',
           notesStatus: 'VERIFIED',
         }
       });
 
+      // Handle Accords
+      await prisma.productAccord.deleteMany({ where: { productId: product.id } });
       for (let i = 1; i <= 5; i++) {
         const accordName = row[`البصمة العطرية ${i}`];
         const accordStrength = row[`قوة البصمة ${i}`];
@@ -173,6 +199,7 @@ async function main() {
         }
       }
 
+      // Handle Variants
       const variantsToCreate = [
         { size: '50ml', price: globalPrices['50ml'] || 10000 },
         { size: '100ml', price: globalPrices['100ml'] || 15000 },
@@ -180,11 +207,18 @@ async function main() {
       ];
 
       for (const v of variantsToCreate) {
-        await prisma.productVariant.create({
-          data: {
+        const variantSku = `${sku}-${v.size.toUpperCase()}`;
+        await prisma.productVariant.upsert({
+          where: { sku: variantSku },
+          update: {
+            price: v.price,
+            usesGlobalPricing: true,
+            isActive: true
+          },
+          create: {
             productId: product.id,
             size: v.size,
-            sku: `${sku}-${v.size.toUpperCase()}`,
+            sku: variantSku,
             price: v.price,
             usesGlobalPricing: true,
             isActive: true
@@ -192,6 +226,7 @@ async function main() {
         });
       }
 
+      // Handle Images
       const imageName = row['اسم الصورة'];
       if (imageName) {
         let sourceImagePath = path.join(SOURCE_IMG_DIR, imageName);
@@ -219,6 +254,8 @@ async function main() {
           
           fs.copyFileSync(sourceImagePath, destImagePath);
 
+          // Upsert Image
+          await prisma.productImage.deleteMany({ where: { productId: product.id } });
           await prisma.productImage.create({
             data: {
               productId: product.id,
