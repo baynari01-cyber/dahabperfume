@@ -9,12 +9,12 @@ async function main() {
         }
       },
       data: {
-        isVisible: false
+        isVisible: true
       }
     });
-    console.log(`Successfully hidden ${result.count} products with no images.`);
+    console.log(`Successfully unhidden ${result.count} products with no images.`);
   } catch (error) {
-    console.error('Error deleting products:', error);
+    console.error('Error unhiding products:', error);
   } finally {
     await prisma.$disconnect();
   }

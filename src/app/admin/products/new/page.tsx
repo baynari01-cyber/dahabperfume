@@ -19,6 +19,25 @@ export default async function AdminProductsNewPage() {
   const families = await prisma.fragranceFamily.findMany({ orderBy: { name: 'asc' } });
   const globalPrices = await getGlobalSizePrices();
 
+  // Find the highest product SKU to auto-increment
+  const lastProduct = await prisma.product.findFirst({
+    where: {
+      sku: { startsWith: 'PRD-' }
+    },
+    orderBy: {
+      createdAt: 'desc'
+    }
+  });
+
+  let nextSkuNumber = 100000;
+  if (lastProduct && lastProduct.sku) {
+    const match = lastProduct.sku.match(/PRD-(\d+)/);
+    if (match) {
+      nextSkuNumber = parseInt(match[1], 10) + 1;
+    }
+  }
+  const nextSku = `PRD-${nextSkuNumber}`;
+
   return (
     <div className="flex flex-col md:flex-row h-screen bg-[var(--color-ivory-100)] overflow-hidden" dir="rtl">
       <AdminSidebar employeeName={user?.name || ''} roleName={"ADMIN"} />
@@ -41,6 +60,7 @@ export default async function AdminProductsNewPage() {
           seasons={seasons.map(s => ({ id: s.id, name: s.name }))}
           families={families.map(f => ({ id: f.id, name: f.name }))}
           globalPrices={globalPrices}
+          nextSku={nextSku}
         />
       </main>
     </div>

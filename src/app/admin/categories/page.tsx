@@ -14,6 +14,11 @@ export default async function AdminCategoriesPage() {
     }
   });
 
+  const products = await prisma.product.findMany({
+    select: { id: true, nameAr: true, nameEn: true, category: { select: { name: true } } },
+    orderBy: { nameAr: 'asc' }
+  });
+
   return (
     <div className="flex flex-col md:flex-row h-screen bg-[var(--color-ivory-100)] overflow-hidden" dir="rtl">
       <AdminSidebar employeeName={session.employee.name} roleName={session?.employee?.role?.name || "ADMIN"} />
@@ -77,7 +82,7 @@ export default async function AdminCategoriesPage() {
           </div>
 
           {/* Add Category Form */}
-          <CategoryNewForm />
+          <CategoryNewForm products={products} />
         </div>
       </main>
     </div>

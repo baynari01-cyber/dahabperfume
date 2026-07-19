@@ -47,6 +47,14 @@ export async function createCategory(formData: FormData) {
       }
     });
 
+    const productIds = formData.getAll('productIds') as string[];
+    if (productIds && productIds.length > 0) {
+      await prisma.product.updateMany({
+        where: { id: { in: productIds } },
+        data: { categoryId: category.id }
+      });
+    }
+
     revalidatePath('/admin/categories');
     return { success: true, categoryId: category.id };
   } catch (error: any) {

@@ -24,17 +24,19 @@ export function ProductNewForm({
   genders = [],
   seasons = [],
   families = [],
-  globalPrices = {} 
+  globalPrices = {},
+  nextSku 
 }: { 
   categories: Category[], 
   genders?: Category[],
   seasons?: Category[],
   families?: Category[],
-  globalPrices?: Record<string, number> 
+  globalPrices?: Record<string, number>,
+  nextSku?: string
 }) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
-  const [autoSku] = useState(() => 'PRD-' + Math.floor(100000 + Math.random() * 900000).toString());
+  const [autoSku] = useState(() => nextSku || 'PRD-' + Math.floor(100000 + Math.random() * 900000).toString());
   const [pending, setPending] = useState(false);
   const [error, setError] = useState('');
   const [preview, setPreview] = useState<string | null>(null);
