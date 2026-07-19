@@ -4,6 +4,7 @@ import { prisma } from '@/lib/db';
 import { AdminSidebar } from '@/components/AdminSidebar';
 import { filsToDisplay } from '@/lib/money';
 import Link from 'next/link';
+import { getInventorySettings } from '@/actions/settings-crud';
 
 const AdminDashboardPage = async ({
   searchParams,
@@ -34,8 +35,11 @@ const AdminDashboardPage = async ({
 
   const totalSalesRevenue = totalSales.reduce((acc, s) => acc + s.total, 0);
 
-  // Count low stock finished products (less than 0.5 Liters)
-  const lowStockProducts = productsList.filter((p) => p.stockLiters <= 0.5);
+  const inventorySettings = await getInventorySettings();
+  const threshold = inventorySettings.lowStockThreshold;
+
+  // Count low stock finished products (less than or equal to threshold)
+  const lowStockProducts = productsList.filter((p) => p.stockLiters <= threshold);
 
   const recentOrders = await prisma.order.findMany({
     orderBy: { createdAt: 'desc' },

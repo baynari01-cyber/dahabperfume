@@ -138,7 +138,7 @@ export async function updateHeroCarouselSettings(data: z.infer<typeof carouselSe
     }
   });
 
-  revalidatePath('/');
+  revalidatePath('/', 'layout');
   return { success: true, settings: updated };
 }
 
@@ -191,7 +191,7 @@ export async function createHeroSlide(data: z.infer<typeof slideInputSchema>) {
     }
   });
 
-  revalidatePath('/');
+  revalidatePath('/', 'layout');
   return { success: true, slide };
 }
 
@@ -229,7 +229,7 @@ export async function updateHeroSlide(id: string, data: z.infer<typeof slideInpu
     }
   });
 
-  revalidatePath('/');
+  revalidatePath('/', 'layout');
   return { success: true, slide };
 }
 
@@ -250,7 +250,7 @@ export async function deleteHeroSlide(id: string) {
     }
   });
 
-  revalidatePath('/');
+  revalidatePath('/', 'layout');
   return { success: true };
 }
 
@@ -277,7 +277,7 @@ export async function reorderHeroSlides(ids: string[]) {
     }
   });
 
-  revalidatePath('/');
+  revalidatePath('/', 'layout');
   return { success: true };
 }
 
@@ -351,6 +351,6 @@ export async function updateStoreLocationSettings(data: z.infer<typeof locationS
     }
   });
 
-  revalidatePath('/');
+  revalidatePath('/', 'layout');
   return { success: true, settings: updated };
 }

@@ -3,6 +3,7 @@ import { requireAuth } from '@/lib/dal';
 import { getCMSContent, updateCMSContent } from '@/lib/cms';
 import { AdminSidebar } from '@/components/AdminSidebar';
 import Link from 'next/link';
+import { revalidatePath } from 'next/cache';
 
 export default async function AdminContentPage() {
   const session = await requireAuth();
@@ -43,6 +44,8 @@ export default async function AdminContentPage() {
       updateCMSContent('homepage_content', { heroTitleAr, heroTitleEn, heroDescAr, heroDescEn }),
       updateCMSContent('social_links', { instagram, whatsapp, facebook })
     ]);
+
+    revalidatePath('/', 'layout');
   }
 
   return (
