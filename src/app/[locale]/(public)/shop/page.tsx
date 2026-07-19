@@ -2,8 +2,8 @@ import { prisma } from '@/lib/db';
 import Link from 'next/link';
 import { filsToDisplay } from '@/lib/money';
 import { ShopFilters } from '@/components/ShopFilters';
-import { WishlistHeart } from '@/components/WishlistHeart';
 import { MobileCategoriesFeed } from '@/components/MobileCategoriesFeed';
+import { PaginatedProductGrid } from '@/components/PaginatedProductGrid';
 import type { Metadata } from 'next';
 
 export const revalidate = 60;
@@ -62,15 +62,20 @@ export default async function ShopPage({ params, searchParams }: { params: Promi
     ];
   }
 
-  const products = await prisma.product.findMany({
-    where,
-    include: {
-      variants: { orderBy: { size: 'asc' } },
-      images: { orderBy: { order: 'asc' } },
-      category: true,
-    },
-    orderBy: { createdAt: 'desc' }
-  });
+  const [products, totalCount] = await Promise.all([
+    prisma.product.findMany({
+      where,
+      take: 40,
+      skip: 0,
+      include: {
+        variants: { orderBy: { size: 'asc' } },
+        images: { orderBy: { order: 'asc' } },
+        category: true,
+      },
+      orderBy: { createdAt: 'desc' }
+    }),
+    prisma.product.count({ where })
+  ]);
 
   const categories = await prisma.category.findMany();
   const genders = await prisma.gender.findMany();
@@ -126,60 +131,14 @@ export default async function ShopPage({ params, searchParams }: { params: Promi
             )}
           </div>
 
-          {/* Desktop Specific: Flat Grid */}
+          {/* Desktop Specific: Flat Grid with Pagination */}
           <div className="hidden md:block">
-            <div className="flex justify-between items-center mb-6 bg-white p-4 rounded-lg shadow-sm border border-[var(--color-ivory-200)]">
-              <span className="text-sm font-bold text-zinc-600">إظهار {products.length} نتائج</span>
-            <select className="border border-zinc-300 rounded-md px-4 py-2 text-sm focus:outline-none focus:border-[var(--color-champagne-600)] bg-white text-zinc-700">
-              <option>ترتيب حسب: الأحدث</option>
-              <option>السعر: من الأقل للأعلى</option>
-              <option>السعر: من الأعلى للأقل</option>
-              <option>الأكثر مبيعاً</option>
-            </select>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {products.map((product) => {
-              const mainImage = product.images.find(img => img.isMain) || product.images[0];
-              const lowestPrice = product.variants.length > 0 
-                ? Math.min(...product.variants.map(v => v.price))
-                : 0;
-
-              return (
-                <Link key={product.id} href={`/${locale}/products/${product.slug}`} className="group bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 p-4 border border-[var(--color-ivory-200)] flex flex-col h-full hover:border-[var(--color-champagne-600)]">
-                  <div className="relative aspect-square w-full bg-[var(--color-ivory-200)] rounded-md mb-4 overflow-hidden">
-                    <div className="absolute top-2 right-2 z-20">
-                      <WishlistHeart product={{
-                        id: product.id,
-                        nameAr: product.nameAr,
-                        nameEn: product.nameEn,
-                        slug: product.slug,
-                        imageUrl: mainImage?.url || '',
-                        price: lowestPrice,
-                        stockStatus: product.stockStatus
-                      }} />
-                    </div>
-                    <div className="absolute inset-0 flex items-center justify-center text-[var(--color-charcoal-600)]">
-                      {mainImage ? (
-                        <div className="w-full h-full bg-contain bg-center bg-no-repeat group-hover:scale-105 transition-transform duration-500" style={{ backgroundImage: `url("${mainImage.url.startsWith('local://') ? '/product-placeholder.png' : mainImage.url}")` }} />
-                      ) : 'صورة العطر'}
-                    </div>
-                  </div>
-                  <div className="text-center flex-1 flex flex-col">
-                    <h3 className="text-lg font-bold text-[var(--color-charcoal-900)] mb-1 group-hover:text-[var(--color-champagne-600)] transition-colors">{product.nameAr}</h3>
-                    <p className="text-xs text-zinc-500 mb-2">{product.category.name}</p>
-                    <div className="mt-auto text-sm text-[var(--color-champagne-600)] font-bold">
-                      {locale === 'ar' ? 'اختر الحجم لعرض السعر' : 'Select size for price'}
-                    </div>
-                  </div>
-                  <div className="mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <button className="w-full py-2 bg-[var(--color-charcoal-900)] hover:bg-[var(--color-charcoal-800)] text-white rounded-sm text-sm font-bold shadow-md">
-                      عرض التفاصيل
-                    </button>
-                  </div>
-                </Link>
-              );
-            })}
+            <PaginatedProductGrid 
+              initialProducts={products}
+              totalCount={totalCount}
+              locale={locale}
+              filters={{ categoryId: categoryStr, genderId: genderStr, familyId: familyStr, q }}
+            />
           </div>
           
           {products.length === 0 && (
@@ -187,7 +146,6 @@ export default async function ShopPage({ params, searchParams }: { params: Promi
               <p className="text-xl text-zinc-500">لا توجد منتجات حالياً.</p>
             </div>
           )}
-          </div>
         </main>
       </div>
     </div>

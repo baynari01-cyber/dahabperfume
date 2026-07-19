@@ -42,7 +42,7 @@ export default async function AdminOrderDetailPage({
   async function handleUpdateStatusQuick(orderId: string, newStatus: string, shippingCost?: number) {
     'use server';
     // Use existing shipping cost if not provided
-    const cost = shippingCost !== undefined ? shippingCost : order.shippingCost;
+    const cost = shippingCost !== undefined ? shippingCost : order!.shippingCost;
     const res = await updateOrderStatus(orderId, newStatus, cost);
     if (res.success) {
       // Revalidate or redirect will happen automatically via server actions or we can leave it

@@ -66,6 +66,88 @@ export async function updateGlobalSizePrice(size: string, priceInFils: number, a
   }
 }
 
+export async function applyPricesToSelection({
+  pricesInFils,
+  productIds,
+  categoryId,
+  adminId,
+  updateGlobalSettings
+}: {
+  pricesInFils: Record<string, number>;
+  productIds?: string[];
+  categoryId?: string;
+  adminId: string;
+  updateGlobalSettings: boolean;
+}) {
+  try {
+    await requireSuperAdmin();
+
+    const result = await prisma.$transaction(async (tx) => {
+      // 1. Optionally update global settings
+      if (updateGlobalSettings) {
+        await tx.siteSettings.upsert({
+          where: { key: 'global_size_prices' },
+          update: { value: JSON.stringify(pricesInFils) },
+          create: { key: 'global_size_prices', value: JSON.stringify(pricesInFils) }
+        });
+      }
+
+      // 2. Determine which products to affect
+      let whereClause: any = {};
+      if (productIds && productIds.length > 0) {
+        whereClause.id = { in: productIds };
+      } else if (categoryId && categoryId !== 'ALL') {
+        whereClause.categoryId = categoryId;
+      }
+
+      // Find affected products
+      const products = await tx.product.findMany({
+        where: whereClause,
+        select: { id: true }
+      });
+      const ids = products.map(p => p.id);
+
+      if (ids.length === 0) return { success: true, updatedCount: 0 };
+
+      // 3. Update their variants
+      let updatedCount = 0;
+      for (const [size, price] of Object.entries(pricesInFils)) {
+        if (price <= 0) continue;
+        
+        const { count } = await tx.productVariant.updateMany({
+          where: {
+            productId: { in: ids },
+            size: size
+          },
+          data: {
+            price: price,
+            usesGlobalPricing: true // Link them to global pricing
+          }
+        });
+        updatedCount += count;
+      }
+
+      // 4. Record audit log
+      await tx.auditLog.create({
+        data: {
+          employeeId: adminId,
+          action: 'BULK_PRICING_APPLIED',
+          entityType: 'ProductVariant',
+          entityId: 'MULTIPLE',
+          details: JSON.stringify({ pricesInFils, affectedProducts: ids.length, updatedVariants: updatedCount })
+        }
+      });
+
+      return { success: true, updatedCount };
+    });
+
+    return result;
+  } catch (error: any) {
+    return { success: false, error: error.message || 'حدث خطأ أثناء تعديل الأسعار' };
+  }
+}
+
+
 export async function getGlobalSizePrices() {
   const settings = await prisma.siteSettings.findUnique({
     where: { key: 'global_size_prices' }

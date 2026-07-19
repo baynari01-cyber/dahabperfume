@@ -1,14 +1,20 @@
 'use client';
 
 import { useState } from 'react';
-import { updateGlobalSizePrice } from '@/actions/settings';
+import { applyPricesToSelection } from '@/actions/settings';
 
 export function GlobalPricingModal({ 
   initialPrices, 
-  adminId 
+  adminId,
+  categories = [],
+  selectedProductIds = [],
+  onClearSelection
 }: { 
   initialPrices: Record<string, number>; 
-  adminId: string 
+  adminId: string;
+  categories?: any[];
+  selectedProductIds?: string[];
+  onClearSelection?: () => void;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [prices, setPrices] = useState({
@@ -16,45 +22,60 @@ export function GlobalPricingModal({
     '100ml': (initialPrices['100ml'] || 15000) / 1000,
     '200ml': (initialPrices['200ml'] || 25000) / 1000,
   });
+  
+  const [targetMode, setTargetMode] = useState<'ALL' | 'SELECTED' | 'CATEGORY'>(selectedProductIds.length > 0 ? 'SELECTED' : 'ALL');
+  const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
+  
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+
+  const handleOpen = () => {
+    setTargetMode(selectedProductIds.length > 0 ? 'SELECTED' : 'ALL');
+    setIsOpen(true);
+  };
 
   const handleSave = async () => {
     setLoading(true);
     setMessage('');
     
-    let totalUpdated = 0;
-    let hasError = false;
+    // Prepare prices in fils
+    const pricesInFils = {
+      '50ml': prices['50ml'] * 1000,
+      '100ml': prices['100ml'] * 1000,
+      '200ml': prices['200ml'] * 1000,
+    };
 
-    // Update each size sequentially
-    for (const size of ['50ml', '100ml', '200ml']) {
-      const fils = prices[size as keyof typeof prices] * 1000;
-      const res = await updateGlobalSizePrice(size, fils, adminId);
-      if (!res.success) {
-        hasError = true;
-        setMessage((res as any).error || 'حدث خطأ أثناء حفظ الأسعار');
-        break;
-      }
-      totalUpdated += (res as any).updatedCount || 0;
-    }
+    const isGlobalSettingsUpdate = targetMode === 'ALL';
+    
+    const res = await applyPricesToSelection({
+      pricesInFils,
+      adminId,
+      updateGlobalSettings: isGlobalSettingsUpdate,
+      productIds: targetMode === 'SELECTED' ? selectedProductIds : [],
+      categoryId: targetMode === 'CATEGORY' ? selectedCategory : undefined
+    });
 
     setLoading(false);
-    if (!hasError) {
-      setMessage(`تم التحديث بنجاح، وتطبيق السعر الجديد على ${totalUpdated} حجم(أحجام)`);
+
+    if (res.success) {
+      setMessage(`تم التحديث بنجاح، وتطبيق السعر الجديد على ${(res as any).updatedCount || 0} حجم(أحجام)`);
+      if (onClearSelection) onClearSelection();
       setTimeout(() => {
         setIsOpen(false);
         window.location.reload();
       }, 2000);
+    } else {
+      setMessage((res as any).error || 'حدث خطأ أثناء حفظ الأسعار');
     }
   };
 
   return (
     <>
       <button 
-        onClick={() => setIsOpen(true)}
-        className="bg-white border border-[var(--color-champagne-600)] text-[var(--color-charcoal-900)] hover:bg-zinc-50 px-4 py-2.5 rounded font-bold transition-colors text-sm ml-2 shadow-sm"
+        onClick={handleOpen}
+        className="bg-white border border-[var(--color-champagne-600)] text-[var(--color-charcoal-900)] hover:bg-zinc-50 px-4 py-2.5 rounded font-bold transition-colors text-sm shadow-sm whitespace-nowrap"
       >
-        تعديل الأسعار الموحدة
+        تعديل الأسعار الموحدة {selectedProductIds.length > 0 ? `(${selectedProductIds.length})` : ''}
       </button>
 
       {isOpen && (
@@ -68,8 +89,64 @@ export function GlobalPricingModal({
             </div>
             
             <div className="p-6 space-y-4">
-              <p className="text-sm text-zinc-600 mb-4 leading-relaxed">
-                ستُطبّق هذه الأسعار تلقائياً عند إضافة عطر جديد، وأيضاً سيتم تحديث أسعار كافة العطور الحالية التي تعتمد &quot;السعر الموحد&quot;.
+              
+              {/* Target Selection */}
+              <div className="bg-zinc-50 border border-zinc-200 rounded p-4 space-y-3">
+                <h3 className="font-bold text-sm text-zinc-700">تطبيق الأسعار على:</h3>
+                
+                <label className="flex items-center gap-2 text-sm cursor-pointer">
+                  <input 
+                    type="radio" 
+                    name="targetMode" 
+                    checked={targetMode === 'ALL'} 
+                    onChange={() => setTargetMode('ALL')} 
+                    className="text-[var(--color-champagne-600)] focus:ring-[var(--color-champagne-600)]"
+                  />
+                  <span className="font-bold">جميع المنتجات المرتبطة بالتسعير الموحد</span>
+                </label>
+
+                <label className="flex items-center gap-2 text-sm cursor-pointer">
+                  <input 
+                    type="radio" 
+                    name="targetMode" 
+                    checked={targetMode === 'SELECTED'} 
+                    onChange={() => setTargetMode('SELECTED')} 
+                    disabled={selectedProductIds.length === 0}
+                    className="text-[var(--color-champagne-600)] focus:ring-[var(--color-champagne-600)]"
+                  />
+                  <span className={selectedProductIds.length === 0 ? 'text-zinc-400' : 'font-bold'}>
+                    المنتجات المحددة في الجدول ({selectedProductIds.length})
+                  </span>
+                </label>
+
+                <div className="flex flex-col gap-2">
+                  <label className="flex items-center gap-2 text-sm cursor-pointer">
+                    <input 
+                      type="radio" 
+                      name="targetMode" 
+                      checked={targetMode === 'CATEGORY'} 
+                      onChange={() => setTargetMode('CATEGORY')} 
+                      className="text-[var(--color-champagne-600)] focus:ring-[var(--color-champagne-600)]"
+                    />
+                    <span className="font-bold">حسب التصنيف (المجموعة)</span>
+                  </label>
+                  {targetMode === 'CATEGORY' && (
+                    <select 
+                      value={selectedCategory} 
+                      onChange={(e) => setSelectedCategory(e.target.value)}
+                      className="mr-6 border border-zinc-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:border-[var(--color-champagne-600)]"
+                    >
+                      <option value="ALL" disabled>اختر التصنيف...</option>
+                      {categories.map(cat => (
+                        <option key={cat.id} value={cat.id}>{cat.name}</option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+              </div>
+
+              <p className="text-xs text-zinc-500 leading-relaxed">
+                ملاحظة: عند تطبيق الأسعار على عطور محددة، سيتم تفعيل خيار &quot;استخدام السعر الموحد&quot; لها لتتأثر بالتحديثات المستقبلية للأسعار الموحدة.
               </p>
 
               {message && (
@@ -109,7 +186,7 @@ export function GlobalPricingModal({
                 disabled={loading}
               >
                 {loading && <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>}
-                حفظ وتطبيق
+                تطبيق الأسعار
               </button>
             </div>
           </div>
