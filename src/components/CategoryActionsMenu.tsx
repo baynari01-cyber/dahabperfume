@@ -148,7 +148,7 @@ export function CategoryActionsMenu({
           <div className="bg-white rounded-lg p-6 max-w-md w-full shadow-xl">
             <h3 className="text-xl font-bold mb-4 text-red-600">حذف المجموعة</h3>
             <p className="text-sm text-zinc-600 mb-4">
-              أنت على وشك حذف مجموعة "{category.name}". ماذا تريد أن تفعل بالمنتجات التابعة لها؟
+              أنت على وشك حذف مجموعة &quot;{category.name}&quot;. ماذا تريد أن تفعل بالمنتجات التابعة لها؟
             </p>
             
             <div className="space-y-4 bg-zinc-50 p-4 rounded-md border border-zinc-200">

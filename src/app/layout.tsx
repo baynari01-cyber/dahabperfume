@@ -16,7 +16,7 @@ const tajawal = Tajawal({
   display: 'swap',
 });
 
-const BASE_URL = 'https://dahabperfumes.com';
+const BASE_URL = 'https://www.dahab-perfume.com';
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),

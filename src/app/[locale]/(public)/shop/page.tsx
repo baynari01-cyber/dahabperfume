@@ -8,7 +8,7 @@ import type { Metadata } from 'next';
 
 export const revalidate = 60;
 
-const BASE_URL = 'https://dahabperfumes.com';
+const BASE_URL = 'https://www.dahab-perfume.com';
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;

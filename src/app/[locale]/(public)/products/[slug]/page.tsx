@@ -5,9 +5,10 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ProductVariantSelector } from '@/components/ProductVariantSelector';
 import ProductMainAccords from '@/components/ProductMainAccords';
+import SuggestedProducts from '@/components/SuggestedProducts';
 import type { Metadata } from 'next';
 
-const BASE_URL = 'https://dahabperfumes.com';
+const BASE_URL = 'https://www.dahab-perfume.com';
 
 export const revalidate = 60; // تحديث صفحات المنتجات كل دقيقة بدلاً من ساعة
 
@@ -100,6 +101,19 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       family: true,
       gender: true,
       season: true,
+      // Fetch explicitly configured similar products
+      similarProducts: {
+        include: {
+          similar: {
+            include: {
+              images: { where: { isMain: true }, take: 1 },
+              variants: { orderBy: { price: 'asc' }, take: 1 },
+            }
+          }
+        },
+        orderBy: { order: 'asc' },
+        take: 3,
+      },
     }
   });
 
@@ -117,6 +131,51 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const mainImageUrl = mainImage?.url?.startsWith('local://')
     ? `${BASE_URL}/product-placeholder.png`
     : mainImage?.url || `${BASE_URL}/og-image.jpg`;
+
+  // Build suggested products list
+  let suggestedProductsData: Array<{
+    id: string;
+    slug: string;
+    nameAr: string;
+    nameEn: string;
+    imageUrl: string | null;
+    lowestPrice: number;
+  }> = [];
+
+  if (product.similarProducts.length > 0) {
+    // Admin has configured specific similar products
+    suggestedProductsData = product.similarProducts
+      .map(sp => sp.similar)
+      .filter(p => p.isVisible)
+      .map(p => ({
+        id: p.id,
+        slug: p.slug,
+        nameAr: p.nameAr,
+        nameEn: p.nameEn,
+        imageUrl: p.images[0]?.url || null,
+        lowestPrice: p.variants.length > 0 ? Math.min(...p.variants.map(v => v.price)) : 0,
+      }));
+  } else {
+    // No similar products configured — fallback: first 3 visible products (excluding current)
+    const fallbackProducts = await prisma.product.findMany({
+      where: { isVisible: true, id: { not: product.id } },
+      include: {
+        images: { where: { isMain: true }, take: 1 },
+        variants: { orderBy: { price: 'asc' }, take: 1 },
+      },
+      orderBy: { createdAt: 'asc' },
+      take: 3,
+    });
+
+    suggestedProductsData = fallbackProducts.map(p => ({
+      id: p.id,
+      slug: p.slug,
+      nameAr: p.nameAr,
+      nameEn: p.nameEn,
+      imageUrl: p.images[0]?.url || null,
+      lowestPrice: p.variants.length > 0 ? Math.min(...p.variants.map(v => v.price)) : 0,
+    }));
+  }
 
   // بيانات المنتج المهيكلة لـ Google (Product Schema + BreadcrumbList)
   const productSchema = {
@@ -214,13 +273,17 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                 accords={product.accords.map(a => ({
                   id: a.accordId,
                   name: a.accord.name,
-                  value: a.value
+                  value: a.value,
+                  color: a.accord.color,
                 }))} 
               />
             </div>
           )}
         </div>
       </div>
+
+      {/* Suggested Products Section */}
+      <SuggestedProducts products={suggestedProductsData} locale={locale} />
     </div>
   );
 }

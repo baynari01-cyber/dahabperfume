@@ -26,7 +26,7 @@ export function AdminOrderQuickActions({
 
   const handleUpdate = (newStatus: string, openWhatsApp: boolean = false) => {
     if (openWhatsApp) {
-      const msg = encodeURIComponent(`مرحباً بك في دهب للعطور 🌟.\nتم تأكيد طلبك والبدء بتجهيزه! رقم الطلب: #${reference}\nيمكنك استعراض الفاتورة الرسمية عبر الرابط التالي:\n${window.location.origin}/ar/invoice/${orderId}`);
+      const msg = encodeURIComponent(`مرحباً بك في دهب للعطور 🌟.\nتم تأكيد طلبك والبدء بتجهيزه! رقم الطلب: #${reference}\nيمكنك استعراض الفاتورة الرسمية عبر الرابط التالي:\nhttps://www.dahab-perfume.com/ar/invoice/${orderId}`);
       const cleanPhone = phone.replace(/\D/g, '');
       window.open(`https://wa.me/${cleanPhone}?text=${msg}`, '_blank');
     }

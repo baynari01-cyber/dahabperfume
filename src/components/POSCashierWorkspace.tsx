@@ -197,6 +197,7 @@ export function POSCashierWorkspace({
       window.removeEventListener('touchstart', handleCaptureInteraction, true);
       window.removeEventListener('keydown', handleCaptureInteraction, true);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isIdle]);
 
   useEffect(() => {
@@ -213,6 +214,7 @@ export function POSCashierWorkspace({
         window.removeEventListener(event, resetIdleTimer);
       });
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLocked, isIdle, posIdleEnabled, posIdleTimeoutMinutes]);
 
   const handleLockAction = () => {

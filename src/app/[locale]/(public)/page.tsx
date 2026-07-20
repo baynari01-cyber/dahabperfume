@@ -19,7 +19,7 @@ export const revalidate = 60;
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { locale = 'ar' } = await params;
   const isAr = locale === 'ar';
-  const BASE_URL = 'https://dahabperfumes.com';
+  const BASE_URL = 'https://www.dahab-perfume.com';
 
   return {
     title: isAr
@@ -166,7 +166,7 @@ export default async function StoreFrontPage({ params }: { params: Promise<Param
               '@context': 'https://schema.org',
               '@type': 'HealthAndBeautyBusiness',
               'name': locationSettings.storeName,
-              'url': 'https://dahabperfumes.com',
+              'url': 'https://www.dahab-perfume.com',
               'telephone': locationSettings.phone,
               'address': {
                 '@type': 'PostalAddress',

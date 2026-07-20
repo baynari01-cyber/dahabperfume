@@ -12,7 +12,7 @@ export function OrderWhatsAppButton({
   orderId: string;
 }) {
   const handleWhatsApp = () => {
-    const msg = encodeURIComponent(`مرحباً بك في دهب للعطور 🌟.\nتم تأكيد طلبك بنجاح! رقم الطلب: #${reference}\nيمكنك استعراض الفاتورة الرسمية عبر الرابط التالي:\n${window.location.origin}/ar/invoice/${orderId}`);
+    const msg = encodeURIComponent(`مرحباً بك في دهب للعطور 🌟.\nتم تأكيد طلبك بنجاح! رقم الطلب: #${reference}\nيمكنك استعراض الفاتورة الرسمية عبر الرابط التالي:\nhttps://www.dahab-perfume.com/ar/invoice/${orderId}`);
     const cleanPhone = phone.replace(/\D/g, '');
     window.open(`https://wa.me/${cleanPhone}?text=${msg}`, '_blank');
   };

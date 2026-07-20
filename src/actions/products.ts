@@ -123,6 +123,27 @@ export async function updateProduct(productId: string, formData: FormData) {
       try { variants = JSON.parse(variantsJson); } catch {}
     }
 
+    // Handle accords
+    let accords: Array<{ accordId: string; value: number; order: number }> = [];
+    const accordsJson = formData.get('accords') as string;
+    if (accordsJson) {
+      try {
+        const parsed = JSON.parse(accordsJson);
+        accords = parsed.map((a: any, idx: number) => ({
+          accordId: a.accordId,
+          value: Number(a.value),
+          order: idx,
+        }));
+      } catch {}
+    }
+
+    // Handle similar products
+    let similarProductIds: string[] = [];
+    const similarJson = formData.get('similarProductIds') as string;
+    if (similarJson) {
+      try { similarProductIds = JSON.parse(similarJson); } catch {}
+    }
+
     // Handle image
     let imageUrl = '';
     const imageFile = formData.get('image') as File;
@@ -162,6 +183,35 @@ export async function updateProduct(productId: string, formData: FormData) {
           usesGlobalPricing: v.usesGlobalPricing ?? true,
         }))
       });
+    }
+
+    // Update accords: delete all and re-create
+    await prisma.productAccord.deleteMany({ where: { productId } });
+    if (accords.length > 0) {
+      await prisma.productAccord.createMany({
+        data: accords.map((a) => ({
+          productId,
+          accordId: a.accordId,
+          value: a.value,
+          order: a.order,
+        }))
+      });
+    }
+
+    // Update similar products
+    await prisma.productSimilar.deleteMany({ where: { productId } });
+    if (similarProductIds.length > 0) {
+      // Filter out self-references
+      const validIds = similarProductIds.filter(id => id !== productId);
+      if (validIds.length > 0) {
+        await prisma.productSimilar.createMany({
+          data: validIds.map((similarId, idx) => ({
+            productId,
+            similarId,
+            order: idx,
+          }))
+        });
+      }
     }
 
     // Update image if provided

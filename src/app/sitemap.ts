@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/db';
 
 // أنواع الصفحات المُدرجة في الـ sitemap
-const BASE_URL = 'https://dahabperfumes.com';
+const BASE_URL = 'https://www.dahab-perfume.com';
 
 export default async function sitemap() {
   const now = new Date();

@@ -146,8 +146,22 @@ model Product {
   orderItems       OrderItem[]
   slides           HomepageHeroSlide[]
   stockLiters      Float               @default(1.0)
+  // Similar products (many-to-many self-relation)
+  similarProducts  ProductSimilar[]    @relation("ProductSimilars")
+  similarOf        ProductSimilar[]    @relation("SimilarOf")
   createdAt        DateTime            @default(now())
   updatedAt        DateTime            @updatedAt
+}
+
+model ProductSimilar {
+  productId String
+  similarId String
+  order     Int     @default(0)
+  product   Product @relation("ProductSimilars", fields: [productId], references: [id], onDelete: Cascade)
+  similar   Product @relation("SimilarOf", fields: [similarId], references: [id], onDelete: Cascade)
+
+  @@id([productId, similarId])
+  @@index([productId])
 }
 
 model ProductVariant {

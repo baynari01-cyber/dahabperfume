@@ -6,6 +6,7 @@ export type AccordData = {
   id: string;
   name: string;
   value: number;
+  color?: string | null;
 };
 
 interface ProductMainAccordsProps {
@@ -33,6 +34,20 @@ const ACCORD_COLORS: Record<string, { bg: string; text: string }> = {
   'woody': { bg: '#5c4033', text: '#ffffff' },
   'أروماتك': { bg: '#4a807c', text: '#ffffff' },
   'aromatic': { bg: '#4a807c', text: '#ffffff' },
+  'عود': { bg: '#3d2b1a', text: '#ffffff' },
+  'oud': { bg: '#3d2b1a', text: '#ffffff' },
+  'مسك': { bg: '#d4b8a0', text: '#000000' },
+  'musk': { bg: '#d4b8a0', text: '#000000' },
+  'زهري': { bg: '#e8a0b4', text: '#000000' },
+  'floral': { bg: '#e8a0b4', text: '#000000' },
+  'عنبر': { bg: '#c8860a', text: '#ffffff' },
+  'amber': { bg: '#c8860a', text: '#ffffff' },
+  'جلد': { bg: '#8b5e3c', text: '#ffffff' },
+  'leather': { bg: '#8b5e3c', text: '#ffffff' },
+  'بحري': { bg: '#4a90b8', text: '#ffffff' },
+  'marine': { bg: '#4a90b8', text: '#ffffff' },
+  'طازج': { bg: '#6bab6b', text: '#ffffff' },
+  'fresh': { bg: '#6bab6b', text: '#ffffff' },
 };
 
 const DEFAULT_COLOR = { bg: '#6b7280', text: '#ffffff' };
@@ -52,12 +67,16 @@ export default function ProductMainAccords({ accords }: ProductMainAccordsProps)
         <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-zinc-700/50 rounded-full" />
         
         {sortedAccords.map((accord) => {
-          const colorData = ACCORD_COLORS[accord.name.toLowerCase()] || DEFAULT_COLOR;
+          // Use accord's own color if available, otherwise fallback to name-based colors
+          const namedColor = ACCORD_COLORS[accord.name.toLowerCase()];
+          const colorData = accord.color
+            ? { bg: accord.color, text: '#ffffff' }
+            : namedColor || DEFAULT_COLOR;
           // Use the raw value as percentage directly (cap at 100%)
           const percentage = Math.min(100, Math.max(10, accord.value));
           
           return (
-            <div key={accord.id} className="relative w-full h-10 flex items-center pr-12 group">
+            <div key={accord.id} className="relative w-full h-10 flex items-center group">
               <div 
                 className="h-full rounded-r-lg transition-all duration-700 ease-out flex items-center justify-center relative overflow-hidden group-hover:brightness-110"
                 style={{ 
@@ -77,10 +96,6 @@ export default function ProductMainAccords({ accords }: ProductMainAccordsProps)
                 </span>
                 
                 <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:animate-[shimmer_1.5s_infinite]" />
-              </div>
-              
-              <div className="absolute right-2 text-zinc-400 text-sm font-bold font-mono whitespace-nowrap">
-                {accord.value}%
               </div>
             </div>
           );

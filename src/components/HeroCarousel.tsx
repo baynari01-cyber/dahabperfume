@@ -121,6 +121,7 @@ export function HeroCarousel({ slides, settings }: HeroCarouselProps) {
     return () => {
       if (autoPlayTimerRef.current) clearInterval(autoPlayTimerRef.current);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentIndex, isPaused, prefersReducedMotion, activeSlides.length]);
 
   // Pause autoplay when the browser tab is hidden

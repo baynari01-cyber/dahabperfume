@@ -24,7 +24,9 @@ export default async function AdminProductEditPage({
     include: {
       category: true,
       images: true,
-      variants: { orderBy: { createdAt: 'asc' } }
+      variants: { orderBy: { createdAt: 'asc' } },
+      accords: { include: { accord: true }, orderBy: { order: 'asc' } },
+      similarProducts: { include: { similar: { include: { images: { where: { isMain: true }, take: 1 } } } }, orderBy: { order: 'asc' } },
     }
   });
 
@@ -34,6 +36,14 @@ export default async function AdminProductEditPage({
   const genders = await prisma.gender.findMany({ orderBy: { name: 'asc' } });
   const seasons = await prisma.season.findMany({ orderBy: { name: 'asc' } });
   const families = await prisma.fragranceFamily.findMany({ orderBy: { name: 'asc' } });
+  const allAccords = await prisma.accord.findMany({ orderBy: { name: 'asc' } });
+
+  // All products except this one (for similar products selection)
+  const allProducts = await prisma.product.findMany({
+    where: { id: { not: id }, isVisible: true },
+    include: { images: { where: { isMain: true }, take: 1 } },
+    orderBy: { nameAr: 'asc' },
+  });
 
   const initialData = {
     nameAr: product.nameAr,
@@ -59,7 +69,15 @@ export default async function AdminProductEditPage({
       id: img.id,
       url: img.url,
       isMain: img.isMain
-    }))
+    })),
+    accords: product.accords.map(a => ({
+      accordId: a.accordId,
+      name: a.accord.name,
+      color: a.accord.color,
+      value: a.value,
+      order: a.order,
+    })),
+    similarProductIds: product.similarProducts.map(sp => sp.similarId),
   };
 
   return (
@@ -85,6 +103,14 @@ export default async function AdminProductEditPage({
           genders={genders.map(g => ({ id: g.id, name: g.name }))}
           seasons={seasons.map(s => ({ id: s.id, name: s.name }))}
           families={families.map(f => ({ id: f.id, name: f.name }))}
+          allAccords={allAccords.map(a => ({ id: a.id, name: a.name, color: a.color }))}
+          allProducts={allProducts.map(p => ({
+            id: p.id,
+            nameAr: p.nameAr,
+            nameEn: p.nameEn,
+            sku: p.sku,
+            imageUrl: p.images[0]?.url || null,
+          }))}
         />
       </main>
     </div>
