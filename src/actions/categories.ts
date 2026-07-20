@@ -82,6 +82,14 @@ export async function updateCategory(id: string, formData: FormData) {
       data
     });
 
+    const productIds = formData.getAll('productIds') as string[];
+    if (productIds && productIds.length > 0) {
+      await prisma.product.updateMany({
+        where: { id: { in: productIds } },
+        data: { categoryId: id }
+      });
+    }
+
     revalidatePath('/admin/categories');
     return { success: true };
   } catch (error: any) {

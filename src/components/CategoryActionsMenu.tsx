@@ -1,15 +1,17 @@
 'use client';
 
 import React, { useState, useTransition } from 'react';
-import { MoreHorizontal, Edit, Trash2 } from 'lucide-react';
+import { MoreHorizontal, Edit, Trash2, Search, Check } from 'lucide-react';
 import { updateCategory, deleteCategory } from '@/actions/categories';
 
 export function CategoryActionsMenu({ 
   category, 
-  allCategories 
+  allCategories,
+  allProducts = []
 }: { 
-  category: { id: string, name: string, imagePath: string | null };
+  category: { id: string, name: string, imagePath: string | null, products?: {id: string, nameAr: string, nameEn: string}[] };
   allCategories: { id: string, name: string }[];
+  allProducts?: { id: string, nameAr: string, nameEn: string, categoryId: string, category: { name: string } }[];
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -18,6 +20,24 @@ export function CategoryActionsMenu({
   // Edit State
   const [editName, setEditName] = useState(category.name);
   const [editImage, setEditImage] = useState<File | null>(null);
+  
+  // Products Selection State
+  const [productSearchTerm, setProductSearchTerm] = useState('');
+  const [selectedProductIds, setSelectedProductIds] = useState<string[]>(
+    category.products?.map(p => p.id) || []
+  );
+
+  const filteredProducts = allProducts.filter(p => 
+    p.nameAr.includes(productSearchTerm) || p.nameEn.toLowerCase().includes(productSearchTerm.toLowerCase())
+  );
+
+  const toggleProduct = (productId: string) => {
+    setSelectedProductIds(prev => 
+      prev.includes(productId) 
+        ? prev.filter(id => id !== productId)
+        : [...prev, productId]
+    );
+  };
 
   // Delete State
   const [deleteWithProducts, setDeleteWithProducts] = useState(false);
@@ -33,6 +53,9 @@ export function CategoryActionsMenu({
     if (editImage) {
       formData.append('image', editImage);
     }
+    selectedProductIds.forEach(id => {
+      formData.append('productIds', id);
+    });
 
     startTransition(async () => {
       const res = await updateCategory(category.id, formData);
@@ -119,6 +142,49 @@ export function CategoryActionsMenu({
                   onChange={e => setEditImage(e.target.files?.[0] || null)}
                   className="w-full border border-zinc-300 rounded-md p-2 text-sm"
                 />
+              </div>
+
+              {/* Product Selection */}
+              <div className="pt-2 border-t border-zinc-200">
+                <label className="block text-sm font-bold text-zinc-700 mb-2">
+                  تحديد منتجات لهذه المجموعة (اختياري)
+                </label>
+                <div className="relative mb-3">
+                  <input
+                    type="text"
+                    placeholder="ابحث عن عطر لإضافته..."
+                    value={productSearchTerm}
+                    onChange={(e) => setProductSearchTerm(e.target.value)}
+                    className="w-full border border-zinc-300 rounded-md pl-4 pr-10 py-2 text-sm focus:ring-2 focus:ring-[var(--color-champagne-600)] outline-none"
+                  />
+                  <Search className="w-4 h-4 text-zinc-400 absolute right-3 top-2.5" />
+                </div>
+                
+                <div className="max-h-48 overflow-y-auto border border-zinc-200 rounded-md p-2 space-y-1 bg-zinc-50">
+                  {filteredProducts.length > 0 ? (
+                    filteredProducts.map(product => {
+                      const isSelected = selectedProductIds.includes(product.id);
+                      return (
+                        <div 
+                          key={product.id}
+                          onClick={() => toggleProduct(product.id)}
+                          className={`flex justify-between items-center p-2 rounded-md cursor-pointer transition-colors text-sm ${isSelected ? 'bg-green-50 border border-green-200' : 'hover:bg-zinc-100 border border-transparent'}`}
+                        >
+                          <div className="flex flex-col">
+                            <span className="font-bold text-zinc-800">{product.nameAr}</span>
+                            <span className="text-xs text-zinc-500">مجموعته الحالية: {product.category?.name || 'بدون'}</span>
+                          </div>
+                          {isSelected && <Check className="w-4 h-4 text-green-600" />}
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="text-center text-zinc-500 text-sm py-4">لا توجد منتجات مطابقة للبحث</div>
+                  )}
+                </div>
+                <div className="mt-2 text-xs text-zinc-500 font-bold">
+                  المنتجات المحددة: {selectedProductIds.length} عطر
+                </div>
               </div>
             </div>
 

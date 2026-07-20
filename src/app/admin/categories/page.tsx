@@ -10,12 +10,15 @@ export default async function AdminCategoriesPage() {
 
   const categories = await prisma.category.findMany({
     include: {
-      _count: { select: { products: true } }
+      _count: { select: { products: true } },
+      products: {
+        select: { id: true, nameAr: true, nameEn: true }
+      }
     }
   });
 
-  const products = await prisma.product.findMany({
-    select: { id: true, nameAr: true, nameEn: true, category: { select: { name: true } } },
+  const allProducts = await prisma.product.findMany({
+    select: { id: true, nameAr: true, nameEn: true, category: { select: { name: true } }, categoryId: true },
     orderBy: { nameAr: 'asc' }
   });
 
@@ -63,8 +66,14 @@ export default async function AdminCategoriesPage() {
                     </td>
                     <td className="px-6 py-4 text-left">
                       <CategoryActionsMenu 
-                        category={{ id: cat.id, name: cat.name, imagePath: cat.imagePath }} 
+                        category={{ 
+                          id: cat.id, 
+                          name: cat.name, 
+                          imagePath: cat.imagePath,
+                          products: cat.products
+                        }} 
                         allCategories={categories.map(c => ({ id: c.id, name: c.name }))} 
+                        allProducts={allProducts}
                       />
                     </td>
                   </tr>
@@ -82,7 +91,7 @@ export default async function AdminCategoriesPage() {
           </div>
 
           {/* Add Category Form */}
-          <CategoryNewForm products={products} />
+          <CategoryNewForm products={allProducts} />
         </div>
       </main>
     </div>
