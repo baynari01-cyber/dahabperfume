@@ -26,6 +26,14 @@ export const metadata: Metadata = {
   },
   description:
     'دهب للعطور — وجهتك الأولى للعطور الشرقية الفاخرة في عمّان منذ 2007. اكتشف تشكيلتنا من العود والمسك والبخور والعطور المميزة. Dahab Perfumes — Premium Oriental Fragrances in Amman, Jordan since 2007.',
+  icons: {
+    icon: [
+      { url: '/icon.png', type: 'image/png', sizes: '512x512' },
+    ],
+    apple: [
+      { url: '/apple-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
+  },
   keywords: [
     'دهب للعطور',
     'عطور عمّان',
