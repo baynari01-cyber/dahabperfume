@@ -33,9 +33,14 @@ export async function generateUploadUrl(filename: string): Promise<{ success: bo
     const supabaseAdmin = getSupabaseAdmin();
 
     // Ensure bucket exists
-    const { data: buckets } = await supabaseAdmin.storage.listBuckets();
+    const { data: buckets, error: listError } = await supabaseAdmin.storage.listBuckets();
+    if (listError) throw new Error('فشل جلب الحاويات: ' + listError.message);
+    
     if (!buckets?.find(b => b.name === bucketName)) {
-      await supabaseAdmin.storage.createBucket(bucketName, { public: true });
+      const { error: createError } = await supabaseAdmin.storage.createBucket(bucketName, { public: true });
+      if (createError) {
+        throw new Error(`الرجاء إنشاء Bucket باسم '${bucketName}' من لوحة تحكم Supabase وتعيينه كـ Public. فشل الإنشاء التلقائي: ` + createError.message);
+      }
     }
 
     // Create a signed upload URL valid for 5 minutes
@@ -77,9 +82,14 @@ export async function uploadMedia(formData: FormData): Promise<{ success: boolea
     const bucketName = 'uploads';
     const supabaseAdmin = getSupabaseAdmin();
 
-    const { data: buckets } = await supabaseAdmin.storage.listBuckets();
+    const { data: buckets, error: listError } = await supabaseAdmin.storage.listBuckets();
+    if (listError) throw new Error('فشل جلب الحاويات: ' + listError.message);
+
     if (!buckets?.find(b => b.name === bucketName)) {
-      await supabaseAdmin.storage.createBucket(bucketName, { public: true });
+      const { error: createError } = await supabaseAdmin.storage.createBucket(bucketName, { public: true });
+      if (createError) {
+        throw new Error(`الرجاء إنشاء Bucket باسم '${bucketName}' من لوحة تحكم Supabase وتعيينه كـ Public. فشل الإنشاء التلقائي: ` + createError.message);
+      }
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());

@@ -398,3 +398,53 @@ export async function getActiveSessionPermissions() {
   if (!session) return [];
   return getEmployeePermissions(session.employeeId);
 }
+
+export async function deleteEmployee(employeeId: string, adminId: string) {
+  try {
+    const session = await requireSuperAdmin();
+    const employee = await prisma.employee.findUnique({
+      where: { id: employeeId },
+      include: { role: true }
+    });
+    if (!employee) return { success: false, error: 'الموظف غير موجود' };
+
+    if (employee.role.name === 'Admin') {
+      const activeAdminsCount = await prisma.employee.count({
+        where: {
+          role: { name: 'Admin' },
+          id: { not: employeeId }
+        }
+      });
+      if (activeAdminsCount === 0) {
+        return { success: false, error: 'لا يمكن حذف آخر مدير في النظام' };
+      }
+    }
+
+    await prisma.employee.delete({
+      where: { id: employeeId }
+    });
+
+    const headersList = await (await import('next/headers')).headers();
+    const ipAddress = headersList.get('x-forwarded-for') || 'unknown';
+
+    await prisma.auditLog.create({
+      data: {
+        employeeId: adminId,
+        action: 'EMPLOYEE_DELETED',
+        entityType: 'Employee',
+        entityId: employeeId,
+        ipAddress,
+        details: JSON.stringify({ email: employee.email })
+      }
+    });
+
+    revalidatePath('/admin/employees');
+    return { success: true };
+  } catch (error: any) {
+    if (error.code === 'P2003') {
+      return { success: false, error: 'لا يمكن حذف هذا الموظف لوجود مبيعات أو حركات مرتبطة به في النظام. يرجى استخدام زر التعطيل بدلاً من ذلك.' };
+    }
+    return { success: false, error: error.message || 'فشل حذف الموظف' };
+  }
+}
+

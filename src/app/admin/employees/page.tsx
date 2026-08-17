@@ -2,7 +2,7 @@ import React from 'react';
 import { requireAuth, getEmployeePermissions } from '@/lib/dal';
 import { prisma } from '@/lib/db';
 import { AdminSidebar } from '@/components/AdminSidebar';
-import { createEmployee, updateEmployee, toggleEmployeeStatus } from '@/actions/employees';
+import { createEmployee, updateEmployee, toggleEmployeeStatus, deleteEmployee } from '@/actions/employees';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 
@@ -150,6 +150,16 @@ export default async function AdminEmployeesPage({
     'use server';
     const targetId = formData.get('targetId') as string;
     await toggleEmployeeStatus(targetId, session.employeeId);
+    redirect('/admin/employees');
+  }
+
+  async function handleDelete(formData: FormData) {
+    'use server';
+    const targetId = formData.get('targetId') as string;
+    const res = await deleteEmployee(targetId, session.employeeId);
+    if (!res.success) {
+      throw new Error(res.error);
+    }
     redirect('/admin/employees');
   }
 
@@ -308,7 +318,16 @@ export default async function AdminEmployeesPage({
                           : 'text-green-600 hover:text-green-700 bg-green-50 hover:bg-green-100'
                       }`}
                     >
-                      {emp.isActive ? 'حذف / تعطيل' : 'تفعيل'}
+                      {emp.isActive ? 'تعطيل' : 'تفعيل'}
+                    </button>
+                  </form>
+                  <form action={handleDelete} className="inline-block">
+                    <input type="hidden" name="targetId" value={emp.id} />
+                    <button
+                      type="submit"
+                      className="text-xs px-3 py-1.5 rounded font-bold transition-colors text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100"
+                    >
+                      حذف نهائي
                     </button>
                   </form>
                   <form action={handleRevoke} className="inline-block">
