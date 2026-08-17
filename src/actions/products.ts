@@ -2,22 +2,16 @@
 
 import { prisma } from '@/lib/db';
 import { requirePermission } from '@/lib/dal';
-import fs from 'fs';
-import path from 'path';
-import crypto from 'crypto';
+import { uploadMedia } from '@/actions/upload';
 
 async function saveUploadedImage(imageFile: File): Promise<string> {
-  const buffer = Buffer.from(await imageFile.arrayBuffer());
-  const ext = path.extname(imageFile.name) || '.jpg';
-  const filename = `${crypto.randomUUID()}${ext}`;
-  const uploadDir = path.join(process.cwd(), 'public', 'uploads');
-
-  if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
+  const formData = new FormData();
+  formData.append('file', imageFile);
+  const result = await uploadMedia(formData);
+  if (!result.success || !result.url) {
+    throw new Error(result.error || 'فشل رفع الصورة');
   }
-
-  fs.writeFileSync(path.join(uploadDir, filename), buffer);
-  return `/uploads/${filename}`;
+  return result.url;
 }
 
 export async function createProduct(formData: FormData) {

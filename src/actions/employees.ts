@@ -4,6 +4,7 @@ import { prisma } from '@/lib/db';
 import { requirePermission, requireSuperAdmin } from '@/lib/dal';
 import * as argon2 from 'argon2';
 import crypto from 'crypto';
+import { revalidatePath } from 'next/cache';
 
 export async function createEmployee(data: {
   name: string;
@@ -68,6 +69,7 @@ export async function createEmployee(data: {
       }
     });
 
+    revalidatePath('/admin/employees');
     return { success: true, employeeId: employee.id, generatedPassword: password };
   } catch (error: any) {
     return { success: false, error: error.message || 'حدث خطأ أثناء حفظ البيانات' };
@@ -160,6 +162,7 @@ export async function updateEmployee(data: {
       }
     });
 
+    revalidatePath('/admin/employees');
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message || 'حدث خطأ أثناء تحديث البيانات' };
@@ -279,6 +282,7 @@ export async function toggleEmployeeStatus(employeeId: string, adminId: string) 
       }
     });
 
+    revalidatePath('/admin/employees');
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message || 'فشل تعديل حالة الموظف' };

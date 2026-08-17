@@ -9,8 +9,7 @@ import {
   reorderHeroSlides, 
   updateStoreLocationSettings 
 } from '@/actions/homepage-cms';
-import { uploadMedia, generateUploadUrl } from '@/actions/upload';
-import { createClient } from '@/utils/supabase/client';
+import { uploadMedia } from '@/actions/upload';
 
 const isVideo = (path: string) => /\.(mp4|webm|ogg)$/i.test(path || '');
 
@@ -291,32 +290,25 @@ export function CMSHomepageForm({
 
     startTransition(async () => {
       try {
-        const res = await generateUploadUrl(file.name);
+        const formData = new FormData();
+        formData.append('file', file);
         
-        if (res.success && res.token && res.path && res.publicUrl) {
-          const supabase = createClient();
-          const { error } = await supabase.storage
-            .from('uploads')
-            .uploadToSignedUrl(res.path, res.token, file);
-            
-          if (error) {
-            alert('فشل الرفع المباشر: ' + error.message);
-            return;
-          }
-          
+        const res = await uploadMedia(formData);
+        
+        if (res.success && res.url) {
           if (isEditing) {
             setEditingSlide((prev: any) => ({
               ...prev,
-              ...(isMobile ? { imageMobilePath: res.publicUrl } : { imageDesktopPath: res.publicUrl })
+              ...(isMobile ? { imageMobilePath: res.url } : { imageDesktopPath: res.url })
             }));
           } else {
             setNewSlide((prev: any) => ({
               ...prev,
-              ...(isMobile ? { imageMobilePath: res.publicUrl } : { imageDesktopPath: res.publicUrl })
+              ...(isMobile ? { imageMobilePath: res.url } : { imageDesktopPath: res.url })
             }));
           }
         } else {
-          alert(res.error || 'فشل في توليد رابط الرفع');
+          alert(res.error || 'فشل في رفع الصورة');
         }
       } catch (err: any) {
         alert(err.message || 'حدث خطأ أثناء الرفع');

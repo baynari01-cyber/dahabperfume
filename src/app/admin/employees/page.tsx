@@ -2,7 +2,7 @@ import React from 'react';
 import { requireAuth, getEmployeePermissions } from '@/lib/dal';
 import { prisma } from '@/lib/db';
 import { AdminSidebar } from '@/components/AdminSidebar';
-import { createEmployee, updateEmployee } from '@/actions/employees';
+import { createEmployee, updateEmployee, toggleEmployeeStatus } from '@/actions/employees';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 
@@ -143,6 +143,13 @@ export default async function AdminEmployeesPage({
       }
     });
 
+    redirect('/admin/employees');
+  }
+
+  async function handleToggleStatus(formData: FormData) {
+    'use server';
+    const targetId = formData.get('targetId') as string;
+    await toggleEmployeeStatus(targetId, session.employeeId);
     redirect('/admin/employees');
   }
 
@@ -291,6 +298,19 @@ export default async function AdminEmployeesPage({
                 </div>
 
                 <div className="flex gap-2 pt-3 border-t border-zinc-100 justify-end">
+                  <form action={handleToggleStatus} className="inline-block">
+                    <input type="hidden" name="targetId" value={emp.id} />
+                    <button
+                      type="submit"
+                      className={`text-xs px-3 py-1.5 rounded font-bold transition-colors ${
+                        emp.isActive 
+                          ? 'text-orange-600 hover:text-orange-700 bg-orange-50 hover:bg-orange-100' 
+                          : 'text-green-600 hover:text-green-700 bg-green-50 hover:bg-green-100'
+                      }`}
+                    >
+                      {emp.isActive ? 'حذف / تعطيل' : 'تفعيل'}
+                    </button>
+                  </form>
                   <form action={handleRevoke} className="inline-block">
                     <input type="hidden" name="targetId" value={emp.id} />
                     <button

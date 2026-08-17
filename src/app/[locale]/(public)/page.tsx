@@ -10,11 +10,13 @@ import type { Metadata } from 'next';
 import { filsToDisplay } from '@/lib/money';
 import { Sparkles } from 'lucide-react';
 
+import { unstable_cache } from 'next/cache';
+
 interface Params {
   locale?: string;
 }
 
-export const revalidate = 60;
+export const revalidate = 3600;
 
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { locale = 'ar' } = await params;
@@ -50,6 +52,64 @@ export default async function StoreFrontPage({ params }: { params: Promise<Param
   const { locale = 'ar' } = await params;
   const isAr = locale === 'ar';
 
+  // دالة لجلب المنتجات المميزة مع الكاش
+  const getCachedFeaturedProducts = unstable_cache(
+    async () => {
+      return prisma.product.findMany({
+        where: { isVisible: true, isFeatured: true },
+        orderBy: { featuredOrder: 'asc' },
+        take: 4,
+        select: {
+          id: true,
+          slug: true,
+          nameAr: true,
+          nameEn: true,
+          stockStatus: true,
+          variants: {
+            select: {
+              price: true,
+            }
+          },
+          images: {
+            where: { isMain: true },
+            take: 1,
+            select: {
+              url: true,
+              isMain: true,
+            }
+          },
+          category: {
+            select: {
+              name: true,
+            }
+          }
+        }
+      });
+    },
+    ['home-featured-products'],
+    { revalidate: 3600, tags: ['products'] }
+  );
+
+  // دالة لجلب المجموعات مع الكاش
+  const getCachedCollections = unstable_cache(
+    async () => {
+      return prisma.category.findMany({
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          imagePath: true,
+          // We don't really use the products array in the Collections UI except perhaps checking length, 
+          // but the current UI just shows category info. Wait, looking at the code, `collection.products` is NOT used in the view for categories section, only `collection.name`, `description`, and `imagePath`.
+          // Let's verify: line 235-271 maps over collections, uses `id`, `name`, `description`, `imagePath`. The products are not mapped there! 
+          // So we can entirely remove the inner `products` fetch for performance.
+        }
+      });
+    },
+    ['home-collections'],
+    { revalidate: 3600, tags: ['categories'] }
+  );
+
   // تشغيل كل استعلامات قاعدة البيانات بشكل متوازي لتحسين الأداء
   const [
     featuredProducts,
@@ -58,42 +118,11 @@ export default async function StoreFrontPage({ params }: { params: Promise<Param
     locationSettings,
     collections,
   ] = await Promise.all([
-    // 1. المنتجات المميزة
-    prisma.product.findMany({
-      where: { isVisible: true, isFeatured: true },
-      orderBy: { featuredOrder: 'asc' },
-      take: 4,
-      include: {
-        variants: true,
-        images: {
-          where: { isMain: true },
-          take: 1
-        },
-        category: true
-      }
-    }),
-    // 2. إعدادات الكاروسيل
+    getCachedFeaturedProducts(),
     getHeroCarouselSettings(),
-    // 3. شرائح الكاروسيل
     getHeroSlides(),
-    // 4. إعدادات موقع المتجر
     getStoreLocationSettings(),
-    // 5. المجموعات (التصنيفات) مع المنتجات
-    prisma.category.findMany({
-      include: {
-        products: {
-          where: { isVisible: true },
-          take: 6,
-          include: {
-            variants: true,
-            images: {
-              where: { isMain: true },
-              take: 1
-            }
-          }
-        }
-      }
-    }),
+    getCachedCollections(),
   ]);
 
   const now = new Date();
@@ -237,10 +266,12 @@ export default async function StoreFrontPage({ params }: { params: Promise<Param
                 <div className="relative rounded-xl overflow-hidden shadow-md border border-[var(--color-ivory-200)] group-hover:border-[var(--color-champagne-600)] group-hover:shadow-xl transition-all duration-300 aspect-[4/5]">
                   {/* صورة المجموعة كاملة */}
                   {collection.imagePath ? (
-                    <img
+                    <Image
                       src={collection.imagePath.startsWith('local://') ? '/product-placeholder.png' : collection.imagePath}
                       alt={collection.name}
-                      className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 33vw"
+                      className="absolute inset-0 object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                   ) : (
                     /* Gradient placeholder عندما لا توجد صورة */

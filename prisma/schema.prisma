@@ -151,6 +151,12 @@ model Product {
   similarOf        ProductSimilar[]    @relation("SimilarOf")
   createdAt        DateTime            @default(now())
   updatedAt        DateTime            @updatedAt
+
+  @@index([slug])
+  @@index([categoryId])
+  @@index([genderId])
+  @@index([seasonId])
+  @@index([isVisible])
 }
 
 model ProductSimilar {
