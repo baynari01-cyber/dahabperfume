@@ -261,53 +261,44 @@ export default async function StoreFrontPage({ params }: { params: Promise<Param
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
             {collections.length > 0 ? collections.map(collection => (
-              <Link href={`/${locale}/shop?category=${collection.id}`} key={collection.id} className="block group">
-                {/* بطاقة المجموعة — الصورة تملأ البطاقة كاملاً مع gradient overlay */}
-                <div className="relative rounded-xl overflow-hidden shadow-md border border-[var(--color-ivory-200)] group-hover:border-[var(--color-champagne-600)] group-hover:shadow-xl transition-all duration-300 aspect-[4/5]">
-                  {/* صورة المجموعة كاملة */}
+              <Link href={`/${locale}/shop?category=${collection.id}`} key={collection.id} className="group flex flex-col rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 bg-white border border-[var(--color-ivory-200)] hover:border-[var(--color-champagne-600)]">
+                <div className="relative aspect-[4/3] overflow-hidden bg-zinc-100">
                   {collection.imagePath ? (
                     <Image
                       src={collection.imagePath.startsWith('local://') ? '/product-placeholder.png' : collection.imagePath}
                       alt={collection.name}
                       fill
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 33vw"
-                      className="absolute inset-0 object-cover group-hover:scale-105 transition-transform duration-500"
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                   ) : (
-                    /* Gradient placeholder عندما لا توجد صورة */
                     <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-charcoal-800)] via-[var(--color-charcoal-700)] to-[var(--color-champagne-600)] group-hover:scale-105 transition-transform duration-500" />
                   )}
+                </div>
 
-                  {/* Gradient overlay من الأسفل */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-
-                  {/* محتوى البطاقة في الأسفل */}
-                  <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
-                    <h3 className="text-xl font-bold font-heading mb-1 drop-shadow-md">
-                      {collection.name}
-                    </h3>
-                    {collection.description && (
-                      <p className="text-sm text-zinc-200 line-clamp-2 drop-shadow-sm">
-                        {collection.description}
-                      </p>
-                    )}
-                    {/* زر "تسوق الآن" يظهر عند hover */}
-                    <div className="mt-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 translate-y-2 group-hover:translate-y-0">
-                      <span className="inline-block text-xs font-bold bg-[var(--color-champagne-600)] text-white px-4 py-1.5 rounded-full">
-                        {isAr ? 'تسوق الآن ←' : 'Shop Now →'}
-                      </span>
-                    </div>
+                <div className="p-5 flex flex-col flex-grow text-[var(--color-charcoal-900)] bg-white">
+                  <h3 className="text-xl font-bold font-heading mb-2 text-zinc-900 group-hover:text-[var(--color-champagne-600)] transition-colors">
+                    {collection.name}
+                  </h3>
+                  {collection.description && (
+                    <p className="text-sm text-zinc-500 line-clamp-2 mb-4">
+                      {collection.description}
+                    </p>
+                  )}
+                  <div className="mt-auto">
+                    <span className="inline-flex items-center gap-1 text-xs font-bold text-[var(--color-champagne-600)] transition-transform duration-300 transform group-hover:rtl:-translate-x-1 group-hover:ltr:translate-x-1">
+                      {isAr ? 'تسوق الآن ←' : 'Shop Now →'}
+                    </span>
                   </div>
                 </div>
               </Link>
             )) : (
               <>
                 {[isAr ? 'رجالي' : 'Men', isAr ? 'نسائي' : 'Women', isAr ? 'عود' : 'Oud'].map((label, i) => (
-                  <div key={i} className="relative rounded-xl overflow-hidden shadow-md aspect-[4/5] border border-[var(--color-ivory-200)]">
-                    <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-charcoal-800)] via-[var(--color-charcoal-700)] to-[var(--color-champagne-600)]" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-                    <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
-                      <h3 className="text-xl font-bold font-heading">{label}</h3>
+                  <div key={i} className="flex flex-col rounded-xl overflow-hidden shadow-sm border border-[var(--color-ivory-200)] bg-white">
+                    <div className="relative aspect-[4/3] bg-gradient-to-br from-[var(--color-charcoal-800)] via-[var(--color-charcoal-700)] to-[var(--color-champagne-600)]" />
+                    <div className="p-5">
+                      <h3 className="text-xl font-bold font-heading text-zinc-900">{label}</h3>
                     </div>
                   </div>
                 ))}
