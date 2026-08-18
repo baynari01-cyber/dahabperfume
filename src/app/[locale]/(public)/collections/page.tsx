@@ -37,7 +37,7 @@ export default async function CollectionsPage({ params }: { params: Promise<{ lo
             <Link 
               href={`/${locale}/shop?category=${collection.id}`} 
               key={collection.id} 
-              className="group block relative overflow-hidden rounded-2xl shadow-sm hover:shadow-xl transition-all duration-500 bg-white border border-[var(--color-ivory-200)]"
+              className="group flex flex-col overflow-hidden rounded-2xl shadow-sm hover:shadow-xl transition-all duration-500 bg-white border border-[var(--color-ivory-200)]"
             >
               <div className="aspect-[4/3] w-full relative bg-zinc-100 overflow-hidden">
                 {collection.imagePath ? (
@@ -52,25 +52,23 @@ export default async function CollectionsPage({ params }: { params: Promise<{ lo
                     <span className="text-zinc-400 font-heading text-lg">دهب للعطور</span>
                   </div>
                 )}
-                {/* Gradient Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-[var(--color-charcoal-900)] via-[var(--color-charcoal-900)]/20 to-transparent transition-opacity duration-300 opacity-90 group-hover:opacity-100" />
               </div>
               
-              <div className="absolute bottom-0 left-0 w-full p-8 text-white transform transition-transform duration-500 translate-y-4 group-hover:translate-y-0">
-                <h3 className="text-3xl font-bold font-heading mb-2 drop-shadow-md">{collection.name}</h3>
+              <div className="p-6 flex flex-col flex-grow bg-white z-10">
+                <h3 className="text-2xl font-bold font-heading mb-2 text-zinc-900 group-hover:text-[var(--color-champagne-600)] transition-colors">{collection.name}</h3>
                 
                 {collection.description && (
-                  <p className="text-zinc-300 text-sm mb-4 line-clamp-2 opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100">
+                  <p className="text-zinc-500 text-sm mb-4 line-clamp-2">
                     {collection.description}
                   </p>
                 )}
 
-                <div className="flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-200">
-                  <p className="text-[var(--color-champagne-400)] font-bold">
+                <div className="mt-auto flex items-center justify-between pt-4 border-t border-zinc-100">
+                  <p className="text-zinc-600 font-medium text-sm">
                     {collection._count.products} {isAr ? 'عطور' : 'Perfumes'}
                   </p>
-                  <span className="bg-[var(--color-champagne-600)] text-[var(--color-charcoal-900)] p-2 rounded-full transform group-hover:rotate-45 transition-transform duration-300">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                  <span className="text-[var(--color-champagne-600)] bg-[var(--color-champagne-50)] p-2 rounded-full transform group-hover:scale-110 transition-transform duration-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="rtl:rotate-180"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
                   </span>
                 </div>
               </div>
