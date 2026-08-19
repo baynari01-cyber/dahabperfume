@@ -49,7 +49,7 @@ export default function SuggestedProducts({ products, locale }: SuggestedProduct
               className="group block bg-white rounded-2xl border border-[var(--color-ivory-200)] overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
             >
               {/* Image */}
-              <div className="aspect-square bg-[var(--color-ivory-100)] overflow-hidden relative">
+              <div className="aspect-[4/3] bg-[var(--color-ivory-100)] overflow-hidden relative">
                 <div
                   className="w-full h-full bg-cover bg-center bg-no-repeat transform group-hover:scale-105 transition-transform duration-500"
                   style={{ backgroundImage: `url("${imageUrl}")` }}

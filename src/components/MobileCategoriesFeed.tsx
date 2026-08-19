@@ -64,7 +64,7 @@ export function MobileCategoriesFeed({ categories, locale, isAr }: { categories:
                     key={product.id}
                     className={`group bg-white rounded-lg shadow-sm border border-[var(--color-ivory-200)] flex flex-col snap-start shrink-0 ${isExpanded ? 'w-full h-full' : 'w-48'} hover:border-[var(--color-champagne-600)] transition-all overflow-hidden`}
                   >
-                    <div className="relative aspect-square w-full bg-[var(--color-ivory-200)]">
+                    <div className="relative aspect-[4/3] w-full bg-[var(--color-ivory-200)]">
                       <div className="absolute top-2 right-2 z-20">
                         <WishlistHeart product={{
                           id: product.id,

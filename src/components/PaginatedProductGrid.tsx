@@ -58,7 +58,7 @@ export function PaginatedProductGrid({
 
           return (
             <Link key={product.id} href={`/${locale}/products/${product.slug}`} className="group bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 p-4 border border-[var(--color-ivory-200)] flex flex-col h-full hover:border-[var(--color-champagne-600)]">
-              <div className="relative aspect-square w-full bg-[var(--color-ivory-200)] rounded-md mb-4 overflow-hidden">
+              <div className="relative aspect-[4/3] w-full bg-[var(--color-ivory-200)] rounded-md mb-4 overflow-hidden">
                 <div className="absolute top-2 right-2 z-20">
                   <WishlistHeart product={{
                     id: product.id,

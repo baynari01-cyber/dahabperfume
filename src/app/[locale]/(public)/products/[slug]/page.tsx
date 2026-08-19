@@ -230,7 +230,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
         {/* Product Images */}
         <div className="space-y-4">
-          <div className="aspect-square bg-[var(--color-ivory-200)] rounded-lg overflow-hidden relative border border-[var(--color-ivory-200)]">
+          <div className="aspect-[4/3] bg-[var(--color-ivory-200)] rounded-lg overflow-hidden relative border border-[var(--color-ivory-200)]">
              <div className="absolute inset-0 flex items-center justify-center text-[var(--color-charcoal-600)]">
                {mainImage ? (
                   <div className="w-full h-full bg-contain bg-center bg-no-repeat" style={{ backgroundImage: `url("${mainImage.url.startsWith('local://') ? '/product-placeholder.png' : mainImage.url}")` }} />

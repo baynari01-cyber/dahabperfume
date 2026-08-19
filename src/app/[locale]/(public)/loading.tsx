@@ -30,7 +30,7 @@ export default function Loading() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
               {[1, 2, 3, 4].map((i) => (
                 <div key={i} className="bg-white rounded-lg p-4 border border-[var(--color-ivory-200)]">
-                  <div className="aspect-square w-full bg-zinc-200 rounded-md mb-4" />
+                  <div className="aspect-[4/3] w-full bg-zinc-200 rounded-md mb-4" />
                   <div className="h-5 w-3/4 bg-zinc-200 rounded mx-auto mb-2" />
                   <div className="h-4 w-1/2 bg-zinc-200 rounded mx-auto" />
                 </div>
