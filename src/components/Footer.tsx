@@ -73,9 +73,18 @@ export async function Footer({ locale = 'ar' }: { locale?: string }) {
           <p className="text-sm text-zinc-500 mb-4 md:mb-0">
             {isAr ? `جميع الحقوق محفوظة © دهب للعطور ${new Date().getFullYear()}` : `All rights reserved © Dahab Perfumes ${new Date().getFullYear()}`}
           </p>
-          <div className="flex items-center justify-center gap-2 text-zinc-400 text-sm">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
-            {isAr ? 'صنع في الأردن' : 'Made in Jordan'}
+          <div className="flex flex-col md:flex-row items-center gap-4">
+            <div className="flex items-center justify-center gap-2 text-zinc-400 text-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+              {isAr ? 'صنع في الأردن' : 'Made in Jordan'}
+            </div>
+            <div className="flex items-center justify-center text-xs text-zinc-500 bg-zinc-900/50 px-2 py-1 rounded-full border border-zinc-800/50 hover:border-zinc-700 transition-colors">
+              <span>{isAr ? 'بواسطة' : 'made with'}</span>
+              <a href="https://www.instagram.com/baynari01/" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 mx-1 hover:text-[var(--color-champagne-400)] transition-colors">
+                <Image src="/baynari.png" alt="Baynari Logo" width={12} height={12} className="object-contain" />
+                <span className="font-semibold tracking-wide">baynari</span>
+              </a>
+            </div>
           </div>
         </div>
       </div>
