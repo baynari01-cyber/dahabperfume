@@ -23,6 +23,9 @@ export default async function AdminProductEditPage({
     where: { id },
     include: {
       category: true,
+      gender: true,
+      season: true,
+      family: true,
       images: true,
       variants: { orderBy: { createdAt: 'asc' } },
       accords: { include: { accord: true }, orderBy: { order: 'asc' } },
@@ -54,9 +57,9 @@ export default async function AdminProductEditPage({
     isVisible: product.isVisible,
     isFeatured: product.isFeatured,
     categoryId: product.categoryId,
-    genderId: product.genderId,
-    seasonId: product.seasonId,
-    familyId: product.familyId,
+    genderName: product.gender?.name || '',
+    seasonName: product.season?.name || '',
+    familyName: product.family?.name || '',
     stockLiters: product.stockLiters.toString(),
     variants: product.variants.map(v => ({
       id: v.id,

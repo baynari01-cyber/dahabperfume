@@ -26,13 +26,30 @@ export async function createProduct(formData: FormData) {
     const isVisible = formData.get('isVisible') === 'true';
     const isFeatured = formData.get('isFeatured') === 'true';
     const categoryId = formData.get('categoryId') as string;
-    const genderId = (formData.get('genderId') as string) || null;
-    const seasonId = (formData.get('seasonId') as string) || null;
-    const familyId = (formData.get('familyId') as string) || null;
+    const genderName = (formData.get('genderName') as string)?.trim() || null;
+    const seasonName = (formData.get('seasonName') as string)?.trim() || null;
+    const familyName = (formData.get('familyName') as string)?.trim() || null;
     const stockLiters = parseFloat(formData.get('stockLiters') as string) || 0;
     const slug = sku.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Date.now();
 
     if (!categoryId) throw new Error('التصنيف مطلوب');
+
+    // Upsert gender, season, family to get IDs
+    let genderId = null;
+    if (genderName) {
+      const gender = await prisma.gender.upsert({ where: { name: genderName }, update: {}, create: { name: genderName } });
+      genderId = gender.id;
+    }
+    let seasonId = null;
+    if (seasonName) {
+      const season = await prisma.season.upsert({ where: { name: seasonName }, update: {}, create: { name: seasonName } });
+      seasonId = season.id;
+    }
+    let familyId = null;
+    if (familyName) {
+      const family = await prisma.fragranceFamily.upsert({ where: { name: familyName }, update: {}, create: { name: familyName } });
+      familyId = family.id;
+    }
 
     let variants: any[] = [];
     const variantsJson = formData.get('variants') as string;
@@ -104,12 +121,29 @@ export async function updateProduct(productId: string, formData: FormData) {
     const isVisible = formData.get('isVisible') === 'true';
     const isFeatured = formData.get('isFeatured') === 'true';
     const categoryId = formData.get('categoryId') as string;
-    const genderId = (formData.get('genderId') as string) || null;
-    const seasonId = (formData.get('seasonId') as string) || null;
-    const familyId = (formData.get('familyId') as string) || null;
+    const genderName = (formData.get('genderName') as string)?.trim() || null;
+    const seasonName = (formData.get('seasonName') as string)?.trim() || null;
+    const familyName = (formData.get('familyName') as string)?.trim() || null;
     const stockLiters = parseFloat(formData.get('stockLiters') as string) || 0;
 
     if (!categoryId) throw new Error('التصنيف مطلوب');
+
+    // Upsert gender, season, family to get IDs
+    let genderId = null;
+    if (genderName) {
+      const gender = await prisma.gender.upsert({ where: { name: genderName }, update: {}, create: { name: genderName } });
+      genderId = gender.id;
+    }
+    let seasonId = null;
+    if (seasonName) {
+      const season = await prisma.season.upsert({ where: { name: seasonName }, update: {}, create: { name: seasonName } });
+      seasonId = season.id;
+    }
+    let familyId = null;
+    if (familyName) {
+      const family = await prisma.fragranceFamily.upsert({ where: { name: familyName }, update: {}, create: { name: familyName } });
+      familyId = family.id;
+    }
 
     let variants: any[] = [];
     const variantsJson = formData.get('variants') as string;
