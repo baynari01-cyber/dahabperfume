@@ -58,9 +58,9 @@ interface ProductEditFormProps {
     isVisible: boolean;
     isFeatured: boolean;
     categoryId: string;
-    genderName?: string | null;
-    seasonName?: string | null;
-    familyName?: string | null;
+    genderId?: string | null;
+    seasonId?: string | null;
+    familyId?: string | null;
     stockLiters: number | string;
     variants: Variant[];
     images: ProductImage[];
@@ -239,30 +239,30 @@ export function ProductEditForm({
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div>
           <label className="block text-sm font-bold text-zinc-700 mb-2">الجنس</label>
-          <input type="text" name="genderName" list="gendersList" defaultValue={initialData.genderName || ''} placeholder="مثال: رجالي" className="w-full border rounded p-2 text-sm outline-none bg-white focus:border-[var(--color-champagne-600)]" />
-          <datalist id="gendersList">
+          <select name="genderId" defaultValue={initialData.genderId || ''} className="w-full border rounded p-2 text-sm outline-none bg-white focus:border-[var(--color-champagne-600)]">
+            <option value="">-- بدون --</option>
             {genders.map(g => (
-              <option key={g.id} value={g.name} />
+              <option key={g.id} value={g.id}>{g.name}</option>
             ))}
-          </datalist>
+          </select>
         </div>
         <div>
           <label className="block text-sm font-bold text-zinc-700 mb-2">الموسم</label>
-          <input type="text" name="seasonName" list="seasonsList" defaultValue={initialData.seasonName || ''} placeholder="مثال: صيفي" className="w-full border rounded p-2 text-sm outline-none bg-white focus:border-[var(--color-champagne-600)]" />
-          <datalist id="seasonsList">
+          <select name="seasonId" defaultValue={initialData.seasonId || ''} className="w-full border rounded p-2 text-sm outline-none bg-white focus:border-[var(--color-champagne-600)]">
+            <option value="">-- بدون --</option>
             {seasons.map(s => (
-              <option key={s.id} value={s.name} />
+              <option key={s.id} value={s.id}>{s.name}</option>
             ))}
-          </datalist>
+          </select>
         </div>
         <div>
           <label className="block text-sm font-bold text-zinc-700 mb-2">العائلة العطرية</label>
-          <input type="text" name="familyName" list="familiesList" defaultValue={initialData.familyName || ''} placeholder="مثال: شرقية" className="w-full border rounded p-2 text-sm outline-none bg-white focus:border-[var(--color-champagne-600)]" />
-          <datalist id="familiesList">
+          <select name="familyId" defaultValue={initialData.familyId || ''} className="w-full border rounded p-2 text-sm outline-none bg-white focus:border-[var(--color-champagne-600)]">
+            <option value="">-- بدون --</option>
             {families.map(f => (
-              <option key={f.id} value={f.name} />
+              <option key={f.id} value={f.id}>{f.name}</option>
             ))}
-          </datalist>
+          </select>
         </div>
       </div>
 
