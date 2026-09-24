@@ -66,13 +66,31 @@ export async function createProduct(formData: FormData) {
         familyId,
         stockLiters,
         variants: {
-          create: variants.map((v: any) => ({
-            size: v.size,
-            sku: v.sku,
-            price: Number(v.price),
-            isActive: v.isActive ?? true,
-            usesGlobalPricing: v.usesGlobalPricing ?? true,
-          }))
+          create: (() => {
+            const seenSkus = new Set<string>();
+            const safeVariants = [];
+            for (const v of variants) {
+              if (!v.size || String(v.size).trim() === '') continue;
+              
+              let baseSku = String(v.sku || `${sku}-${String(v.size).toUpperCase().replace(/\s+/g, '')}`).trim();
+              let finalSku = baseSku;
+              let counter = 1;
+              while (seenSkus.has(finalSku)) {
+                counter++;
+                finalSku = `${baseSku}-${counter}`;
+              }
+              seenSkus.add(finalSku);
+              
+              safeVariants.push({
+                size: String(v.size).trim(),
+                sku: finalSku,
+                price: Number(v.price) || 0,
+                isActive: v.isActive ?? true,
+                usesGlobalPricing: v.usesGlobalPricing ?? true,
+              });
+            }
+            return safeVariants;
+          })()
         },
         ...(imageUrl ? {
           images: {
@@ -166,17 +184,34 @@ export async function updateProduct(productId: string, formData: FormData) {
 
     // Upsert variants: delete all and re-create for simplicity
     if (variants.length > 0) {
-      await prisma.productVariant.deleteMany({ where: { productId } });
-      await prisma.productVariant.createMany({
-        data: variants.map((v: any) => ({
+      const seenSkus = new Set<string>();
+      const safeVariants = [];
+      for (const v of variants) {
+        if (!v.size || String(v.size).trim() === '') continue;
+        
+        let baseSku = String(v.sku || `${sku}-${String(v.size).toUpperCase().replace(/\s+/g, '')}`).trim();
+        let finalSku = baseSku;
+        let counter = 1;
+        while (seenSkus.has(finalSku)) {
+          counter++;
+          finalSku = `${baseSku}-${counter}`;
+        }
+        seenSkus.add(finalSku);
+        
+        safeVariants.push({
           productId,
-          size: v.size,
-          sku: v.sku,
-          price: Number(v.price),
+          size: String(v.size).trim(),
+          sku: finalSku,
+          price: Number(v.price) || 0,
           isActive: v.isActive ?? true,
           usesGlobalPricing: v.usesGlobalPricing ?? true,
-        }))
-      });
+        });
+      }
+
+      await prisma.productVariant.deleteMany({ where: { productId } });
+      if (safeVariants.length > 0) {
+        await prisma.productVariant.createMany({ data: safeVariants });
+      }
     }
 
     // Update accords: delete all and re-create
